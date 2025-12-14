@@ -58,6 +58,9 @@ pub struct SqliteRepo {
 
 impl SqliteRepo {
   pub async fn new(db_path: &Path) -> Result<Self, String> {
+    if let Some(parent) = db_path.parent().filter(|p| !p.as_os_str().is_empty()) {
+      std::fs::create_dir_all(parent).map_err(|e| format!("db dir create error: {e}"))?;
+    }
     let url = format!("sqlite://{}", db_path.display());
     let pool = SqlitePoolOptions::new()
       .max_connections(10)
