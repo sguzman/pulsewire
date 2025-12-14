@@ -33,6 +33,7 @@ struct RawApp {
   user_agent: String,
   mode: Option<String>,
   timezone: Option<String>,
+  log_level: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -79,6 +80,7 @@ impl ConfigLoader {
     let mode = parse_mode(raw_app.app.mode.as_deref())?;
     let tz_str = raw_app.app.timezone.as_deref().filter(|s| !s.trim().is_empty()).unwrap_or(default_timezone);
     let timezone: Tz = tz_str.parse().map_err(|_| ConfigError::Invalid(format!("invalid timezone '{tz_str}'")))?;
+    let log_level = raw_app.app.log_level.clone().unwrap_or_else(|| "info".to_string());
 
     let db_base = resolve_db_base_dir(config_path);
     let db_path = db_base.join(raw_app.app.db_path);
@@ -109,6 +111,7 @@ impl ConfigLoader {
       jitter_fraction: raw_app.app.jitter_fraction,
       global_max_concurrent_requests: raw_app.app.global_max_concurrent_requests,
       user_agent: raw_app.app.user_agent,
+      log_level,
       mode,
       timezone,
       domains,

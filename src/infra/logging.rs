@@ -7,9 +7,11 @@ pub enum BootError {
     Fatal(String),
 }
 
-pub fn init_logging() {
+pub fn init_logging(level: &str) {
+    // Base level from config, still overridable via RUST_LOG.
+    let default = format!("{level},feedrv3={level},sqlx=warn,reqwest=warn");
     let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new("info,rssify=debug,sqlx=warn,reqwest=warn"));
+        .unwrap_or_else(|_| EnvFilter::new(default));
 
     tracing_subscriber::fmt()
         .with_env_filter(filter)

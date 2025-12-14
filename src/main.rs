@@ -15,10 +15,9 @@ use tracing::{error, info, warn};
 
 #[tokio::main]
 async fn main() -> Result<(), BootError> {
-  init_logging();
-
   let cfg_path = pick_config_path(std::env::args().skip(1).next());
   let cfg = ConfigLoader::load(&cfg_path).await.map_err(|e| BootError::Fatal(e.to_string()))?;
+  init_logging(&cfg.log_level);
 
   info!(timezone = %cfg.timezone, "Using timezone");
   info!(

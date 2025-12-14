@@ -32,6 +32,7 @@ pub struct AppConfig {
     pub jitter_fraction: f64,
     pub global_max_concurrent_requests: Option<usize>,
     pub user_agent: String,
+    pub log_level: String,
     pub mode: AppMode,
     pub timezone: Tz,
     pub domains: HashMap<String, DomainConfig>,
