@@ -6,6 +6,6 @@ error_backoff_base_seconds = 30
 max_error_backoff_seconds = 7200
 jitter_fraction = 0.2
 global_max_concurrent_requests = 16
-user_agent = "ScalaRssFetcher/1.0 (+https://example.org)"
+user_agent = "RssFetcher/1.0 (+https://example.org)"
 mode = "dev"
 timezone = "America/Mexico_City"
