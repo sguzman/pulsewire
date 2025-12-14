@@ -1,0 +1,175 @@
+use std::{collections::HashMap, path::{Path, PathBuf}};
+
+use chrono_tz::Tz;
+use serde::Deserialize;
+use tokio::fs;
+
+use crate::domain::model::{AppConfig, AppMode, DomainConfig, FeedConfig};
+
+#[derive(Debug, thiserror::Error)]
+pub enum ConfigError {
+  #[error("io: {0}")]
+  Io(#[from] std::io::Error),
+  #[error("toml: {0}")]
+  Toml(#[from] toml::de::Error),
+  #[error("invalid config: {0}")]
+  Invalid(String),
+}
+
+#[derive(Debug, Deserialize)]
+struct RawAppFile {
+  app: RawApp,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawApp {
+  db_path: String,
+  default_poll_seconds: u64,
+  max_poll_seconds: u64,
+  error_backoff_base_seconds: u64,
+  max_error_backoff_seconds: u64,
+  jitter_fraction: f64,
+  global_max_concurrent_requests: Option<usize>,
+  user_agent: String,
+  mode: Option<String>,
+  timezone: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawDomainsFile {
+  domains: Vec<RawDomainEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawDomainEntry {
+  name: String,
+  max_concurrent_requests: usize,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawFeedsFile {
+  feeds: Vec<RawFeed>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawFeed {
+  id: String,
+  url: String,
+  base_poll_seconds: Option<u64>,
+}
+
+pub struct ConfigLoader;
+
+impl ConfigLoader {
+  pub async fn load(config_path: &Path) -> Result<AppConfig, ConfigError> {
+    let default_timezone = "America/Mexico_City";
+
+    let base_dir = config_path.parent().ok_or_else(|| ConfigError::Invalid("config path has no parent".into()))?;
+    let domains_path = base_dir.join("domains.toml");
+    let feeds_dir = base_dir.join("feeds");
+
+    let app_content = fs::read_to_string(config_path).await?;
+    let raw_app: RawAppFile = toml::from_str(&app_content)?;
+
+    let domains_content = fs::read_to_string(&domains_path).await?;
+    let raw_domains: RawDomainsFile = toml::from_str(&domains_content)?;
+
+    let raw_feeds = Self::load_all_feeds(&feeds_dir).await?;
+
+    let mode = parse_mode(raw_app.app.mode.as_deref())?;
+    let tz_str = raw_app.app.timezone.as_deref().filter(|s| !s.trim().is_empty()).unwrap_or(default_timezone);
+    let timezone: Tz = tz_str.parse().map_err(|_| ConfigError::Invalid(format!("invalid timezone '{tz_str}'")))?;
+
+    let db_base = resolve_db_base_dir(config_path);
+    let db_path = db_base.join(raw_app.app.db_path);
+
+    let mut domains = HashMap::new();
+    for d in raw_domains.domains {
+      domains.insert(d.name, DomainConfig { max_concurrent_requests: d.max_concurrent_requests });
+    }
+
+    // Derive feed domain from URL host, like Scala does. :contentReference[oaicite:2]{index=2}
+    let mut feeds = Vec::new();
+    for f in raw_feeds.feeds {
+      let domain = url_host(&f.url).ok_or_else(|| ConfigError::Invalid(format!("feed '{}' missing host", f.id)))?;
+      feeds.push(FeedConfig {
+        id: f.id,
+        url: f.url,
+        domain,
+        base_poll_seconds: f.base_poll_seconds.unwrap_or(raw_app.app.default_poll_seconds),
+      });
+    }
+
+    Ok(AppConfig {
+      db_path,
+      default_poll_seconds: raw_app.app.default_poll_seconds,
+      max_poll_seconds: raw_app.app.max_poll_seconds,
+      error_backoff_base_seconds: raw_app.app.error_backoff_base_seconds,
+      max_error_backoff_seconds: raw_app.app.max_error_backoff_seconds,
+      jitter_fraction: raw_app.app.jitter_fraction,
+      global_max_concurrent_requests: raw_app.app.global_max_concurrent_requests,
+      user_agent: raw_app.app.user_agent,
+      mode,
+      timezone,
+      domains,
+      feeds,
+    })
+  }
+
+  async fn load_all_feeds(feeds_dir: &Path) -> Result<RawFeedsFile, ConfigError> {
+    let mut entries = fs::read_dir(feeds_dir).await
+      .map_err(|_| ConfigError::Invalid(format!("feeds dir not found at {}", feeds_dir.display())))?;
+
+    let mut files: Vec<PathBuf> = Vec::new();
+    while let Some(e) = entries.next_entry().await? {
+      let p = e.path();
+      if p.is_file() && p.extension().and_then(|s| s.to_str()).map(|s| s.eq_ignore_ascii_case("toml")).unwrap_or(false) {
+        files.push(p);
+      }
+    }
+    files.sort();
+
+    if files.is_empty() {
+      return Err(ConfigError::Invalid(format!("no feed files found in {}", feeds_dir.display())));
+    }
+
+    let mut all = Vec::new();
+    for p in files {
+      let content = fs::read_to_string(&p).await?;
+      let parsed: RawFeedsFile = toml::from_str(&content)?;
+      all.extend(parsed.feeds);
+    }
+    Ok(RawFeedsFile { feeds: all })
+  }
+}
+
+fn parse_mode(s: Option<&str>) -> Result<AppMode, ConfigError> {
+  match s.map(|x| x.to_ascii_lowercase()) {
+    None => Ok(AppMode::Prod),
+    Some(m) if m == "prod" => Ok(AppMode::Prod),
+    Some(m) if m == "dev" => Ok(AppMode::Dev),
+    Some(other) => Err(ConfigError::Invalid(format!("invalid app.mode '{other}', expected 'dev' or 'prod'"))),
+  }
+}
+
+// Mimics Scala's "if path is under resources, base is CWD else config parent". :contentReference[oaicite:3]{index=3}
+fn resolve_db_base_dir(config_path: &Path) -> PathBuf {
+  let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+  let path_str = config_path.to_string_lossy();
+  if path_str.contains("resources") {
+    cwd
+  } else {
+    config_path.parent().unwrap_or(&cwd).to_path_buf()
+  }
+}
+
+fn url_host(url: &str) -> Option<String> {
+  // Minimal, dependency-free host extraction.
+  // If you prefer stricter parsing, add `url = "2"` and use `Url::parse`.
+  let u = url.trim();
+  let after_scheme = u.split("://").nth(1)?;
+  let host_port = after_scheme.split('/').next()?;
+  let host = host_port.split('@').last().unwrap_or(host_port);
+  let host = host.split(':').next().unwrap_or(host);
+  if host.is_empty() { None } else { Some(host.to_string()) }
+}
