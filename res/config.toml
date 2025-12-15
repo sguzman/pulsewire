@@ -3,7 +3,7 @@ mode = "dev"
 timezone = "America/Mexico_City"
 
 [database]
-dialect = "sqlite"
+dialect = "postgres"
 
 [sqlite]
 path = "rss.db"

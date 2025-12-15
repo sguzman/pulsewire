@@ -3,25 +3,25 @@ CREATE TABLE IF NOT EXISTS feeds(
   url TEXT NOT NULL,
   domain TEXT NOT NULL,
   base_poll_seconds BIGINT NOT NULL,
-  created_at_ms BIGINT NOT NULL
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS feed_state_history(
   id BIGSERIAL PRIMARY KEY,
   feed_id TEXT NOT NULL REFERENCES feeds(id),
-  recorded_at_ms BIGINT NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
   phase TEXT NOT NULL,
-  last_head_at_ms BIGINT NULL,
+  last_head_at TIMESTAMPTZ NULL,
   last_head_status BIGINT NULL,
   last_head_error TEXT NULL,
-  last_get_at_ms BIGINT NULL,
+  last_get_at TIMESTAMPTZ NULL,
   last_get_status BIGINT NULL,
   last_get_error TEXT NULL,
   etag TEXT NULL,
-  last_modified_ms BIGINT NULL,
+  last_modified_at TIMESTAMPTZ NULL,
   backoff_index BIGINT NOT NULL,
   base_poll_seconds BIGINT NOT NULL,
-  next_action_at_ms BIGINT NOT NULL,
+  next_action_at TIMESTAMPTZ NOT NULL,
   jitter_seconds BIGINT NOT NULL,
   note TEXT NULL
 );
@@ -29,44 +29,44 @@ CREATE TABLE IF NOT EXISTS feed_state_history(
 CREATE TABLE IF NOT EXISTS fetch_events(
   id BIGSERIAL PRIMARY KEY,
   feed_id TEXT NOT NULL REFERENCES feeds(id),
-  event_time_ms BIGINT NOT NULL,
+  event_time TIMESTAMPTZ NOT NULL,
   method TEXT NOT NULL,
   status BIGINT NULL,
   error_kind TEXT NULL,
   latency_ms BIGINT NULL,
   backoff_index BIGINT NOT NULL,
-  scheduled_next_action_at_ms BIGINT NOT NULL,
+  scheduled_next_action_at TIMESTAMPTZ NOT NULL,
   debug TEXT NULL
 );
 
 CREATE TABLE IF NOT EXISTS feed_payloads(
   id BIGSERIAL PRIMARY KEY,
   feed_id TEXT NOT NULL REFERENCES feeds(id),
-  fetched_at_ms BIGINT NOT NULL,
+  fetched_at TIMESTAMPTZ NOT NULL,
   etag TEXT NULL,
-  last_modified_ms BIGINT NULL,
+  last_modified_at TIMESTAMPTZ NULL,
   content_hash TEXT NULL,
   title TEXT NULL,
   link TEXT NULL,
   description TEXT NULL,
   language TEXT NULL,
-  updated_at_ms BIGINT NULL
+  updated_at TIMESTAMPTZ NULL
 );
 
 CREATE TABLE IF NOT EXISTS feed_state_current(
   feed_id TEXT PRIMARY KEY REFERENCES feeds(id),
   phase TEXT NOT NULL,
-  last_head_at_ms BIGINT NULL,
+  last_head_at TIMESTAMPTZ NULL,
   last_head_status BIGINT NULL,
   last_head_error TEXT NULL,
-  last_get_at_ms BIGINT NULL,
+  last_get_at TIMESTAMPTZ NULL,
   last_get_status BIGINT NULL,
   last_get_error TEXT NULL,
   etag TEXT NULL,
-  last_modified_ms BIGINT NULL,
+  last_modified_at TIMESTAMPTZ NULL,
   backoff_index BIGINT NOT NULL,
   base_poll_seconds BIGINT NOT NULL,
-  next_action_at_ms BIGINT NOT NULL,
+  next_action_at TIMESTAMPTZ NOT NULL,
   jitter_seconds BIGINT NOT NULL,
   note TEXT NULL
 );

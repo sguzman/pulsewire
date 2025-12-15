@@ -4,7 +4,7 @@ use sqlx::PgPool;
 
 use crate::domain::model::ErrorKind;
 
-use super::util::now_epoch_ms;
+use super::util::{now_epoch_ms, ts_from_ms};
 
 pub async fn insert_event(
     pool: &PgPool,
@@ -16,15 +16,17 @@ pub async fn insert_event(
     backoff_index: i64,
     scheduled_next_action_at_ms: i64,
     debug: Option<&str>,
-    _zone: &Tz,
+    zone: &Tz,
 ) -> Result<(), String> {
     let now_ms = now_epoch_ms();
+    let event_time = ts_from_ms(now_ms, zone);
+    let scheduled_next_action_at = ts_from_ms(scheduled_next_action_at_ms, zone);
     sqlx::query(
         r#"
       INSERT INTO fetch_events(
-        feed_id, event_time_ms, method,
+        feed_id, event_time, method,
         status, error_kind, latency_ms, backoff_index,
-        scheduled_next_action_at_ms, debug
+        scheduled_next_action_at, debug
       ) VALUES (
         $1, $2, $3,
         $4, $5, $6, $7,
@@ -33,13 +35,13 @@ pub async fn insert_event(
       "#,
     )
     .bind(feed_id)
-    .bind(now_ms)
+    .bind(event_time)
     .bind(method)
     .bind(status)
     .bind(error_kind.map(|e| format!("{:?}", e)))
     .bind(latency_ms)
     .bind(backoff_index)
-    .bind(scheduled_next_action_at_ms)
+    .bind(scheduled_next_action_at)
     .bind(debug.map(|s| s.to_string()))
     .execute(pool)
     .await

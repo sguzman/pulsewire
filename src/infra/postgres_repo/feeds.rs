@@ -14,9 +14,9 @@ pub async fn upsert_feeds_bulk(
     pool: &PgPool,
     feeds: Vec<FeedConfig>,
     chunk_size: usize,
-    _zone: &Tz,
+    zone: &Tz,
 ) -> Result<(), String> {
-    let res = do_upsert_chunks(pool, feeds, chunk_size.max(1)).await;
+    let res = do_upsert_chunks(pool, feeds, chunk_size.max(1), zone).await;
     res
 }
 
@@ -24,6 +24,7 @@ async fn do_upsert_chunks(
     pool: &PgPool,
     feeds: Vec<FeedConfig>,
     chunk_size: usize,
+    zone: &Tz,
 ) -> Result<(), String> {
     let mut chunk = Vec::with_capacity(chunk_size);
     let mut total = 0usize;
@@ -33,14 +34,14 @@ async fn do_upsert_chunks(
     while let Some(feed) = iter.next() {
         chunk.push(feed);
         if chunk.len() == chunk_size {
-            upsert_chunk(pool, &chunk).await?;
+            upsert_chunk(pool, &chunk, zone).await?;
             total += chunk.len();
             chunk.clear();
         }
     }
 
     if !chunk.is_empty() {
-        upsert_chunk(pool, &chunk).await?;
+        upsert_chunk(pool, &chunk, zone).await?;
         total += chunk.len();
     }
 
@@ -52,15 +53,16 @@ async fn do_upsert_chunks(
     Ok(())
 }
 
-async fn upsert_chunk(pool: &PgPool, feeds: &[FeedConfig]) -> Result<(), String> {
+async fn upsert_chunk(pool: &PgPool, feeds: &[FeedConfig], zone: &Tz) -> Result<(), String> {
     let start = Instant::now();
     let mut tx = pool.begin().await.map_err(|e| format!("tx begin: {e}"))?;
     let now_ms = now_epoch_ms();
+    let now_ts = super::util::ts_from_ms(now_ms, zone);
 
     for f in feeds {
         sqlx::query(
             r#"
-        INSERT INTO feeds(id, url, domain, base_poll_seconds, created_at_ms)
+        INSERT INTO feeds(id, url, domain, base_poll_seconds, created_at)
         VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (id) DO NOTHING
         "#,
@@ -69,7 +71,7 @@ async fn upsert_chunk(pool: &PgPool, feeds: &[FeedConfig]) -> Result<(), String>
         .bind(&f.url)
         .bind(&f.domain)
         .bind(f.base_poll_seconds as i64)
-        .bind(now_ms)
+        .bind(now_ts)
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("upsert feed error: {e}"))?;
@@ -86,17 +88,18 @@ async fn upsert_chunk(pool: &PgPool, feeds: &[FeedConfig]) -> Result<(), String>
 
 pub async fn due_feeds(pool: &PgPool, now_ms: i64, limit: i64) -> Result<Vec<FeedConfig>, String> {
     let start = Instant::now();
+    let now_ts = super::util::ts_from_ms(now_ms, &chrono_tz::UTC);
     let rows = sqlx::query_as::<_, DueFeedRow>(
         r#"
       SELECT f.id, f.url, f.domain, f.base_poll_seconds
       FROM feeds f
       LEFT JOIN feed_state_current s ON s.feed_id = f.id
-      WHERE s.feed_id IS NULL OR s.next_action_at_ms <= $1
-      ORDER BY COALESCE(s.next_action_at_ms, $1)
+      WHERE s.feed_id IS NULL OR s.next_action_at <= $1
+      ORDER BY COALESCE(s.next_action_at, $1)
       LIMIT $2
       "#,
     )
-    .bind(now_ms)
+    .bind(now_ts)
     .bind(limit)
     .fetch_all(pool)
     .await

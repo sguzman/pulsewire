@@ -13,17 +13,17 @@ pub async fn latest_state(pool: &PgPool, feed_id: &str) -> Result<Option<StateRo
       SELECT
         feed_id,
         phase,
-        last_head_at_ms,
+        last_head_at,
         last_head_status,
         last_head_error,
-        last_get_at_ms,
+        last_get_at,
         last_get_status,
         last_get_error,
         etag,
-        last_modified_ms,
+        last_modified_at,
         backoff_index,
         base_poll_seconds,
-        next_action_at_ms,
+        next_action_at,
         jitter_seconds,
         note
       FROM feed_state_current
@@ -41,18 +41,24 @@ pub async fn insert_state(
     pool: &PgPool,
     state: &LinkState,
     recorded_at_ms: i64,
-    _zone: &Tz,
+    zone: &Tz,
     record_history: bool,
 ) -> Result<(), String> {
+    let recorded_at = super::util::ts_from_ms(recorded_at_ms, zone);
+    let last_head_at = super::util::ts_from_ms_opt(state.last_head_at_ms, zone);
+    let last_get_at = super::util::ts_from_ms_opt(state.last_get_at_ms, zone);
+    let last_modified_at = super::util::ts_from_ms_opt(state.last_modified_ms, zone);
+    let next_action_at = super::util::ts_from_ms(state.next_action_at_ms, zone);
+
     if record_history {
         sqlx::query(
             r#"
         INSERT INTO feed_state_history(
-          feed_id, recorded_at_ms, phase,
-          last_head_at_ms, last_head_status, last_head_error,
-          last_get_at_ms, last_get_status, last_get_error,
-          etag, last_modified_ms,
-          backoff_index, base_poll_seconds, next_action_at_ms,
+          feed_id, recorded_at, phase,
+          last_head_at, last_head_status, last_head_error,
+          last_get_at, last_get_status, last_get_error,
+          etag, last_modified_at,
+          backoff_index, base_poll_seconds, next_action_at,
           jitter_seconds, note
         ) VALUES (
           $1, $2, $3,
@@ -65,19 +71,19 @@ pub async fn insert_state(
         "#,
         )
         .bind(&state.feed_id)
-        .bind(recorded_at_ms)
+        .bind(recorded_at)
         .bind(format!("{:?}", state.phase))
-        .bind(state.last_head_at_ms)
+        .bind(last_head_at)
         .bind(state.last_head_status.map(|x| x as i64))
         .bind(state.last_head_error.map(|e| format!("{:?}", e)))
-        .bind(state.last_get_at_ms)
+        .bind(last_get_at)
         .bind(state.last_get_status.map(|x| x as i64))
         .bind(state.last_get_error.map(|e| format!("{:?}", e)))
         .bind(&state.etag)
-        .bind(state.last_modified_ms)
+        .bind(last_modified_at)
         .bind(state.backoff_index as i64)
         .bind(state.base_poll_seconds as i64)
-        .bind(state.next_action_at_ms)
+        .bind(next_action_at)
         .bind(state.jitter_seconds)
         .bind(&state.note)
         .execute(pool)
@@ -89,10 +95,10 @@ pub async fn insert_state(
         r#"
       INSERT INTO feed_state_current(
         feed_id, phase,
-        last_head_at_ms, last_head_status, last_head_error,
-        last_get_at_ms, last_get_status, last_get_error,
-        etag, last_modified_ms,
-        backoff_index, base_poll_seconds, next_action_at_ms,
+        last_head_at, last_head_status, last_head_error,
+        last_get_at, last_get_status, last_get_error,
+        etag, last_modified_at,
+        backoff_index, base_poll_seconds, next_action_at,
         jitter_seconds, note
       ) VALUES (
         $1, $2,
@@ -104,34 +110,34 @@ pub async fn insert_state(
       )
       ON CONFLICT(feed_id) DO UPDATE SET
         phase = excluded.phase,
-        last_head_at_ms = excluded.last_head_at_ms,
+        last_head_at = excluded.last_head_at,
         last_head_status = excluded.last_head_status,
         last_head_error = excluded.last_head_error,
-        last_get_at_ms = excluded.last_get_at_ms,
+        last_get_at = excluded.last_get_at,
         last_get_status = excluded.last_get_status,
         last_get_error = excluded.last_get_error,
         etag = excluded.etag,
-        last_modified_ms = excluded.last_modified_ms,
+        last_modified_at = excluded.last_modified_at,
         backoff_index = excluded.backoff_index,
         base_poll_seconds = excluded.base_poll_seconds,
-        next_action_at_ms = excluded.next_action_at_ms,
+        next_action_at = excluded.next_action_at,
         jitter_seconds = excluded.jitter_seconds,
         note = excluded.note
       "#,
     )
     .bind(&state.feed_id)
     .bind(format!("{:?}", state.phase))
-    .bind(state.last_head_at_ms)
+    .bind(last_head_at)
     .bind(state.last_head_status.map(|x| x as i64))
     .bind(state.last_head_error.map(|e| format!("{:?}", e)))
-    .bind(state.last_get_at_ms)
+    .bind(last_get_at)
     .bind(state.last_get_status.map(|x| x as i64))
     .bind(state.last_get_error.map(|e| format!("{:?}", e)))
     .bind(&state.etag)
-    .bind(state.last_modified_ms)
+    .bind(last_modified_at)
     .bind(state.backoff_index as i64)
     .bind(state.base_poll_seconds as i64)
-    .bind(state.next_action_at_ms)
+    .bind(next_action_at)
     .bind(state.jitter_seconds)
     .bind(&state.note)
     .execute(pool)

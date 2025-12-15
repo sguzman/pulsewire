@@ -62,6 +62,7 @@ Config is resolved from:
 ## Data & Schema Notes
 - SQLite path comes from `[sqlite].path`; WAL mode and `synchronous` toggling are used to speed bulk upserts.
 - Creation DDLs live in `res/sql/sqlite/schema.sql` and `res/sql/postgres/schema.sql` and are applied at startup; non-schema migrations remain in code.
+- Postgres stores timestamps as `timestamptz`, using the timezone from config when converting epoch milliseconds to database values.
 - Key tables: `feeds` (definitions), `feed_state_current` + `feed_state_history`, `fetch_events`, `feed_payloads`, `feed_items`.
 - A prebuilt DB snapshot is checked in under `res/` for quick inspection; dev mode will delete it on boot.
 
