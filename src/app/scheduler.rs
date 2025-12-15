@@ -412,5 +412,5 @@ fn parse_phase(s: &str) -> Option<LinkPhase> {
         _ => None,
     }
 }
-//! Scheduler tick loop: finds due feeds, throttles per-domain/global concurrency,
-//! and executes HEAD/GET cycles while persisting state, events, and payloads.
+// Scheduler tick loop: finds due feeds, throttles per-domain/global concurrency,
+// and executes HEAD/GET cycles while persisting state, events, and payloads.
