@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS feed_state_current(
 );
 
 CREATE INDEX IF NOT EXISTS idx_feed_state_current_next_action
-ON feed_state_current(next_action_at_ms);
+ON feed_state_current(next_action_at);
 
 CREATE TABLE IF NOT EXISTS feed_items(
   id BIGSERIAL PRIMARY KEY,
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS feed_items(
   title TEXT NULL,
   link TEXT NULL,
   guid TEXT NULL,
-  published_at_ms BIGINT NULL,
+  published_at TIMESTAMPTZ NULL,
   category TEXT NULL,
   description TEXT NULL,
   summary TEXT NULL
