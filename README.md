@@ -1,0 +1,71 @@
+# feedrv3
+
+Rust async worker that polls a set of RSS/Atom feeds, tracks HTTP state with adaptive backoff, and stores feed payloads plus items in SQLite. Configuration is file based (TOML) and a tiny scheduler drives concurrent HEAD/GET requests with per-domain limits.
+
+## Overview
+- Loads app/domain/feed config from a TOML bundle, migrates/creates a WAL-enabled SQLite database, and bulk-ingests feed definitions.
+- Scheduler ticks every 5s, finds due feeds, and processes them with bounded parallelism. Per-domain semaphores prevent hammering the same host; optional global cap controls total concurrency.
+- Each feed alternates HEAD/GET based on last state. HEAD decides whether content changed; GET parses the body (via `feed-rs`), hashes it, and stores payload + items. Errors trigger exponential backoff with jitter and persisted state.
+- Minimal traits (`Repo`, `Http`, `Clock`, `RandomSource`) keep the core logic isolated; `SqliteRepo`, `ReqwestHttp`, `SystemClock`, and `MutexRng` are the shipped impls.
+- Logging uses `tracing` with env-filter override support. Dev mode wipes the DB on startup for a clean slate.
+
+## Code Layout
+- `src/main.rs` – entrypoint; argument parsing, config loading, repo init/migrations, optional ingest benchmark, then scheduler loop.
+- `src/app/` – `AppContext` wiring and `Scheduler` tick loop (due-feed selection, concurrency guards, fetch pipeline).
+- `src/domain/` – core types: configs, link state machine, delay/backoff math, hashing helpers.
+- `src/feed/` – feed parsing to normalized metadata/items.
+- `src/infra/` – adapters: config loader, logging, random, reqwest HTTP client, SQLite repo, clock, time formatting.
+- `src/ports/` – traits for HTTP, repo, clock, randomness.
+- `tests/` – link state property-style tests.
+- `res/` – example config bundle (`config.toml`, `domains.toml`, `feeds/*.toml`) and a sample SQLite DB snapshot.
+
+## Configuration
+Config is resolved from:
+1) CLI argument path (if provided), else
+2) `res/config.toml` when present, else
+3) `src/main/resources/config/config.toml` (legacy layout).
+
+`config.toml` (app-wide):
+- `db_path` – SQLite file path (relative paths are resolved relative to config dir unless the path includes `resources`, in which case CWD is used).
+- `default_poll_seconds`, `max_poll_seconds` – base/max cadence for polling.
+- `error_backoff_base_seconds`, `max_error_backoff_seconds` – exponential backoff bounds after errors.
+- `jitter_fraction` – fractional +/- jitter applied to next poll time.
+- `global_max_concurrent_requests` – optional cap on total in-flight HTTP requests (defaults to 64 when unset).
+- `state_history_sample_rate` – 0–1 sampling rate for persisting historical state rows (current state is always stored).
+- `user_agent` – user agent string for HTTP requests.
+- `mode` – `dev` deletes the DB on boot; `prod` leaves it intact.
+- `timezone` – IANA TZ used for stored text timestamps and logging.
+- `log_level` – base log level (can be overridden by `RUST_LOG`).
+
+`domains.toml`: list of `{ name, max_concurrent_requests }` entries limiting concurrent requests per host. Domains not listed default to a limit of 1.
+
+`feeds/*.toml`: one or more files shaped as `[[feeds]] { id, url, base_poll_seconds? }`. Domain is derived from the URL host automatically; `base_poll_seconds` falls back to `default_poll_seconds` when omitted.
+
+## Runtime & Orchestration
+- DB migrations run on startup (tables for feeds, current+historical state, fetch events, payloads, and items). WAL is enabled.
+- Scheduler:
+  - Tick interval: 5s.
+  - Due query: up to 1000 feeds whose `next_action_at_ms` has passed or are new.
+  - Parallelism: `global_max_concurrent_requests` or default 64, with per-domain semaphores.
+  - Actions: decide `SleepUntil`, `DoHead`, or `DoGet` from the persisted `LinkState`.
+  - Backoff: exponential with jitter; errors increase backoff, unchanged HEADs move to sleep, body changes reset backoff.
+- Events: every HEAD/GET is recorded in `fetch_events`; state snapshots go to `feed_state_current` (and optionally `feed_state_history`); payloads plus items are stored when GET bodies parse successfully.
+
+## CLI Usage
+- Run scheduler (using default config resolution):  
+  `cargo run --release`
+- Run scheduler with explicit config:  
+  `cargo run --release -- /path/to/config.toml`
+- Ingest benchmark only (no scheduler):  
+  `cargo run --release -- --ingest-benchmark 50000`  
+  Inserts synthetic feeds into the DB in bulk and exits. Requires a feed count > 0.
+
+## Data & Schema Notes
+- SQLite path comes from `app.db_path`; WAL mode and `synchronous` toggling are used to speed bulk upserts.
+- Key tables: `feeds` (definitions), `feed_state_current` + `feed_state_history`, `fetch_events`, `feed_payloads`, `feed_items`.
+- A prebuilt DB snapshot is checked in under `res/` for quick inspection; dev mode will delete it on boot.
+
+## Development
+- Build/test: `cargo test` (no extra setup needed; uses the traits to avoid network access in tests).
+- Logs: configure via `app.log_level` or `RUST_LOG`; log output includes targets and thread info.
+- HTTP client: reqwest with rustls, 30s timeout, gzip/brotli/deflate enabled.
