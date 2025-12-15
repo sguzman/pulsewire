@@ -10,4 +10,4 @@ global_max_concurrent_requests = 16
 user_agent = "RssFetcher/1.0 (+https://example.org)"
 mode = "dev"
 timezone = "America/Mexico_City"
-log_level = "debug"
+log_level = "info"
