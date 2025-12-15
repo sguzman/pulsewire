@@ -25,21 +25,18 @@ Config is resolved from:
 2) `res/config.toml` when present, else
 3) `src/main/resources/config/config.toml` (legacy layout).
 
-`config.toml` (app-wide):
-- `db_path` – SQLite file path (relative paths are resolved relative to config dir unless the path includes `resources`, in which case CWD is used).
-- `default_poll_seconds`, `max_poll_seconds` – base/max cadence for polling.
-- `error_backoff_base_seconds`, `max_error_backoff_seconds` – exponential backoff bounds after errors.
-- `jitter_fraction` – fractional +/- jitter applied to next poll time.
-- `global_max_concurrent_requests` – optional cap on total in-flight HTTP requests (defaults to 64 when unset).
-- `state_history_sample_rate` – 0–1 sampling rate for persisting historical state rows (current state is always stored).
-- `user_agent` – user agent string for HTTP requests.
-- `mode` – `dev` deletes the DB on boot; `prod` leaves it intact.
-- `timezone` – IANA TZ used for stored text timestamps and logging.
-- `log_level` – base log level (can be overridden by `RUST_LOG`).
+`config.toml` (app-wide sections):
+- `[app]` – `mode` (`dev` deletes the DB on boot; `prod` leaves it intact) and `timezone` (IANA TZ for timestamps/logging).
+- `[database]` – `path` to the SQLite file (relative paths resolve from the config dir unless the path includes `resources`, in which case CWD is used).
+- `[polling]` – `default_seconds`, `max_seconds`, and `jitter_fraction` controlling poll cadence and jitter.
+- `[backoff]` – `error_base_seconds` and `max_error_seconds` bounding exponential backoff after errors.
+- `[requests]` – `global_max_concurrent_requests` optional cap on in-flight HTTP requests (defaults to 64 when unset) and `user_agent` string.
+- `[state_history]` – `sample_rate` between 0–1 for persisting historical state rows (current state is always stored).
+- `[logging]` – `level` base log level (can be overridden by `RUST_LOG`).
 
 `domains.toml`: list of `{ name, max_concurrent_requests }` entries limiting concurrent requests per host. Domains not listed default to a limit of 1.
 
-`feeds/*.toml`: one or more files shaped as `[[feeds]] { id, url, base_poll_seconds? }`. Domain is derived from the URL host automatically; `base_poll_seconds` falls back to `default_poll_seconds` when omitted.
+`feeds/*.toml`: one or more files shaped as `[[feeds]] { id, url, base_poll_seconds? }`. Domain is derived from the URL host automatically; `base_poll_seconds` falls back to `polling.default_seconds` when omitted.
 
 ## Runtime & Orchestration
 - DB migrations run on startup (tables for feeds, current+historical state, fetch events, payloads, and items). WAL is enabled.
@@ -61,11 +58,11 @@ Config is resolved from:
   Inserts synthetic feeds into the DB in bulk and exits. Requires a feed count > 0.
 
 ## Data & Schema Notes
-- SQLite path comes from `app.db_path`; WAL mode and `synchronous` toggling are used to speed bulk upserts.
+- SQLite path comes from `database.path`; WAL mode and `synchronous` toggling are used to speed bulk upserts.
 - Key tables: `feeds` (definitions), `feed_state_current` + `feed_state_history`, `fetch_events`, `feed_payloads`, `feed_items`.
 - A prebuilt DB snapshot is checked in under `res/` for quick inspection; dev mode will delete it on boot.
 
 ## Development
 - Build/test: `cargo test` (no extra setup needed; uses the traits to avoid network access in tests).
-- Logs: configure via `app.log_level` or `RUST_LOG`; log output includes targets and thread info.
+- Logs: configure via `logging.level` or `RUST_LOG`; log output includes targets and thread info.
 - HTTP client: reqwest with rustls, 30s timeout, gzip/brotli/deflate enabled.

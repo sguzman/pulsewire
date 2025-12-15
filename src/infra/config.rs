@@ -23,22 +23,53 @@ pub enum ConfigError {
 #[derive(Debug, Deserialize)]
 struct RawAppFile {
     app: RawApp,
+    database: RawDatabase,
+    polling: RawPolling,
+    backoff: RawBackoff,
+    requests: RawRequests,
+    logging: RawLogging,
+    #[serde(default)]
+    state_history: Option<RawStateHistory>,
 }
 
 #[derive(Debug, Deserialize)]
 struct RawApp {
-    db_path: String,
-    default_poll_seconds: u64,
-    max_poll_seconds: u64,
-    error_backoff_base_seconds: u64,
-    max_error_backoff_seconds: u64,
-    jitter_fraction: f64,
-    global_max_concurrent_requests: Option<usize>,
-    user_agent: String,
     mode: Option<String>,
     timezone: Option<String>,
-    log_level: Option<String>,
-    state_history_sample_rate: Option<f64>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawDatabase {
+    path: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawPolling {
+    default_seconds: u64,
+    max_seconds: u64,
+    jitter_fraction: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawBackoff {
+    error_base_seconds: u64,
+    max_error_seconds: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawRequests {
+    global_max_concurrent_requests: Option<usize>,
+    user_agent: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawLogging {
+    level: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawStateHistory {
+    sample_rate: Option<f64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -82,15 +113,15 @@ impl ConfigLoader {
         let feeds_dir = base_dir.join("feeds");
 
         let app_content = fs::read_to_string(config_path).await?;
-        let raw_app: RawAppFile = toml::from_str(&app_content)?;
+        let raw_cfg: RawAppFile = toml::from_str(&app_content)?;
 
         let domains_content = fs::read_to_string(&domains_path).await?;
         let raw_domains: RawDomainsFile = toml::from_str(&domains_content)?;
 
         let raw_feeds = Self::load_all_feeds(&feeds_dir).await?;
 
-        let mode = parse_mode(raw_app.app.mode.as_deref())?;
-        let tz_str = raw_app
+        let mode = parse_mode(raw_cfg.app.mode.as_deref())?;
+        let tz_str = raw_cfg
             .app
             .timezone
             .as_deref()
@@ -99,14 +130,14 @@ impl ConfigLoader {
         let timezone: Tz = tz_str
             .parse()
             .map_err(|_| ConfigError::Invalid(format!("invalid timezone '{tz_str}'")))?;
-        let log_level = raw_app
-            .app
-            .log_level
+        let log_level = raw_cfg
+            .logging
+            .level
             .clone()
             .unwrap_or_else(|| "info".to_string());
 
         let db_base = resolve_db_base_dir(config_path);
-        let db_path = db_base.join(raw_app.app.db_path);
+        let db_path = db_base.join(raw_cfg.database.path);
 
         let mut domains = HashMap::new();
         for d in raw_domains.domains {
@@ -118,10 +149,14 @@ impl ConfigLoader {
             );
         }
 
-        let history_sample_rate = raw_app.app.state_history_sample_rate.unwrap_or(1.0);
+        let history_sample_rate = raw_cfg
+            .state_history
+            .as_ref()
+            .and_then(|s| s.sample_rate)
+            .unwrap_or(1.0);
         if !(0.0..=1.0).contains(&history_sample_rate) {
             return Err(ConfigError::Invalid(format!(
-                "state_history_sample_rate must be between 0 and 1, got {history_sample_rate}"
+                "state_history.sample_rate must be between 0 and 1, got {history_sample_rate}"
             )));
         }
 
@@ -136,20 +171,20 @@ impl ConfigLoader {
                 domain,
                 base_poll_seconds: f
                     .base_poll_seconds
-                    .unwrap_or(raw_app.app.default_poll_seconds),
+                    .unwrap_or(raw_cfg.polling.default_seconds),
             });
         }
 
         Ok(LoadedConfig {
             app: AppConfig {
                 db_path,
-                default_poll_seconds: raw_app.app.default_poll_seconds,
-                max_poll_seconds: raw_app.app.max_poll_seconds,
-                error_backoff_base_seconds: raw_app.app.error_backoff_base_seconds,
-                max_error_backoff_seconds: raw_app.app.max_error_backoff_seconds,
-                jitter_fraction: raw_app.app.jitter_fraction,
-                global_max_concurrent_requests: raw_app.app.global_max_concurrent_requests,
-                user_agent: raw_app.app.user_agent,
+                default_poll_seconds: raw_cfg.polling.default_seconds,
+                max_poll_seconds: raw_cfg.polling.max_seconds,
+                error_backoff_base_seconds: raw_cfg.backoff.error_base_seconds,
+                max_error_backoff_seconds: raw_cfg.backoff.max_error_seconds,
+                jitter_fraction: raw_cfg.polling.jitter_fraction,
+                global_max_concurrent_requests: raw_cfg.requests.global_max_concurrent_requests,
+                user_agent: raw_cfg.requests.user_agent,
                 log_level,
                 mode,
                 timezone,
