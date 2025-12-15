@@ -1,3 +1,4 @@
+//! Helpers to create/configure the SQLite pool and backfill missing columns.
 use std::{
     path::{Path, PathBuf},
     str::FromStr,

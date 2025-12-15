@@ -1,3 +1,4 @@
+//! SQLite-backed repository implementing persistence for feeds, state, events, and payloads.
 mod connection;
 mod events;
 mod feeds;

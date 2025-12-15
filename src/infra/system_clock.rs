@@ -1,3 +1,4 @@
+//! `Clock` implementation backed by `SystemTime`.
 use crate::ports::clock::Clock;
 
 #[derive(Default)]

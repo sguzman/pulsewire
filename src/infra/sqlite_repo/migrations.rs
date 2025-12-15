@@ -1,3 +1,4 @@
+//! Database migrations: create tables/indexes and ensure new columns exist.
 use chrono_tz::Tz;
 use sqlx::SqlitePool;
 use tracing::info;

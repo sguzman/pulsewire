@@ -1,3 +1,4 @@
+//! Loads the TOML configuration bundle (app/domains/feeds) and normalizes it into `AppConfig` + feed list.
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},

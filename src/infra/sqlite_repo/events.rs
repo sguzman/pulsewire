@@ -1,3 +1,4 @@
+//! Records fetch events (HEAD/GET) with timing/status/error info.
 use chrono_tz::Tz;
 use sqlx::SqlitePool;
 

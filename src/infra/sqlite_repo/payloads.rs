@@ -1,3 +1,4 @@
+//! Inserts feed payload metadata and associated feed items in a single transaction.
 use chrono_tz::Tz;
 use sqlx::SqlitePool;
 use tracing::debug;

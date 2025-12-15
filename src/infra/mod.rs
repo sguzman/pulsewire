@@ -1,3 +1,4 @@
+//! Infrastructure adapters: config loading, logging setup, HTTP client, SQLite repo, time, randomness.
 pub mod config;
 pub mod logging;
 pub mod random;

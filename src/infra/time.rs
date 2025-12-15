@@ -1,3 +1,4 @@
+//! Helpers for formatting epoch milliseconds into human-readable strings in a given timezone.
 use chrono::{DateTime, TimeZone, Utc};
 use chrono_tz::Tz;
 

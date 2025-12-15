@@ -1,3 +1,4 @@
+//! Feed definition persistence: bulk upsert and due-feed selection.
 use std::time::Instant;
 
 use chrono_tz::Tz;

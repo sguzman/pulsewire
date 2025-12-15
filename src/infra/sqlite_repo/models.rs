@@ -1,3 +1,4 @@
+//! Row structs and conversions between SQLx records and domain types.
 use crate::domain::model::FeedConfig;
 use crate::ports::repo::StateRow;
 

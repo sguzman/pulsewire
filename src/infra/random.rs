@@ -1,3 +1,4 @@
+//! Mutex-protected RNG implementing the `RandomSource` port.
 use crate::ports::random::RandomSource;
 use rand::Rng;
 use tokio::sync::Mutex;

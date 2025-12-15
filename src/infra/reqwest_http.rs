@@ -1,3 +1,5 @@
+//! Reqwest-backed HTTP client implementing the `Http` port; maps reqwest errors/statuses
+//! into domain `HeadResult`/`GetResult` with coarse error kinds.
 use crate::domain::model::{ErrorKind, GetResult, HeadResult};
 use crate::ports::http::Http;
 use chrono::{DateTime, Utc};

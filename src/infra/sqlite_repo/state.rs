@@ -1,3 +1,4 @@
+//! Persist/read current and historical link state snapshots.
 use chrono_tz::Tz;
 use sqlx::SqlitePool;
 

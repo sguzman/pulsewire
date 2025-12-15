@@ -1,3 +1,4 @@
+//! Logging bootstrap using `tracing` with env-filter override support.
 use thiserror::Error;
 use tracing_subscriber::EnvFilter;
 
