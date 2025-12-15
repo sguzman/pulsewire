@@ -40,10 +40,9 @@ fn set_time_zone(
     move |conn, _meta| {
         let tz = tz_name.clone();
         Box::pin(async move {
-            sqlx::query("SET TIME ZONE $1")
-                .bind(tz)
-                .execute(conn)
-                .await?;
+            // Postgres does not accept bind params in SET TIME ZONE; embed the literal safely.
+            let stmt = format!("SET TIME ZONE '{}'", tz.replace('\'', "''"));
+            sqlx::query(&stmt).execute(conn).await?;
             Ok(())
         })
     }
