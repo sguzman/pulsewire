@@ -1,3 +1,4 @@
+//! HTTP abstraction returning lightweight HEAD/GET results.
 use crate::domain::model::{GetResult, HeadResult};
 
 #[async_trait::async_trait]

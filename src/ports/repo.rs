@@ -1,3 +1,4 @@
+//! Repository abstraction for feed definitions, state snapshots, fetch events, and parsed payloads.
 use chrono_tz::Tz;
 
 use crate::{
