@@ -21,3 +21,7 @@ max_concurrent_requests = 1
 [[domains]]
 name = "tradingeconomics.com"
 max_concurrent_requests = 1
+
+[[domains]]
+name = "bls.gov"
+max_concurrent_requests = 1

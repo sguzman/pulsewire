@@ -1,0 +1,309 @@
+[[feeds]]
+id = "https://www.bls.gov/feed/atus.rss"
+url = "https://www.bls.gov/feed/atus.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/bdm_latest.rss"
+url = "https://www.bls.gov/feed/bdm_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/bls_latest.rss"
+url = "https://www.bls.gov/feed/bls_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ces_latest.rss"
+url = "https://www.bls.gov/feed/ces_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/cesan.rss"
+url = "https://www.bls.gov/feed/cesan.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/cesmy.rss"
+url = "https://www.bls.gov/feed/cesmy.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/cewbd.rss"
+url = "https://www.bls.gov/feed/cewbd.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/cewqtr.rss"
+url = "https://www.bls.gov/feed/cewqtr.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/cfoi.rss"
+url = "https://www.bls.gov/feed/cfoi.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/cpi_latest.rss"
+url = "https://www.bls.gov/feed/cpi_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/cpi.rss"
+url = "https://www.bls.gov/feed/cpi.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/cps_latest.rss"
+url = "https://www.bls.gov/feed/cps_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/disabl.rss"
+url = "https://www.bls.gov/feed/disabl.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/disp.rss"
+url = "https://www.bls.gov/feed/disp.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ebs2.rss"
+url = "https://www.bls.gov/feed/ebs2.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ecec.rss"
+url = "https://www.bls.gov/feed/ecec.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/eci_latest.rss"
+url = "https://www.bls.gov/feed/eci_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/eci.rss"
+url = "https://www.bls.gov/feed/eci.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ecopro.rss"
+url = "https://www.bls.gov/feed/ecopro.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/empsit.rss"
+url = "https://www.bls.gov/feed/empsit.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/famee.rss"
+url = "https://www.bls.gov/feed/famee.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/forbrn.rss"
+url = "https://www.bls.gov/feed/forbrn.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ggsocc.rss"
+url = "https://www.bls.gov/feed/ggsocc.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/hsgec.rss"
+url = "https://www.bls.gov/feed/hsgec.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ichcc.rss"
+url = "https://www.bls.gov/feed/ichcc.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/iif_latest.rss"
+url = "https://www.bls.gov/feed/iif_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/jlt_latest.rss"
+url = "https://www.bls.gov/feed/jlt_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/jolts.rss"
+url = "https://www.bls.gov/feed/jolts.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/lau_latest.rss"
+url = "https://www.bls.gov/feed/lau_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/laus.rss"
+url = "https://www.bls.gov/feed/laus.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/leave.rss"
+url = "https://www.bls.gov/feed/leave.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/lpc_latest.rss"
+url = "https://www.bls.gov/feed/lpc_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/metro.rss"
+url = "https://www.bls.gov/feed/metro.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/mls_latest.rss"
+url = "https://www.bls.gov/feed/mls_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/mxp_latest.rss"
+url = "https://www.bls.gov/feed/mxp_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/nlsoy.rss"
+url = "https://www.bls.gov/feed/nlsoy.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/nlsyth.rss"
+url = "https://www.bls.gov/feed/nlsyth.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ocwage.rss"
+url = "https://www.bls.gov/feed/ocwage.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ors.rss"
+url = "https://www.bls.gov/feed/ors.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/osh.rss"
+url = "https://www.bls.gov/feed/osh.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ppi_latest.rss"
+url = "https://www.bls.gov/feed/ppi_latest.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ppi.rss"
+url = "https://www.bls.gov/feed/ppi.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/prin.rss"
+url = "https://www.bls.gov/feed/prin.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/prin1.rss"
+url = "https://www.bls.gov/feed/prin1.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/prin2.rss"
+url = "https://www.bls.gov/feed/prin2.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/prin3.rss"
+url = "https://www.bls.gov/feed/prin3.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/prod2.rss"
+url = "https://www.bls.gov/feed/prod2.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/prod3.rss"
+url = "https://www.bls.gov/feed/prod3.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/prod4.rss"
+url = "https://www.bls.gov/feed/prod4.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/prod5.rss"
+url = "https://www.bls.gov/feed/prod5.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/realer.rss"
+url = "https://www.bls.gov/feed/realer.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/srgune.rss"
+url = "https://www.bls.gov/feed/srgune.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/tenure.rss"
+url = "https://www.bls.gov/feed/tenure.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/uisup.rss"
+url = "https://www.bls.gov/feed/uisup.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/union2.rss"
+url = "https://www.bls.gov/feed/union2.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/vet.rss"
+url = "https://www.bls.gov/feed/vet.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/volun.rss"
+url = "https://www.bls.gov/feed/volun.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/wkstp.rss"
+url = "https://www.bls.gov/feed/wkstp.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/wkyeng.rss"
+url = "https://www.bls.gov/feed/wkyeng.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/work.rss"
+url = "https://www.bls.gov/feed/work.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/ximpim.rss"
+url = "https://www.bls.gov/feed/ximpim.rss"
+base_poll_seconds = 800
+
+[[feeds]]
+id = "https://www.bls.gov/feed/youth.rss"
+url = "https://www.bls.gov/feed/youth.rss"
+base_poll_seconds = 800
