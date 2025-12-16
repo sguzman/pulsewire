@@ -1,90 +1,90 @@
 [[feeds]]
-id = "econ"
+id = "arxiv-econ"
 url = "https://rss.arxiv.org/rss/econ"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "eess"
+id = "arxiv-eess"
 url = "https://rss.arxiv.org/rss/eess"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "stat"
+id = "arxiv-stat"
 url = "https://rss.arxiv.org/rss/stat"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "q-fin"
+id = "arxiv-q-fin"
 url = "https://rss.arxiv.org/rss/q-fin"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "q-bio"
+id = "arxiv-q-bio"
 url = "https://rss.arxiv.org/rss/q-bio"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "cs"
+id = "arxiv-cs"
 url = "https://rss.arxiv.org/rss/cs"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "quant-ph"
+id = "arxiv-quant-ph"
 url = "https://rss.arxiv.org/rss/quant-ph"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "physics"
+id = "arxiv-physics"
 url = "https://rss.arxiv.org/rss/physics"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "nucl-th"
+id = "arxiv-nucl-th"
 url = "https://rss.arxiv.org/rss/nucl-th"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "nucl-ex"
+id = "arxiv-nucl-ex"
 url = "https://rss.arxiv.org/rss/nucl-ex"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "nlin"
+id = "arxiv-nlin"
 url = "https://rss.arxiv.org/rss/nlin"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "math-ph"
+id = "arxiv-math-ph"
 url = "https://rss.arxiv.org/rss/math-ph"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "hep-th"
+id = "arxiv-hep-th"
 url = "https://rss.arxiv.org/rss/hep-th"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "hep-lat"
+id = "arxiv-hep-lat"
 url = "https://rss.arxiv.org/rss/hep-lat"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "hep-ex"
+id = "arxiv-hep-ex"
 url = "https://rss.arxiv.org/rss/hep-ex"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "gr-qc"
+id = "arxiv-gr-qc"
 url = "https://rss.arxiv.org/rss/gr-qc"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "cond-mat"
+id = "arxiv-cond-mat"
 url = "https://rss.arxiv.org/rss/cond-mat"
 base_poll_seconds = 500
 
 [[feeds]]
-id = "astro-ph"
+id = "arxiv-astro-ph"
 url = "https://rss.arxiv.org/rss/astro-ph"
 base_poll_seconds = 500
 
