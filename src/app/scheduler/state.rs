@@ -36,6 +36,7 @@ pub fn to_link_state(row: &StateRow, cfg: &AppConfig) -> Option<LinkState> {
         next_action_at_ms: row.next_action_at_ms,
         jitter_seconds: row.jitter_seconds,
         note: row.note.clone(),
+        consecutive_error_count: row.consecutive_error_count.max(0) as u32,
     })
 }
 

@@ -4,7 +4,8 @@ use sqlx::SqlitePool;
 use tracing::info;
 
 use super::connection::{
-    ensure_feed_base_poll_column, ensure_feed_category_column, ensure_feed_state_note_column,
+    ensure_feed_base_poll_column, ensure_feed_category_column, ensure_feed_state_error_count_column,
+    ensure_feed_state_note_column,
 };
 
 const SQLITE_SCHEMA: &str = include_str!(concat!(
@@ -36,6 +37,8 @@ pub async fn migrate(
 
     ensure_feed_base_poll_column(pool, default_poll_seconds).await?;
     ensure_feed_state_note_column(pool).await?;
+    ensure_feed_state_error_count_column(pool, "feed_state_current").await?;
+    ensure_feed_state_error_count_column(pool, "feed_state_history").await?;
 
     info!("DB migrate done");
     Ok(())

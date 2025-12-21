@@ -104,7 +104,10 @@ pub async fn due_feeds(
       SELECT f.id, f.url, f.domain, f.category, f.base_poll_seconds
       FROM feeds f
       LEFT JOIN feed_state_current s ON s.feed_id = f.id
-      WHERE f.category = ?1 AND (s.feed_id IS NULL OR s.next_action_at_ms <= ?2)
+      LEFT JOIN error_feeds e ON e.feed_id = f.id
+      WHERE f.category = ?1
+        AND e.feed_id IS NULL
+        AND (s.feed_id IS NULL OR s.next_action_at_ms <= ?2)
       ORDER BY COALESCE(s.next_action_at_ms, ?2)
       LIMIT ?3
       "#,

@@ -89,6 +89,36 @@ pub async fn ensure_feed_state_note_column(pool: &SqlitePool) -> Result<(), Stri
     Ok(())
 }
 
+pub async fn ensure_feed_state_error_count_column(
+    pool: &SqlitePool,
+    table: &str,
+) -> Result<(), String> {
+    let sql = format!(
+        "SELECT 1 FROM pragma_table_info('{table}') WHERE name = 'consecutive_error_count' LIMIT 1"
+    );
+    let has_column: Option<i64> = sqlx::query_scalar(&sql)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| format!("introspect {table}: {e}"))?;
+
+    if has_column.is_some() {
+        return Ok(());
+    }
+
+    let ddl = format!(
+        "ALTER TABLE {table} ADD COLUMN consecutive_error_count INTEGER NOT NULL DEFAULT 0"
+    );
+    sqlx::query(&ddl)
+        .execute(pool)
+        .await
+        .map_err(|e| format!("add consecutive_error_count column: {e}"))?;
+    info!(
+        table,
+        "Added consecutive_error_count column to feed state table"
+    );
+    Ok(())
+}
+
 pub async fn ensure_feed_category_column(pool: &SqlitePool) -> Result<(), String> {
     let has_table: Option<i64> = sqlx::query_scalar(
         r#"SELECT 1 FROM sqlite_master WHERE type='table' AND name='feeds' LIMIT 1"#,

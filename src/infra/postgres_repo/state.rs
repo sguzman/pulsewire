@@ -25,7 +25,8 @@ pub async fn latest_state(pool: &PgPool, feed_id: &str) -> Result<Option<StateRo
         base_poll_seconds,
         next_action_at,
         jitter_seconds,
-        note
+        note,
+        consecutive_error_count
       FROM feed_state_current
       WHERE feed_id = $1
       "#,
@@ -59,14 +60,14 @@ pub async fn insert_state(
           last_get_at, last_get_status, last_get_error,
           etag, last_modified_at,
           backoff_index, base_poll_seconds, next_action_at,
-          jitter_seconds, note
+          jitter_seconds, note, consecutive_error_count
         ) VALUES (
           $1, $2, $3,
           $4, $5, $6,
           $7, $8, $9,
           $10, $11,
           $12, $13, $14,
-          $15, $16
+          $15, $16, $17
         )
         "#,
         )
@@ -86,6 +87,7 @@ pub async fn insert_state(
         .bind(next_action_at)
         .bind(state.jitter_seconds)
         .bind(&state.note)
+        .bind(state.consecutive_error_count as i64)
         .execute(pool)
         .await
         .map_err(|e| format!("insert_state history error: {e}"))?;
@@ -99,14 +101,14 @@ pub async fn insert_state(
         last_get_at, last_get_status, last_get_error,
         etag, last_modified_at,
         backoff_index, base_poll_seconds, next_action_at,
-        jitter_seconds, note
+        jitter_seconds, note, consecutive_error_count
       ) VALUES (
         $1, $2,
         $3, $4, $5,
         $6, $7, $8,
         $9, $10,
         $11, $12, $13,
-        $14, $15
+        $14, $15, $16
       )
       ON CONFLICT(feed_id) DO UPDATE SET
         phase = excluded.phase,
@@ -122,7 +124,8 @@ pub async fn insert_state(
         base_poll_seconds = excluded.base_poll_seconds,
         next_action_at = excluded.next_action_at,
         jitter_seconds = excluded.jitter_seconds,
-        note = excluded.note
+        note = excluded.note,
+        consecutive_error_count = excluded.consecutive_error_count
       "#,
     )
     .bind(&state.feed_id)
@@ -140,6 +143,7 @@ pub async fn insert_state(
     .bind(next_action_at)
     .bind(state.jitter_seconds)
     .bind(&state.note)
+    .bind(state.consecutive_error_count as i64)
     .execute(pool)
     .await
     .map_err(|e| format!("insert_state current error: {e}"))?;

@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS feed_state_history(
   base_poll_seconds BIGINT NOT NULL,
   next_action_at TIMESTAMPTZ NOT NULL,
   jitter_seconds BIGINT NOT NULL,
-  note TEXT NULL
+  note TEXT NULL,
+  consecutive_error_count BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS fetch_events(
@@ -76,7 +77,8 @@ CREATE TABLE IF NOT EXISTS feed_state_current(
   base_poll_seconds BIGINT NOT NULL,
   next_action_at TIMESTAMPTZ NOT NULL,
   jitter_seconds BIGINT NOT NULL,
-  note TEXT NULL
+  note TEXT NULL,
+  consecutive_error_count BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_feed_state_current_next_action
@@ -99,3 +101,15 @@ CREATE INDEX IF NOT EXISTS idx_feed_items_payload ON feed_items(payload_id);
 CREATE INDEX IF NOT EXISTS idx_feed_items_feed ON feed_items(feed_id);
 CREATE INDEX IF NOT EXISTS idx_feeds_domain ON feeds(domain);
 CREATE INDEX IF NOT EXISTS idx_feeds_category ON feeds(category);
+
+CREATE TABLE IF NOT EXISTS error_feeds(
+  feed_id TEXT PRIMARY KEY REFERENCES feeds(id),
+  error_count BIGINT NOT NULL,
+  last_error_kind TEXT NULL,
+  last_error_status BIGINT NULL,
+  last_error_at TIMESTAMPTZ NOT NULL,
+  note TEXT NULL
+);
+
+ALTER TABLE feed_state_current ADD COLUMN IF NOT EXISTS consecutive_error_count BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE feed_state_history ADD COLUMN IF NOT EXISTS consecutive_error_count BIGINT NOT NULL DEFAULT 0;

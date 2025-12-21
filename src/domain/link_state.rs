@@ -36,6 +36,7 @@ pub struct LinkState {
     pub jitter_seconds: i64,
 
     pub note: Option<String>,
+    pub consecutive_error_count: u32,
 }
 
 #[derive(Debug, Clone)]
@@ -71,6 +72,7 @@ impl LinkState {
             next_action_at_ms: now_ms,
             jitter_seconds: 0,
             note: Some("initial".to_string()),
+            consecutive_error_count: 0,
         }
     }
 
@@ -104,23 +106,26 @@ impl LinkState {
         let is_error =
             result.error.is_some() || result.status.map(is_error_status).unwrap_or(false);
 
-        let (backoff_idx, phase, note) = if is_error {
+        let (backoff_idx, phase, note, consecutive_error_count) = if is_error {
             (
                 state.backoff_index.saturating_add(1),
                 LinkPhase::ErrorBackoff,
                 Some(format!("head-error-{:?}", result.error)),
+                state.consecutive_error_count.saturating_add(1),
             )
         } else if modified {
             (
                 state.backoff_index.max(0),
                 LinkPhase::NeedsGet,
                 Some("head-modified".to_string()),
+                0,
             )
         } else {
             (
                 state.backoff_index.saturating_add(1),
                 LinkPhase::Sleeping,
                 Some("head-not-modified".to_string()),
+                0,
             )
         };
 
@@ -150,6 +155,7 @@ impl LinkState {
         state.next_action_at_ms = now_ms + (delay.total_seconds as i64) * 1000;
         state.jitter_seconds = delay.jitter_seconds;
         state.note = note;
+        state.consecutive_error_count = consecutive_error_count;
         state
     }
 
@@ -163,19 +169,26 @@ impl LinkState {
         let is_error =
             result.error.is_some() || result.status.map(is_error_status).unwrap_or(false);
 
-        let (backoff_idx, phase, note) = if is_error {
+        let (backoff_idx, phase, note, consecutive_error_count) = if is_error {
             (
                 state.backoff_index.saturating_add(1),
                 LinkPhase::ErrorBackoff,
                 Some(format!("get-error-{:?}", result.error)),
+                state.consecutive_error_count.saturating_add(1),
             )
         } else if body_changed {
-            (0, LinkPhase::Sleeping, Some("get-body-changed".to_string()))
+            (
+                0,
+                LinkPhase::Sleeping,
+                Some("get-body-changed".to_string()),
+                0,
+            )
         } else {
             (
                 state.backoff_index.saturating_add(1),
                 LinkPhase::Sleeping,
                 Some("get-unchanged".to_string()),
+                0,
             )
         };
 
@@ -205,6 +218,7 @@ impl LinkState {
         state.next_action_at_ms = now_ms + (delay.total_seconds as i64) * 1000;
         state.jitter_seconds = delay.jitter_seconds;
         state.note = note;
+        state.consecutive_error_count = consecutive_error_count;
         state
     }
 }

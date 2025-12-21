@@ -21,6 +21,7 @@ pub struct StateRowRecord {
     pub next_action_at: DateTime<Utc>,
     pub jitter_seconds: i64,
     pub note: Option<String>,
+    pub consecutive_error_count: i64,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -50,6 +51,7 @@ impl From<StateRowRecord> for StateRow {
             next_action_at_ms: value.next_action_at.timestamp_millis(),
             jitter_seconds: value.jitter_seconds,
             note: value.note,
+            consecutive_error_count: value.consecutive_error_count,
         }
     }
 }

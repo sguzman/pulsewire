@@ -1,5 +1,6 @@
 //! SQLite-backed repository implementing persistence for feeds, state, events, and payloads.
 mod connection;
+mod error_feeds;
 mod events;
 mod feeds;
 mod migrations;
@@ -116,6 +117,27 @@ impl Repo for SqliteRepo {
             last_modified_ms,
             content_hash,
             parsed,
+            zone,
+        )
+        .await
+    }
+
+    async fn mark_feed_error(
+        &self,
+        feed_id: &str,
+        error_kind: Option<ErrorKind>,
+        status: Option<i64>,
+        error_count: i64,
+        observed_at_ms: i64,
+        zone: &Tz,
+    ) -> Result<(), String> {
+        error_feeds::mark_feed_error(
+            &self.pool,
+            feed_id,
+            error_kind,
+            status,
+            error_count,
+            observed_at_ms,
             zone,
         )
         .await

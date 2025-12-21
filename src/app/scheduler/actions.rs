@@ -48,6 +48,20 @@ where
     repo.insert_state(&updated, now_ms, &cfg.timezone, record_history)
         .await?;
 
+    if cfg.max_consecutive_errors > 0
+        && updated.consecutive_error_count >= cfg.max_consecutive_errors
+    {
+        repo.mark_feed_error(
+            &feed.id,
+            res.error,
+            res.status.map(|s| s as i64),
+            updated.consecutive_error_count as i64,
+            now_ms,
+            &cfg.timezone,
+        )
+        .await?;
+    }
+
     Ok(())
 }
 
@@ -111,5 +125,18 @@ where
 
     repo.insert_state(&updated, now_ms, &cfg.timezone, record_history)
         .await?;
+    if cfg.max_consecutive_errors > 0
+        && updated.consecutive_error_count >= cfg.max_consecutive_errors
+    {
+        repo.mark_feed_error(
+            &feed.id,
+            res.error,
+            res.status.map(|s| s as i64),
+            updated.consecutive_error_count as i64,
+            now_ms,
+            &cfg.timezone,
+        )
+        .await?;
+    }
     Ok(())
 }

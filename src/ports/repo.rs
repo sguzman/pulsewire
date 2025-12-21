@@ -26,6 +26,7 @@ pub struct StateRow {
     pub next_action_at_ms: i64,
     pub jitter_seconds: i64,
     pub note: Option<String>,
+    pub consecutive_error_count: i64,
 }
 
 #[async_trait::async_trait]
@@ -76,6 +77,16 @@ pub trait Repo: Send + Sync {
         last_modified_ms: Option<i64>,
         content_hash: Option<&str>,
         parsed: &ParsedFeed,
+        zone: &Tz,
+    ) -> Result<(), String>;
+
+    async fn mark_feed_error(
+        &self,
+        feed_id: &str,
+        error_kind: Option<ErrorKind>,
+        status: Option<i64>,
+        error_count: i64,
+        observed_at_ms: i64,
         zone: &Tz,
     ) -> Result<(), String>;
 }

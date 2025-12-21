@@ -81,6 +81,8 @@ struct RawPolling {
 struct RawBackoff {
     error_base_seconds: u64,
     max_error_seconds: u64,
+    #[serde(default = "default_max_consecutive_errors")]
+    max_consecutive_errors: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -276,6 +278,7 @@ impl ConfigLoader {
                 max_poll_seconds: raw_cfg.polling.max_seconds,
                 error_backoff_base_seconds: raw_cfg.backoff.error_base_seconds,
                 max_error_backoff_seconds: raw_cfg.backoff.max_error_seconds,
+                max_consecutive_errors: raw_cfg.backoff.max_consecutive_errors,
                 jitter_fraction: raw_cfg.polling.jitter_fraction,
                 global_max_concurrent_requests: raw_cfg.requests.global_max_concurrent_requests,
                 user_agent: raw_cfg.requests.user_agent,
@@ -370,6 +373,10 @@ fn default_pg_database() -> String {
 
 fn default_sqlite_path() -> String {
     "rss.db".to_string()
+}
+
+fn default_max_consecutive_errors() -> u32 {
+    5
 }
 
 fn parse_mode(s: Option<&str>) -> Result<AppMode, ConfigError> {
