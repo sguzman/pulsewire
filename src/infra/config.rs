@@ -94,6 +94,14 @@ struct RawRequests {
 #[derive(Debug, Deserialize)]
 struct RawLogging {
     level: Option<String>,
+    #[serde(default = "default_log_file_directory")]
+    file_directory: String,
+    #[serde(default = "default_log_file_name")]
+    file_name: String,
+    #[serde(default = "default_log_file_rotation")]
+    file_rotation: String,
+    #[serde(default = "default_log_file_level")]
+    file_level: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -180,6 +188,9 @@ impl ConfigLoader {
             .level
             .clone()
             .unwrap_or_else(|| "info".to_string());
+        let log_file_level = normalize_log_level(&raw_cfg.logging.file_level)?;
+        let log_file_rotation = normalize_log_rotation(&raw_cfg.logging.file_rotation)?;
+        let log_dir = resolve_log_dir(config_path, &raw_cfg.logging.file_directory);
 
         let db_base = resolve_db_base_dir(config_path);
         let db_path = db_base.join(raw_cfg.sqlite.path);
@@ -283,6 +294,10 @@ impl ConfigLoader {
                 global_max_concurrent_requests: raw_cfg.requests.global_max_concurrent_requests,
                 user_agent: raw_cfg.requests.user_agent,
                 log_level,
+                log_file_level,
+                log_file_directory: log_dir,
+                log_file_name: raw_cfg.logging.file_name,
+                log_file_rotation,
                 mode,
                 timezone,
                 domains,
@@ -393,6 +408,22 @@ fn default_sqlite_path() -> String {
     "rss.db".to_string()
 }
 
+fn default_log_file_directory() -> String {
+    "logs".to_string()
+}
+
+fn default_log_file_name() -> String {
+    "feedrv3".to_string()
+}
+
+fn default_log_file_rotation() -> String {
+    "hourly".to_string()
+}
+
+fn default_log_file_level() -> String {
+    "info".to_string()
+}
+
 fn default_max_consecutive_errors() -> u32 {
     5
 }
@@ -408,6 +439,34 @@ fn parse_mode(s: Option<&str>) -> Result<AppMode, ConfigError> {
     }
 }
 
+fn normalize_log_level(level: &str) -> Result<String, ConfigError> {
+    let l = level.trim().to_ascii_lowercase();
+    if l.is_empty() {
+        return Err(ConfigError::Invalid("logging.file_level cannot be empty".into()));
+    }
+    match l.as_str() {
+        "error" | "warn" | "info" | "debug" | "trace" | "off" => Ok(l),
+        _ => Err(ConfigError::Invalid(format!(
+            "invalid logging.file_level '{level}', expected error|warn|info|debug|trace|off"
+        ))),
+    }
+}
+
+fn normalize_log_rotation(rotation: &str) -> Result<String, ConfigError> {
+    let r = rotation.trim().to_ascii_lowercase();
+    if r.is_empty() {
+        return Err(ConfigError::Invalid(
+            "logging.file_rotation cannot be empty".into(),
+        ));
+    }
+    match r.as_str() {
+        "hourly" => Ok(r),
+        _ => Err(ConfigError::Invalid(format!(
+            "invalid logging.file_rotation '{rotation}', expected 'hourly'"
+        ))),
+    }
+}
+
 // Mimics Scala's "if path is under resources, base is CWD else config parent". :contentReference[oaicite:3]{index=3}
 fn resolve_db_base_dir(config_path: &Path) -> PathBuf {
     let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
@@ -417,6 +476,17 @@ fn resolve_db_base_dir(config_path: &Path) -> PathBuf {
     } else {
         config_path.parent().unwrap_or(&cwd).to_path_buf()
     }
+}
+
+fn resolve_log_dir(config_path: &Path, log_dir: &str) -> PathBuf {
+    let p = Path::new(log_dir);
+    if p.is_absolute() {
+        return p.to_path_buf();
+    }
+    config_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .join(p)
 }
 
 fn url_host(url: &str) -> Option<String> {

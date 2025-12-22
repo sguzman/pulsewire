@@ -31,7 +31,7 @@ async fn main() -> Result<(), BootError> {
     } = ConfigLoader::load(&cfg_path)
         .await
         .map_err(|e| BootError::Fatal(e.to_string()))?;
-    init_logging(&app_cfg.log_level);
+    init_logging(&app_cfg);
 
     info!(timezone = %app_cfg.timezone, "Using timezone");
     let db_desc = match app_cfg.db_dialect {

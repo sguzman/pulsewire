@@ -34,3 +34,7 @@ sample_rate = 0.4
 
 [logging]
 level = "info"
+file_level = "info"
+file_directory = "logs"
+file_name = "feedrv3"
+file_rotation = "hourly"
