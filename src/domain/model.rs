@@ -80,8 +80,8 @@ pub enum ErrorKind {
     Timeout,
     DnsFailure,
     ConnectionFailure,
-    Http4xx,
-    Http5xx,
+    Http4xx(u16),
+    Http5xx(u16),
     ParseError,
     Unexpected,
 }

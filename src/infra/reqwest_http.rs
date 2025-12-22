@@ -37,9 +37,9 @@ impl ReqwestHttp {
     fn status_error_kind(code: StatusCode) -> Option<ErrorKind> {
         let n = code.as_u16();
         if (400..500).contains(&n) {
-            Some(ErrorKind::Http4xx)
+            Some(ErrorKind::Http4xx(n))
         } else if (500..600).contains(&n) {
-            Some(ErrorKind::Http5xx)
+            Some(ErrorKind::Http5xx(n))
         } else {
             None
         }

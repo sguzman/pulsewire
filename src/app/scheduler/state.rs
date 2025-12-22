@@ -55,12 +55,28 @@ fn parse_error(s: &str) -> Option<ErrorKind> {
         "Timeout" => Some(ErrorKind::Timeout),
         "DnsFailure" => Some(ErrorKind::DnsFailure),
         "ConnectionFailure" => Some(ErrorKind::ConnectionFailure),
-        "Http4xx" => Some(ErrorKind::Http4xx),
-        "Http5xx" => Some(ErrorKind::Http5xx),
+        "Http4xx" => Some(ErrorKind::Http4xx(0)),
+        "Http5xx" => Some(ErrorKind::Http5xx(0)),
         "ParseError" => Some(ErrorKind::ParseError),
         "Unexpected" => Some(ErrorKind::Unexpected),
-        _ => None,
+        _ => parse_http_error(s),
     }
+}
+
+fn parse_http_error(s: &str) -> Option<ErrorKind> {
+    if let Some(code) = parse_http_code(s, "Http4xx(") {
+        return Some(ErrorKind::Http4xx(code));
+    }
+    if let Some(code) = parse_http_code(s, "Http5xx(") {
+        return Some(ErrorKind::Http5xx(code));
+    }
+    None
+}
+
+fn parse_http_code(s: &str, prefix: &str) -> Option<u16> {
+    let rest = s.strip_prefix(prefix)?;
+    let rest = rest.strip_suffix(')')?;
+    rest.parse::<u16>().ok()
 }
 
 fn parse_phase(s: &str) -> Option<LinkPhase> {
