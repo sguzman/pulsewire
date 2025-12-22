@@ -5,7 +5,7 @@ use crate::domain::link_state::{LinkPhase, LinkState};
 use crate::domain::model::AppConfig;
 use crate::feed;
 use crate::ports::{http::Http, repo::Repo};
-use tracing::warn;
+use tracing::{error, warn};
 
 use super::concurrency::ConcurrencyGuards;
 
@@ -51,6 +51,12 @@ where
     if cfg.max_consecutive_errors > 0
         && updated.consecutive_error_count >= cfg.max_consecutive_errors
     {
+        error!(
+            feed_id = %feed.id,
+            errors = updated.consecutive_error_count,
+            max_errors = cfg.max_consecutive_errors,
+            "Feed reached max consecutive errors"
+        );
         repo.mark_feed_error(
             &feed.id,
             res.error,
@@ -128,6 +134,12 @@ where
     if cfg.max_consecutive_errors > 0
         && updated.consecutive_error_count >= cfg.max_consecutive_errors
     {
+        error!(
+            feed_id = %feed.id,
+            errors = updated.consecutive_error_count,
+            max_errors = cfg.max_consecutive_errors,
+            "Feed reached max consecutive errors"
+        );
         repo.mark_feed_error(
             &feed.id,
             res.error,
