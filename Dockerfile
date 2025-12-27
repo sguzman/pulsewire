@@ -16,7 +16,7 @@ COPY res /app/res
 RUN useradd -r -u 10001 -g nogroup feedrv3 \
     && mkdir -p /app/res/logs \
     && chown -R feedrv3:nogroup /app/res
-ENV CONFIG_PATH=/app/res/config.toml
+ENV CONFIG_PATH=/app/res/docker.toml
 ENV FEEDS_DIR=/app/res/feeds
 VOLUME ["/app/res/feeds"]
 USER feedrv3

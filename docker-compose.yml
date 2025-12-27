@@ -1,0 +1,14 @@
+services:
+  feedrv3:
+    build: .
+    environment:
+      CONFIG_PATH: /app/res/docker.toml
+      FEEDS_DIR: /app/res/feeds
+    volumes:
+      - ./res:/app/res:ro
+    networks:
+      - services
+
+networks:
+  services:
+    external: true
