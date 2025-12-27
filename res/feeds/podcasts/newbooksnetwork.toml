@@ -84,126 +84,929 @@ base_poll_seconds = 1000
 
 # Architecture
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-architecture"
+id = "podcast-new-books-network-arts-letters-architecture"
 url = "https://feeds.megaphone.fm/LIT5569218006"
 base_poll_seconds = 1000
 
 # Art
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-art"
+id = "podcast-new-books-network-arts-letters-art"
 url = "https://feeds.megaphone.fm/LIT4705177591"
 base_poll_seconds = 1000
 
 # Children's Literature
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-childrens-literature"
+id = "podcast-new-books-network-arts-letters-childrens-literature"
 url = "https://feeds.megaphone.fm/NBN4085303954"
 base_poll_seconds = 1000
 
 # Comics and Graphic Novels
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-comics-and-graphic-novels"
+id = "podcast-new-books-network-arts-letters-comics-and-graphic-novels"
 url = "https://feeds.megaphone.fm/NSR1143330870"
 base_poll_seconds = 1000
 
 # Digital Humanities
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-digital-humanities"
+id = "podcast-new-books-network-arts-letters-digital-humanities"
 url = "https://feeds.megaphone.fm/digitalhumanties"
 base_poll_seconds = 1000
 
 # Fantasy
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-fantasy"
+id = "podcast-new-books-network-arts-letters-fantasy"
 url = "https://feeds.megaphone.fm/LIT3826935375"
 base_poll_seconds = 1000
 
 # Film
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-film"
+id = "podcast-new-books-network-arts-letters-film"
 url = "https://feeds.megaphone.fm/LIT6660444378"
 base_poll_seconds = 1000
 
 # Folklore
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-folklore"
+id = "podcast-new-books-network-arts-letters-folklore"
 url = "https://feeds.megaphone.fm/LIT6330413236"
 base_poll_seconds = 1000
 
 # Food
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-food"
+id = "podcast-new-books-network-arts-letters-food"
 url = "https://feeds.megaphone.fm/LIT3477516260"
 base_poll_seconds = 1000
 
 # Game Studies
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-game-studies"
+id = "podcast-new-books-network-arts-letters-game-studies"
 url = "https://feeds.megaphone.fm/NSR5362328079"
 base_poll_seconds = 1000
 
 # Historical Fiction
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-historical-fiction"
+id = "podcast-new-books-network-arts-letters-historical-fiction"
 url = "https://feeds.megaphone.fm/LIT6932828125"
 base_poll_seconds = 1000
 
 # Library Science
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-library-science"
+id = "podcast-new-books-network-arts-letters-library-science"
 url = "https://feeds.megaphone.fm/NBN1152836190"
 base_poll_seconds = 1000
 
 # Literary Studies
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-literary-studies"
+id = "podcast-new-books-network-arts-letters-literary-studies"
 url = "https://feeds.megaphone.fm/LIT7489921391"
 base_poll_seconds = 1000
 
 # Literature
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-literature"
+id = "podcast-new-books-network-arts-letters-literature"
 url = "https://feeds.megaphone.fm/LIT3662756671"
 base_poll_seconds = 1000
 
 # Museum Studies
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-museum-studies"
+id = "podcast-new-books-network-arts-letters-museum-studies"
 url = "https://feeds.megaphone.fm/NBN7936496793"
 base_poll_seconds = 1000
 
 # Music
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-music"
+id = "podcast-new-books-network-arts-letters-music"
 url = "https://feeds.megaphone.fm/LIT1985735353"
 base_poll_seconds = 1000
 
 # Performing Arts
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-performing-arts"
+id = "podcast-new-books-network-arts-letters-performing-arts"
 url = "https://feeds.megaphone.fm/LIT9810498522"
 base_poll_seconds = 1000
 
 # Photography
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-photography"
+id = "podcast-new-books-network-arts-letters-photography"
 url = "https://feeds.megaphone.fm/LIT7602147273"
 base_poll_seconds = 1000
 
 # Poetry
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-poetry"
+id = "podcast-new-books-network-arts-letters-poetry"
 url = "https://feeds.megaphone.fm/LIT1279112701"
 base_poll_seconds = 1000
 
 # Popular Culture
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-popular-culture"
+id = "podcast-new-books-network-arts-letters-popular-culture"
 url = "https://feeds.megaphone.fm/LIT2984583128"
 base_poll_seconds = 1000
 
 # Science Fiction
 [[feeds]]
-id = "podcast-newbooksnetwork-arts-letters-science-fiction"
+id = "podcast-new-books-network-arts-letters-science-fiction"
 url = "https://feeds.megaphone.fm/LIT6037340033"
+base_poll_seconds = 1000
+
+# African Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-african-studies"
+url = "https://feeds.megaphone.fm/LIT4224425735"
+base_poll_seconds = 1000
+
+# African American Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-african-american-studies"
+url = "https://feeds.megaphone.fm/LIT9884742733"
+base_poll_seconds = 1000
+
+# American Politics
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-american-politics"
+url = "https://feeds.megaphone.fm/NBN2537872845"
+base_poll_seconds = 1000
+
+# American Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-american-studies"
+url = "https://feeds.megaphone.fm/LIT2571364172"
+base_poll_seconds = 1000
+
+# American South
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-american-south"
+url = "https://feeds.megaphone.fm/LIT9141081432"
+base_poll_seconds = 1000
+
+# American West
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-american-west"
+url = "https://feeds.megaphone.fm/LIT3997202566"
+base_poll_seconds = 1000
+
+# Asian American Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-asian-american-studies"
+url = "https://feeds.megaphone.fm/LIT8694547118"
+base_poll_seconds = 1000
+
+# Australian and New Zealand Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-australian-and-new-zealand-studies"
+url = "https://feeds.megaphone.fm/LIT4392416069"
+base_poll_seconds = 1000
+
+# British Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-british-studies"
+url = "https://feeds.megaphone.fm/LIT4185533436"
+base_poll_seconds = 1000
+
+# Canadian Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-canadian-studies"
+url = "https://feeds.megaphone.fm/NBN5526700120"
+base_poll_seconds = 1000
+
+# Caribbean Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-caribbean-studies"
+url = "https://feeds.megaphone.fm/LIT6488864857"
+base_poll_seconds = 1000
+
+# Central Asian Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-central-asian-studies"
+url = "https://feeds.megaphone.fm/LIT9438616575"
+base_poll_seconds = 1000
+
+# Chinese Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-chinese-studies"
+url = "https://feeds.megaphone.fm/LIT1170601646"
+base_poll_seconds = 1000
+
+# East Asian Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-east-asian-studies"
+url = "https://feeds.megaphone.fm/LIT3976960259"
+base_poll_seconds = 1000
+
+# Eastern European Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-eastern-european-studies"
+url = "https://feeds.megaphone.fm/LIT7794950156"
+base_poll_seconds = 1000
+
+# European Politics
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-european-politics"
+url = "https://feeds.megaphone.fm/NBN9455698150"
+base_poll_seconds = 1000
+
+# French Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-french-studies"
+url = "https://feeds.megaphone.fm/LIT6196813446"
+base_poll_seconds = 1000
+
+# German Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-german-studies"
+url = "https://feeds.megaphone.fm/LIT5197330968"
+base_poll_seconds = 1000
+
+# Iberian Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-iberian-studies"
+url = "https://feeds.megaphone.fm/NBN6051163392"
+base_poll_seconds = 1000
+
+# Indian Ocean World
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-indian-ocean-world"
+url = "https://feeds.megaphone.fm/newbooksindianoceanworld"
+base_poll_seconds = 1000
+
+# Iranian Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-iranian-studies"
+url = "https://feeds.megaphone.fm/NBNK4310987155"
+base_poll_seconds = 1000
+
+# Irish Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-irish-studies"
+url = "https://feeds.megaphone.fm/NBN2322031686"
+base_poll_seconds = 1000
+
+# Israel Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-israel-studies"
+url = "https://feeds.megaphone.fm/LIT6092173261"
+base_poll_seconds = 1000
+
+# Italian Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-italian-studies"
+url = "https://feeds.megaphone.fm/italianstudies"
+base_poll_seconds = 1000
+
+# Japanese Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-japanese-studies"
+url = "https://feeds.megaphone.fm/LIT9977052542"
+base_poll_seconds = 1000
+
+# Korean Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-korean-studies"
+url = "https://feeds.megaphone.fm/LIT9530842449"
+base_poll_seconds = 1000
+
+# Latino Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-latino-studies"
+url = "https://feeds.megaphone.fm/LIT1165032769"
+base_poll_seconds = 1000
+
+# Latin American Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-latin-american-studies"
+url = "https://feeds.megaphone.fm/LIT8547951194"
+base_poll_seconds = 1000
+
+# Mexican Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-mexican-studies"
+url = "https://feeds.megaphone.fm/NBN3370967518"
+base_poll_seconds = 1000
+
+# Middle Eastern Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-middle-eastern-studies"
+url = "https://feeds.megaphone.fm/LIT1877366845"
+base_poll_seconds = 1000
+
+# Native American Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-native-american-studies"
+url = "https://feeds.megaphone.fm/LIT5697542958"
+base_poll_seconds = 1000
+
+# Pacific Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-pacific-studies"
+url = "https://feeds.megaphone.fm/NBN3745371863"
+base_poll_seconds = 1000
+
+# Polish Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-polish-studies"
+url = "https://feeds.megaphone.fm/NBN5662189435"
+base_poll_seconds = 1000
+
+# Russian and Eurasian Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-russian-and-eurasian-studies"
+url = "https://feeds.megaphone.fm/LIT6780696927"
+base_poll_seconds = 1000
+
+# Southeast Asian Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-southeast-asian-studies"
+url = "https://feeds.megaphone.fm/LIT4430509368"
+base_poll_seconds = 1000
+
+# South Asian Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-south-asian-studies"
+url = "https://feeds.megaphone.fm/LIT2660294853"
+base_poll_seconds = 1000
+
+# Turkish Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-turkish-studies"
+url = "https://feeds.megaphone.fm/NSR2954190952"
+base_poll_seconds = 1000
+
+# Ukrainian Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-ukrainian-studies"
+url = "https://feeds.megaphone.fm/NBN7681184580"
+base_poll_seconds = 1000
+
+# Western European Studies
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-western-european-studies"
+url = "https://feeds.megaphone.fm/LIT5699084207"
+base_poll_seconds = 1000
+
+# World Affairs
+
+[[feeds]]
+id = "podcast-new-books-network-peoples-places-world-affairs"
+url = "https://feeds.megaphone.fm/LIT6200923204"
+base_poll_seconds = 1000
+
+# New Books Network - Politics & Society
+# NOTE: Replace each TODO with the channel's actual RSS link (the "RSS" button on that channel page).
+# Base structure matches goldmansachs.toml. :contentReference[oaicite:3]{index=3}
+
+# Animal Studies
+[[feeds]]
+id = "podcast-new-books-network-politics-society-animal-studies"
+url = "https://feeds.megaphone.fm/animalstudies"
+base_poll_seconds = 1000
+
+# Anthropology (verified RSS target)
+[[feeds]]
+id = "podcast-new-books-network-politics-society-anthropology"
+url = "https://feeds.megaphone.fm/LIT5223487889"
+base_poll_seconds = 1000
+
+# Archaeology
+[[feeds]]
+id = "podcast-new-books-network-politics-society-archaeology"
+url = "https://feeds.megaphone.fm/LIT7466012449"
+base_poll_seconds = 1000
+
+# Business, Management, and Marketing
+[[feeds]]
+id = "podcast-new-books-network-politics-society-business-management-and-marketing"
+url = "https://feeds.megaphone.fm/NBN1887539973"
+base_poll_seconds = 1000
+
+# Media and Communications
+[[feeds]]
+id = "podcast-new-books-network-politics-society-media-and-communications"
+url = "https://feeds.megaphone.fm/LIT1384621729"
+base_poll_seconds = 1000
+
+# Critical Theory
+[[feeds]]
+id = "podcast-new-books-network-politics-society-critical-theory"
+url = "https://feeds.megaphone.fm/LIT8251633117"
+base_poll_seconds = 1000
+
+# Disability Studies
+[[feeds]]
+id = "podcast-new-books-network-politics-society-disability-studies"
+url = "https://feeds.megaphone.fm/NBN5832934978"
+base_poll_seconds = 1000
+
+# Drugs, Addiction and Recovery
+[[feeds]]
+id = "podcast-new-books-network-politics-society-drugs-addiction-and-recovery"
+url = "https://feeds.megaphone.fm/LIT7292762155"
+base_poll_seconds = 1000
+
+# Education
+[[feeds]]
+id = "podcast-new-books-network-politics-society-education"
+url = "https://feeds.megaphone.fm/LIT4894369277"
+base_poll_seconds = 1000
+
+# Economics
+[[feeds]]
+id = "podcast-new-books-network-politics-society-economics"
+url = "https://feeds.megaphone.fm/LIT6811763985"
+base_poll_seconds = 1000
+
+# Finance
+[[feeds]]
+id = "podcast-new-books-network-politics-society-finance"
+url = "https://feeds.megaphone.fm/finance"
+base_poll_seconds = 1000
+
+# Geography
+[[feeds]]
+id = "podcast-new-books-network-politics-society-geography"
+url = "https://feeds.megaphone.fm/LIT1603835782"
+base_poll_seconds = 1000
+
+# Gender Studies
+[[feeds]]
+id = "podcast-new-books-network-politics-society-gender-studies"
+url = "https://feeds.megaphone.fm/LIT3077747900"
+base_poll_seconds = 1000
+
+# Genocide Studies
+[[feeds]]
+id = "podcast-new-books-network-politics-society-genocide-studies"
+url = "https://feeds.megaphone.fm/LIT8032989522"
+base_poll_seconds = 1000
+
+# Higher Education
+[[feeds]]
+id = "podcast-new-books-network-politics-society-higher-education"
+url = "https://feeds.megaphone.fm/NBN6191988705"
+base_poll_seconds = 1000
+
+# Human Rights
+[[feeds]]
+id = "podcast-new-books-network-politics-society-human-rights"
+url = "https://feeds.megaphone.fm/NBN4841577731"
+base_poll_seconds = 1000
+
+# Journalism
+[[feeds]]
+id = "podcast-new-books-network-politics-society-journalism"
+url = "https://feeds.megaphone.fm/LIT9181619095"
+base_poll_seconds = 1000
+
+# Language
+[[feeds]]
+id = "podcast-new-books-network-politics-society-language"
+url = "https://feeds.megaphone.fm/LIT7632558716"
+base_poll_seconds = 1000
+
+# Law
+[[feeds]]
+id = "podcast-new-books-network-politics-society-law"
+url = "https://feeds.megaphone.fm/LIT9194668674"
+base_poll_seconds = 1000
+
+# LGBTQ+ Studies
+[[feeds]]
+id = "podcast-new-books-network-politics-society-lgbtq-studies"
+url = "https://feeds.megaphone.fm/lgbtqstudies"
+base_poll_seconds = 1000
+
+# National Security
+[[feeds]]
+id = "podcast-new-books-network-politics-society-national-security"
+url = "https://feeds.megaphone.fm/LIT3614552456"
+base_poll_seconds = 1000
+
+# Philanthropy
+[[feeds]]
+id = "podcast-new-books-network-politics-society-philanthropy"
+url = "https://feeds.megaphone.fm/NBNK7124586766"
+base_poll_seconds = 1000
+
+# Philosophy
+[[feeds]]
+id = "podcast-new-books-network-politics-society-philosophy"
+url = "https://feeds.megaphone.fm/LIT3426521806"
+base_poll_seconds = 1000
+
+# Policing, Incarceration, and Reform
+[[feeds]]
+id = "podcast-new-books-network-politics-society-policing-incarceration-and-reform"
+url = "https://feeds.megaphone.fm/NBN7312885287"
+base_poll_seconds = 1000
+
+# Political Science
+[[feeds]]
+id = "podcast-new-books-network-politics-society-political-science"
+url = "https://feeds.megaphone.fm/LIT7047417664"
+base_poll_seconds = 1000
+
+# Politics & Polemics
+[[feeds]]
+id = "podcast-new-books-network-politics-society-politics-polemics"
+url = "https://feeds.megaphone.fm/LIT3660976705"
+base_poll_seconds = 1000
+
+# Public Policy
+[[feeds]]
+id = "podcast-new-books-network-politics-society-public-policy"
+url = "https://feeds.megaphone.fm/LIT5619479076"
+base_poll_seconds = 1000
+
+# Sex, Sexuality, and Sex Work
+[[feeds]]
+id = "podcast-new-books-network-politics-society-sex-sexuality-and-sex-work"
+url = "https://feeds.megaphone.fm/NBN9099016434"
+base_poll_seconds = 1000
+
+# Sociology
+[[feeds]]
+id = "podcast-new-books-network-politics-society-sociology"
+url = "https://feeds.megaphone.fm/LIT3382719913"
+base_poll_seconds = 1000
+
+# Sound Studies
+[[feeds]]
+id = "podcast-new-books-network-politics-society-sound-studies"
+url = "https://feeds.megaphone.fm/LIT3648923516"
+base_poll_seconds = 1000
+
+# Sports
+[[feeds]]
+id = "podcast-new-books-network-politics-society-sports"
+url = "https://feeds.megaphone.fm/LIT5126616900"
+base_poll_seconds = 1000
+
+# Urban Studies
+[[feeds]]
+id = "podcast-new-books-network-politics-society-urban-studies"
+url = "https://feeds.megaphone.fm/NBN5256992629"
+base_poll_seconds = 1000
+
+# Biblical Studies
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-biblical-studies"
+url = "https://feeds.megaphone.fm/LIT5975927091"
+base_poll_seconds = 1000
+
+# Buddhist Studies
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-buddhist-studies"
+url = "https://feeds.megaphone.fm/LIT8948303572"
+base_poll_seconds = 1000
+
+# Catholic Studies
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-catholic-studies"
+url = "https://feeds.megaphone.fm/NBN1060171847"
+base_poll_seconds = 1000
+
+# Christian Studies
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-christian-studies"
+url = "https://feeds.megaphone.fm/LIT4981288691"
+base_poll_seconds = 1000
+
+# Indian Religions
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-indian-religions"
+url = "https://feeds.megaphone.fm/LIT4181452222"
+base_poll_seconds = 1000
+
+# Islamic Studies
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-islamic-studies"
+url = "https://feeds.megaphone.fm/LIT7782346334"
+base_poll_seconds = 1000
+
+# Jewish Studies
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-jewish-studies"
+url = "https://feeds.megaphone.fm/LIT1748646590"
+base_poll_seconds = 1000
+
+# Religion
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-religion"
+url = "https://feeds.megaphone.fm/LIT9789987066"
+base_poll_seconds = 1000
+
+# Secularism
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-secularism"
+url = "https://feeds.megaphone.fm/LIT5027395222"
+base_poll_seconds = 1000
+
+# Spiritual Practice and Mindfulness
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-spiritual-practice-and-mindfulness"
+url = "https://feeds.megaphone.fm/LIT2462536800"
+base_poll_seconds = 1000
+
+# World Christianity
+[[feeds]]
+id = "podcast-new-books-network-religion-faith-world-christianity"
+url = "https://feeds.megaphone.fm/NBN6684554822"
+base_poll_seconds = 1000
+
+# Princeton UP Ideas Podcast
+[[feeds]]
+id = "podcast-new-books-network-princeton-up-ideas-podcast"
+url = "https://feeds.megaphone.fm/princetonup"
+base_poll_seconds = 1000
+
+# The Harvard Brief
+[[feeds]]
+id = "podcast-new-books-network-the-harvard-brief"
+url = "https://feeds.megaphone.fm/NBNK6029646569"
+base_poll_seconds = 1000
+
+# Open Society Ideas Podcast
+[[feeds]]
+id = "podcast-new-books-network-open-society-ideas-podcast"
+url = "https://feeds.megaphone.fm/NBNK7432556114"
+base_poll_seconds = 1000
+
+# In Conversation: An OUP Podcast
+[[feeds]]
+id = "podcast-new-books-network-in-conversation-an-oup-podcast"
+url = "https://feeds.megaphone.fm/NBN7311111504"
+base_poll_seconds = 1000
+
+# Library of America presents LOA LIVE
+[[feeds]]
+id = "podcast-new-books-network-library-of-america-presents-loa-live"
+url = "https://feeds.megaphone.fm/NBNK6295485480"
+base_poll_seconds = 1000
+
+# Exchanges: A Cambridge UP Podcast
+[[feeds]]
+id = "podcast-new-books-network-exchanges-a-cambridge-up-podcast"
+url = "https://feeds.megaphone.fm/NBN2314872489"
+base_poll_seconds = 1000
+
+# The Truth About Bullshit
+[[feeds]]
+id = "podcast-new-books-network-the-truth-about-bullshit"
+url = "https://feeds.megaphone.fm/NBNK2522131676"
+base_poll_seconds = 1000
+
+# The University of Alberta Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-the-university-of-alberta-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK4712488633"
+base_poll_seconds = 1000
+
+# The University of Arizona Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-the-university-of-arizona-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK7382143686"
+base_poll_seconds = 1000
+
+# Behind the Book: A Nebraska UP Podcast
+[[feeds]]
+id = "podcast-new-books-network-behind-the-book-a-nebraska-up-podcast"
+url = "https://feeds.megaphone.fm/NBN4415150846"
+base_poll_seconds = 1000
+
+# Behind the Cover with Indiana University Press
+[[feeds]]
+id = "podcast-new-books-network-behind-the-cover-with-indiana-university-press"
+url = "https://feeds.megaphone.fm/NBNK3084099524"
+base_poll_seconds = 1000
+
+# Beyond Pages: A SUNY Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-beyond-pages-a-suny-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK7774679586"
+base_poll_seconds = 1000
+
+# Brill | Nijhoff Lawcast
+[[feeds]]
+id = "podcast-new-books-network-brill-nijhoff-lawcast"
+url = "https://feeds.megaphone.fm/NBNK1456267442"
+base_poll_seconds = 1000
+
+# De Gruyter Brill on the Wire
+[[feeds]]
+id = "podcast-new-books-network-de-gruyter-brill-on-the-wire"
+url = "https://feeds.megaphone.fm/NBN8358582757"
+base_poll_seconds = 1000
+
+# Beyond the Margins: The University of California Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-beyond-the-margins-the-university-of-california-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK1043790352"
+base_poll_seconds = 1000
+
+# CEU Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-ceu-press-podcast"
+url = "https://feeds.megaphone.fm/NSR3999582012"
+base_poll_seconds = 1000
+
+# The University of Chicago Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-the-university-of-chicago-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK7051800991"
+base_poll_seconds = 1000
+
+# Florida Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-florida-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK5604049550"
+base_poll_seconds = 1000
+
+# From the Square: An NYU Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-from-the-square-an-nyu-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK1721185061"
+base_poll_seconds = 1000
+
+# Georgetown University Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-georgetown-university-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK9099480394"
+base_poll_seconds = 1000
+
+# University of Georgia Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-university-of-georgia-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK2878019220"
+base_poll_seconds = 1000
+
+# The Hong Kong University Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-the-hong-kong-university-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK5305341006"
+base_poll_seconds = 1000
+
+# Leuven University Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-leuven-university-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK9837268559"
+base_poll_seconds = 1000
+
+# MIT Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-mit-press-podcast"
+url = "https://feeds.megaphone.fm/NBN7299055001"
+base_poll_seconds = 1000
+
+# UMass Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-umass-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK1053580809"
+base_poll_seconds = 1000
+
+# University of Michigan Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-university-of-michigan-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK6880528257"
+base_poll_seconds = 1000
+
+# University of Nevada Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-university-of-nevada-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK9837389091"
+base_poll_seconds = 1000
+
+# UNC Press Presents Podcast
+[[feeds]]
+id = "podcast-new-books-network-unc-press-presents-podcast"
+url = "https://feeds.megaphone.fm/NBN6249617498"
+base_poll_seconds = 1000
+
+# Off the Page: A Columbia UP Podcast
+[[feeds]]
+id = "podcast-new-books-network-off-the-page-a-columbia-up-podcast"
+url = "https://feeds.megaphone.fm/NBN2998548382"
+base_poll_seconds = 1000
+
+# Off the Record with UT Press
+[[feeds]]
+id = "podcast-new-books-network-off-the-record-with-ut-press"
+url = "https://feeds.megaphone.fm/NBNK1828804898"
+base_poll_seconds = 1000
+
+# The Ohio University Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-the-ohio-university-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK1072337180"
+base_poll_seconds = 1000
+
+# The Ohio State University Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-the-ohio-state-university-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK4122723386"
+base_poll_seconds = 1000
+
+# Rutgers University Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-rutgers-university-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK5650935983"
+base_poll_seconds = 1000
+
+# University of South Carolina Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-university-of-south-carolina-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK9090590739"
+base_poll_seconds = 1000
+
+# The CUA Press Podcast
+[[feeds]]
+id = "podcast-new-books-network-the-cua-press-podcast"
+url = "https://feeds.megaphone.fm/NBNK6055970402"
+base_poll_seconds = 1000
+
+# The University Press of Kentucky Podcast
+[[feeds]]
+id = "podcast-new-books-network-the-university-press-of-kentucky-podcast"
+url = "https://feeds.megaphone.fm/NBNK1375487579"
+base_poll_seconds = 1000
+
+# Unlocking Academia
+[[feeds]]
+id = "podcast-new-books-network-unlocking-academia"
+url = "https://feeds.megaphone.fm/NBNK4168654887"
+base_poll_seconds = 1000
+
+# Writers & Ideas: A NewSouth Publishing Podcast
+[[feeds]]
+id = "podcast-new-books-network-writers-and-ideas-a-newsouth-publishing-podcast"
+url = "https://feeds.megaphone.fm/NBNK5211236398"
+base_poll_seconds = 1000
+
+# The University Press of Colorado Podcast
+[[feeds]]
+id = "podcast-new-books-network-the-university-press-of-colorado-podcast"
+url = "https://feeds.megaphone.fm/NBNK1663893654"
+base_poll_seconds = 1000
+
+# New Books Network - Academic Partners (partial)
+
+[[feeds]]
+id = "new-books-network-academicpartners-higher-education"
+url = "https://feeds.megaphone.fm/NBN6191988705"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "new-books-network-academicpartners-asian-review-of-books"
+url = "https://feeds.megaphone.fm/LIT6320645562"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "new-books-network-academicpartners-burned-by-books"
+url = "https://feeds.megaphone.fm/NBN9700170327"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "new-books-network-academicpartners-darts-and-letters"
+url = "https://feeds.megaphone.fm/NBN3953553639"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "new-books-network-academicpartners-recall-this-book"
+url = "https://feeds.megaphone.fm/NBN6407101527"
 base_poll_seconds = 1000

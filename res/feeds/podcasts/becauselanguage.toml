@@ -1,0 +1,4 @@
+[[feeds]]
+id = "podcast-becauselanguage"
+url = "https://rss.libsyn.com/shows/142466/destinations/897956.xml"
+base_poll_seconds = 1000
