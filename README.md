@@ -25,6 +25,7 @@ Config is resolved from:
 2) `CONFIG_PATH` environment variable (if set), else
 3) `res/config.toml` when present, else
 4) `src/main/resources/config/config.toml` (legacy layout).
+Feed definitions default to `feeds/` under the config directory, but can be overridden with `FEEDS_DIR`.
 
 `config.toml` (app-wide sections):
 - `[app]` – `mode` (`dev` deletes the DB on boot; `prod` leaves it intact) and `timezone` (IANA TZ for timestamps/logging).
@@ -75,4 +76,5 @@ Config is resolved from:
 ## Docker
 - Image expects a full config bundle (config/domains/categories/feeds) to be present on disk.
 - Default path inside the container is `/app/res/config.toml`; override with `CONFIG_PATH`.
+- Feed definitions default to `/app/res/feeds`; override with `FEEDS_DIR`.
 - For environment-specific settings, mount a config directory and point `CONFIG_PATH` at it.

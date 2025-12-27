@@ -47,7 +47,10 @@ impl ConfigLoader {
             .ok_or_else(|| ConfigError::Invalid("config path has no parent".into()))?;
         let domains_path = base_dir.join("domains.toml");
         let categories_path = base_dir.join("categories.toml");
-        let feeds_dir = base_dir.join("feeds");
+        let feeds_dir = match std::env::var("FEEDS_DIR") {
+            Ok(p) if !p.trim().is_empty() => Path::new(p.trim()).to_path_buf(),
+            _ => base_dir.join("feeds"),
+        };
 
         let app_content = fs::read_to_string(config_path).await?;
         let raw_cfg: RawAppFile = toml::from_str(&app_content)?;
