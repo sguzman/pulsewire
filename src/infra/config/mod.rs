@@ -187,6 +187,7 @@ impl ConfigLoader {
                 global_max_concurrent_requests: raw_cfg.requests.global_max_concurrent_requests,
                 user_agent: raw_cfg.requests.user_agent,
                 log_level,
+                log_file_enabled: raw_cfg.logging.file_enabled,
                 log_file_level,
                 log_file_directory: log_dir,
                 log_file_name: raw_cfg.logging.file_name,

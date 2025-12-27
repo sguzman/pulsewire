@@ -32,7 +32,7 @@ pub fn init_logging(cfg: &AppConfig) {
     let mut layers: Vec<Box<dyn Layer<Registry> + Send + Sync>> = Vec::new();
     layers.push(stdout_layer.boxed());
 
-    if cfg.log_file_level != "off" {
+    if cfg.log_file_enabled && cfg.log_file_level != "off" {
         if let Err(e) = std::fs::create_dir_all(&cfg.log_file_directory) {
             eprintln!(
                 "failed to create log directory {}: {e}",

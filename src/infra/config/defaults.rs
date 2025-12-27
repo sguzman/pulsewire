@@ -40,6 +40,10 @@ pub(crate) fn default_log_file_level() -> String {
     "info".to_string()
 }
 
+pub(crate) fn default_log_file_enabled() -> bool {
+    false
+}
+
 pub(crate) fn default_log_tick_warn_seconds() -> u64 {
     600
 }

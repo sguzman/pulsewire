@@ -37,6 +37,7 @@ Feed definitions default to `feeds/` under the config directory, but can be over
 - `[requests]` – `global_max_concurrent_requests` optional cap on in-flight HTTP requests (defaults to 64 when unset) and `user_agent` string.
 - `[state_history]` – `sample_rate` between 0–1 for persisting historical state rows (current state is always stored).
 - `[logging]` – `level` base log level (can be overridden by `RUST_LOG`).
+- `[logging]` – `file_enabled` toggles file logging (defaults to false), `file_level`/`file_directory`/`file_rotation` configure file output when enabled.
 
 `domains.toml`: list of `{ name, max_concurrent_requests }` entries limiting concurrent requests per host. Domains not listed default to a limit of 1.
 

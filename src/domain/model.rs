@@ -45,6 +45,7 @@ pub struct AppConfig {
     pub global_max_concurrent_requests: Option<usize>,
     pub user_agent: String,
     pub log_level: String,
+    pub log_file_enabled: bool,
     pub log_file_level: String,
     pub log_file_directory: PathBuf,
     pub log_file_name: String,
