@@ -29,3 +29,7 @@ max_concurrent_requests = 1
 [[domains]]
 name = "federalregister.gov"
 max_concurrent_requests = 1
+
+[[domains]]
+name = "omny.fm"
+max_concurrent_requests = 1

@@ -17,3 +17,7 @@ domains = ["xkcd.com"]
 [[categories]]
 name = "tech"
 domains = ["hnrss.org"]
+
+[[categories]]
+name = "podcasts"
+domains = ["omny.fm", "www.omny.fm"]

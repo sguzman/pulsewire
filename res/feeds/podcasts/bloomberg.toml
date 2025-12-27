@@ -1,0 +1,4 @@
+[[feeds]]
+id = "odd-lots"
+url = "https://omny.fm/shows/odd-lots/playlists/podcast.rss"
+base_poll_seconds = 1000
