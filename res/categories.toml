@@ -20,4 +20,4 @@ domains = ["hnrss.org"]
 
 [[categories]]
 name = "podcasts"
-domains = ["www.theguardian.com", "rss.acast.com", "subscribe.acast.com", "feeds.acast.com", "access.acast.com", "rss.art19.com", "podcasts.files.bbci.co.uk", "omnycontent.com", "www.omnycontent.com", "feeds.npr.org", "omny.fm", "www.omny.fm", "feeds.simplecast.com", "feeds.megaphone.fm", "rss.libsyn.com"]
+domains = ["rss.amperwave.net", "www.theguardian.com", "rss.acast.com", "subscribe.acast.com", "feeds.acast.com", "access.acast.com", "rss.art19.com", "podcasts.files.bbci.co.uk", "omnycontent.com", "www.omnycontent.com", "feeds.npr.org", "omny.fm", "www.omny.fm", "feeds.simplecast.com", "feeds.megaphone.fm", "rss.libsyn.com"]
