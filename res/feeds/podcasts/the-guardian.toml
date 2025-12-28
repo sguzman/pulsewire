@@ -1,0 +1,164 @@
+[[feeds]]
+id = "podcasts-the-guardian-1731314182"
+url = "https://www.theguardian.com/technology/series/blackbox/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-188674007"
+url = "https://www.theguardian.com/football/series/footballweekly/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1440133626"
+url = "https://www.theguardian.com/news/series/todayinfocus/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-587347784"
+url = "https://www.theguardian.com/news/series/the-audio-long-read/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-136697669"
+url = "https://www.theguardian.com/science/series/science/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1610749444"
+url = "https://www.theguardian.com/politics/series/politics-weekly-america/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1482061243"
+url = "https://www.theguardian.com/australia-news/series/full-story/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1643870040"
+url = "https://www.theguardian.com/society/series/canitellyouasecret/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-136697472"
+url = "https://www.theguardian.com/politics/series/politicsweekly/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1608043151"
+url = "https://www.theguardian.com/lifeandstyle/series/weekend/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1571446706"
+url = "https://www.theguardian.com/lifeandstyle/series/comforteatingwithgracedent/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1632047182"
+url = "https://www.theguardian.com/football/series/theguardianswomensfootballweekly/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1352919621"
+url = "https://www.theguardian.com/science/series/a-neuroscientist-explains-podcast/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1323306591"
+url = "https://www.theguardian.com/australia-news/series/the-reckoning-guardian-australia-podcast/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1650625380"
+url = "https://www.theguardian.com/society/series/pop-culture-with-chante-joseph/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1650563511"
+url = "https://www.theguardian.com/news/series/an-impossible-choice/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1679720503"
+url = "https://www.theguardian.com/news/series/cotton-capital-podcast/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1651599506"
+url = "https://www.theguardian.com/news/series/ben-roberts-smith-v-the-media/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1584049761"
+url = "https://www.theguardian.com/australia-news/series/australia-reads/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1109943717"
+url = "https://www.theguardian.com/australia-news/series/australian-politics-live/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1740661234"
+url = "https://www.theguardian.com/australia-news/series/who-screwed-millennials/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1599024857"
+url = "https://www.theguardian.com/sport/series/the-final-word-ashes-podcast/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1598488668"
+url = "https://www.theguardian.com/culture/series/book-it-in/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1409525713"
+url = "https://www.theguardian.com/australia-news/series/breathless-the-death-of-david-dungay-jnr/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1549774655"
+url = "https://www.theguardian.com/music/series/reverberate/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1519052703"
+url = "https://www.theguardian.com/society/series/innermost/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1512743018"
+url = "https://www.theguardian.com/football/series/forgotten-stories-of-football/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1435668676"
+url = "https://www.theguardian.com/society/series/beyondtheblade/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1540927312"
+url = "https://www.theguardian.com/australia-news/series/temporary/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1496786870"
+url = "https://www.theguardian.com/science/series/thegenegapcommonthreads/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1589004772"
+url = "https://www.theguardian.com/culture/series/saved-for-later/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1337773497"
+url = "https://www.theguardian.com/culture/series/thestart/podcast.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "podcasts-the-guardian-1651991283"
+url = "https://www.theguardian.com/news/series/australia-v-the-climate/podcast.xml"
+base_poll_seconds = 1000
