@@ -1,0 +1,6 @@
+# CNN RSS feeds (from https://rss.cnn.com/rss/)
+
+[[feeds]]
+id = "cnn-feeds"
+url = "https://edition.cnn.com/?no_redirect=true&format=rss"
+base_poll_seconds = 100

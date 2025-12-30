@@ -1,0 +1,76 @@
+# Wall Street Journal (WSJ) RSS feeds (extracted from news-and-feeds.mhtml)
+
+[[feeds]]
+id = "wsj-opinion"
+url = "https://feeds.content.dowjones.io/public/rss/RSSOpinion"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-world-news"
+url = "https://feeds.content.dowjones.io/public/rss/RSSWorldNews"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-u-s-business"
+url = "https://feeds.content.dowjones.io/public/rss/WSJcomUSBusiness"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-markets-news"
+url = "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-technology-whats-news"
+url = "https://feeds.content.dowjones.io/public/rss/RSSWSJD"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-lifestyle"
+url = "https://feeds.content.dowjones.io/public/rss/RSSLifestyle"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-u-s"
+url = "https://feeds.content.dowjones.io/public/rss/RSSUSnews"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-politics"
+url = "https://feeds.content.dowjones.io/public/rss/socialpoliticsfeed"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-economy"
+url = "https://feeds.content.dowjones.io/public/rss/socialeconomyfeed"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-arts"
+url = "https://feeds.content.dowjones.io/public/rss/RSSArtsCulture"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-real-estate"
+url = "https://feeds.content.dowjones.io/public/rss/latestnewsrealestate"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-personal-finance"
+url = "https://feeds.content.dowjones.io/public/rss/RSSPersonalFinance"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-health"
+url = "https://feeds.content.dowjones.io/public/rss/socialhealth"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-style"
+url = "https://feeds.content.dowjones.io/public/rss/RSSStyle"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "wsj-sports"
+url = "https://feeds.content.dowjones.io/public/rss/rsssportsfeed"
+base_poll_seconds = 1000

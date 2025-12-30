@@ -1,0 +1,381 @@
+# NYTimes.com Home Page (U.S.)
+
+[[feeds]]
+id = "nytimes-homepage-us"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+base_poll_seconds = 1000
+
+# World
+
+[[feeds]]
+id = "nytimes-world"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-africa"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Africa.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-americas"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Americas.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-asia-pacific"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/AsiaPacific.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-europe"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Europe.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-middle-east"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/MiddleEast.xml"
+base_poll_seconds = 1000
+
+# U.S.
+
+[[feeds]]
+id = "nytimes-us"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/US.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-education"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Education.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-politics"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-upshot"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Upshot.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-ny-region"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/NYRegion.xml"
+base_poll_seconds = 1000
+
+# Business
+
+[[feeds]]
+id = "nytimes-business"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-energy-environment"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/EnergyEnvironment.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-small-business"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/SmallBusiness.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-economy"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Economy.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-dealbook"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Dealbook.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-media-and-advertising"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/MediaandAdvertising.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-your-money"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/YourMoney.xml"
+base_poll_seconds = 1000
+
+# Technology
+
+[[feeds]]
+id = "nytimes-technology"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-personal-tech"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/PersonalTech.xml"
+base_poll_seconds = 1000
+
+# Sports
+
+[[feeds]]
+id = "nytimes-sports"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-baseball"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Baseball.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-college-basketball"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/CollegeBasketball.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-college-football"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/CollegeFootball.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-golf"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Golf.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-hockey"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Hockey.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-pro-basketball"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/ProBasketball.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-pro-football"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/ProFootball.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-soccer"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Soccer.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-tennis"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Tennis.xml"
+base_poll_seconds = 1000
+
+# Science / Health
+
+[[feeds]]
+id = "nytimes-science"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-climate"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Climate.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-space"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Space.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-health"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Health.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-well"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Well.xml"
+base_poll_seconds = 1000
+
+# Arts
+
+[[feeds]]
+id = "nytimes-arts"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Arts.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-art-and-design"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/ArtandDesign.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-books-review"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Books/Review.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-dance"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Dance.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-movies"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Movies.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-music"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Music.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-television"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Television.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-theater"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Theater.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-fashion-and-style"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/FashionandStyle.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-dining-and-wine"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/DiningandWine.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-weddings"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Weddings.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-t-magazine"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/tmagazine.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-travel"
+url = "https://www.nytimes.com/services/xml/rss/nyt/Travel.xml"
+base_poll_seconds = 1000
+
+# Other
+
+[[feeds]]
+id = "nytimes-jobs"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Jobs.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-real-estate"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/RealEstate.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-automobiles"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Automobiles.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-lens"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Lens.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-obituaries"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/Obituaries.xml"
+base_poll_seconds = 1000
+
+# Popularity feeds
+
+[[feeds]]
+id = "nytimes-most-emailed"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/MostEmailed.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-most-shared"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/MostShared.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-most-viewed"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/MostViewed.xml"
+base_poll_seconds = 1000
+
+# Opinion columnists
+
+[[feeds]]
+id = "nytimes-column-charles-m-blow"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/charles-m-blow/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-jamelle-bouie"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/jamelle-bouie/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-david-brooks"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/david-brooks/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-frank-bruni"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/frank-bruni/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-gail-collins"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/gail-collins/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-ross-douthat"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/ross-douthat/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-maureen-dowd"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/maureen-dowd/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-thomas-l-friedman"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/thomas-l-friedman/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-michelle-goldberg"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/michelle-goldberg/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-ezra-klein"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/ezra-klein/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-nicholas-kristof"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/nicholas-kristof/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-paul-krugman"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/paul-krugman/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-farhad-manjoo"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/farhad-manjoo/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-column-bret-stephens"
+url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/bret-stephens/rss.xml"
+base_poll_seconds = 1000
+
+[[feeds]]
+id = "nytimes-sunday-opinion"
+url = "https://rss.nytimes.com/services/xml/rss/nyt/sunday-review.xml"
+base_poll_seconds = 1000
