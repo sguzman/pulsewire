@@ -1,0 +1,6 @@
+[formatting]
+array_auto_expand = true
+array_auto_collapse = false
+array_trailing_comma = true
+inline_table_expand = true
+compact_inline_tables = false

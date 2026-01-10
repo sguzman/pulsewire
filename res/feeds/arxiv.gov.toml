@@ -87,4 +87,3 @@ base_poll_seconds = 500
 id = "arxiv-astro-ph"
 url = "https://rss.arxiv.org/rss/astro-ph"
 base_poll_seconds = 500
-

@@ -1,31 +1,92 @@
 [[categories]]
 name = "youtube"
-domains = ["youtube.com", "youtu.be", "www.youtube.com"]
+domains = [
+  "youtube.com",
+  "youtu.be",
+  "www.youtube.com",
+]
 
 [[categories]]
 name = "gov"
-domains = ["govinfo.gov", "www.govinfo.gov", "www.bls.gov", "bls.gov", "federalregister.gov", "www.federalreserve.gov", "sec.gov", "www.sec.gov"]
+domains = [
+  "govinfo.gov",
+  "www.govinfo.gov",
+  "www.bls.gov",
+  "bls.gov",
+  "federalregister.gov",
+  "www.federalreserve.gov",
+  "sec.gov",
+  "www.sec.gov",
+]
 
 [[categories]]
 name = "journals"
-domains = ["rss.arxiv.org"]
+domains = [
+  "rss.arxiv.org",
+]
 
 [[categories]]
 name = "comics"
-domains = ["xkcd.com"]
+domains = [
+  "xkcd.com",
+]
 
 [[categories]]
 name = "tech"
-domains = ["feeds.arstechnica.com", "hnrss.org", "rss.slashdot.org"]
+domains = [
+  "feeds.arstechnica.com",
+  "hnrss.org",
+  "rss.slashdot.org",
+]
 
 [[categories]]
 name = "finance"
-domains = ["ir.thomsonreuters.com", "seekingalpha.com", "feeds.bloomberg.com", "www.coindesk.com", "cointelegraph.com"]
+domains = [
+  "ir.thomsonreuters.com",
+  "seekingalpha.com",
+  "feeds.bloomberg.com",
+  "www.coindesk.com",
+  "cointelegraph.com",
+]
 
 [[categories]]
 name = "news"
-domains = ["edition.cnn.com", "rss.politico.com", "feeds.content.dowjones.io", "www.washingtonpost.com", "feeds.washingtonpost.com", "www.nytimes.com", "rss.nytimes.com"] 
+domains = [
+  "edition.cnn.com",
+  "rss.politico.com",
+  "feeds.content.dowjones.io",
+  "www.washingtonpost.com",
+  "feeds.washingtonpost.com",
+  "www.nytimes.com",
+  "rss.nytimes.com",
+]
 
 [[categories]]
 name = "podcasts"
-domains = ["feed.cdnstream1.com", "wondery.com", "www.spreaker.com", "publicfeeds.net", "feed.podbean.com", "feeds.redcircle.com", "podcastfeeds.nbcnews.com", "anchor.fm", "audioboom.com", "rss.amperwave.net", "www.theguardian.com", "rss.acast.com", "subscribe.acast.com", "feeds.acast.com", "access.acast.com", "rss.art19.com", "podcasts.files.bbci.co.uk", "omnycontent.com", "www.omnycontent.com", "feeds.npr.org", "omny.fm", "www.omny.fm", "feeds.simplecast.com", "feeds.megaphone.fm", "rss.libsyn.com"]
+domains = [
+  "feed.cdnstream1.com",
+  "wondery.com",
+  "www.spreaker.com",
+  "publicfeeds.net",
+  "feed.podbean.com",
+  "feeds.redcircle.com",
+  "podcastfeeds.nbcnews.com",
+  "anchor.fm",
+  "audioboom.com",
+  "rss.amperwave.net",
+  "www.theguardian.com",
+  "rss.acast.com",
+  "subscribe.acast.com",
+  "feeds.acast.com",
+  "access.acast.com",
+  "rss.art19.com",
+  "podcasts.files.bbci.co.uk",
+  "omnycontent.com",
+  "www.omnycontent.com",
+  "feeds.npr.org",
+  "omny.fm",
+  "www.omny.fm",
+  "feeds.simplecast.com",
+  "feeds.megaphone.fm",
+  "rss.libsyn.com",
+]

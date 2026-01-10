@@ -60,4 +60,3 @@ base_poll_seconds = 500
 id = "UC-L2KtiGCmf4l6Y_WeA2Zdg"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC-L2KtiGCmf4l6Y_WeA2Zdg"
 base_poll_seconds = 500
-
