@@ -1,5 +1,5 @@
 [app]
-mode = "prod"
+mode     = "dev"
 timezone = "America/Mexico_City"
 
 [database]
@@ -9,26 +9,28 @@ dialect = "postgres"
 path = "rss.db"
 
 [postgres]
-user = "admin"
+user     = "admin"
 password = "admin"
-host = "localhost"
-port = 5432
-db = "data"
+host     = "localhost"
+port     = 5432
+db       = "data"
 
 [polling]
 default_seconds = 100
-max_seconds = 3600
+max_seconds     = 3600
 jitter_fraction = 0.2
 
 [backoff]
 error_base_seconds = 30
 max_error_seconds = 7200
 max_consecutive_errors = 3
-immediate_error_statuses = [404]
+immediate_error_statuses = [
+    404,
+]
 
 [requests]
 global_max_concurrent_requests = 16
-user_agent = "RssFetcher/1.0 (+https://example.org)"
+user_agent                     = "RssFetcher/1.0 (+https://example.org)"
 
 [state_history]
 sample_rate = 0.4
@@ -42,6 +44,8 @@ file_name = "feedrv3"
 file_rotation = "hourly"
 tick_warn_seconds = 600
 feed_timing_enabled = true
-feed_timing_domains = ["youtube.com"]
+feed_timing_domains = [
+    "youtube.com",
+]
 feed_timing_warn_ms = 30000
 feed_timing_log_all = true
