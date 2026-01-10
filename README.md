@@ -10,20 +10,20 @@ Rust async worker that polls a set of RSS/Atom feeds, tracks HTTP state with ada
 - Logging uses `tracing` with env-filter override support. Dev mode wipes the DB on startup for a clean slate.
 
 ## Code Layout
-- `src/main.rs` – entrypoint; argument parsing, config loading, repo init/migrations, optional ingest benchmark, then scheduler loop.
-- `src/app/` – `AppContext` wiring and `Scheduler` tick loop (due-feed selection, concurrency guards, fetch pipeline).
-- `src/domain/` – core types: configs, link state machine, delay/backoff math, hashing helpers.
-- `src/feed/` – feed parsing to normalized metadata/items.
-- `src/infra/` – adapters: config loader, logging, random, reqwest HTTP client, SQLite repo, clock, time formatting.
-- `src/ports/` – traits for HTTP, repo, clock, randomness.
-- `tests/` – link state property-style tests.
-- `res/` – example config bundle (`config.toml`, `domains.toml`, `feeds/*.toml`) and a sample SQLite DB snapshot.
+- `fetcher/src/main.rs` – entrypoint; argument parsing, config loading, repo init/migrations, optional ingest benchmark, then scheduler loop.
+- `fetcher/src/app/` – `AppContext` wiring and `Scheduler` tick loop (due-feed selection, concurrency guards, fetch pipeline).
+- `fetcher/src/domain/` – core types: configs, link state machine, delay/backoff math, hashing helpers.
+- `fetcher/src/feed/` – feed parsing to normalized metadata/items.
+- `fetcher/src/infra/` – adapters: config loader, logging, random, reqwest HTTP client, SQLite repo, clock, time formatting.
+- `fetcher/src/ports/` – traits for HTTP, repo, clock, randomness.
+- `fetcher/tests/` – link state property-style tests.
+- `fetcher/res/` – example config bundle (`config.toml`, `domains.toml`, `feeds/*.toml`) and a sample SQLite DB snapshot.
 
 ## Configuration
 Config is resolved from:
 1) CLI argument path (if provided), else
 2) `CONFIG_PATH` environment variable (if set), else
-3) `res/config.toml` when present, else
+3) `fetcher/res/config.toml` when present, else
 4) `src/main/resources/config/config.toml` (legacy layout).
 Feed definitions default to `feeds/` under the config directory, but can be overridden with `FEEDS_DIR`.
 
@@ -65,27 +65,27 @@ Metrics exported at `/metrics` when enabled:
 
 ## CLI Usage
 - Run scheduler (using default config resolution):  
-  `cargo run --release`
+  `cargo run -p fetcher --release`
 - Run scheduler with explicit config:  
-  `cargo run --release -- /path/to/config.toml`
+  `cargo run -p fetcher --release -- /path/to/config.toml`
 - Ingest benchmark only (no scheduler):  
-  `cargo run --release -- --ingest-benchmark 50000`  
+  `cargo run -p fetcher --release -- --ingest-benchmark 50000`  
   Inserts synthetic feeds into the DB in bulk and exits. Requires a feed count > 0.
 
 ## Data & Schema Notes
 - SQLite path comes from `[sqlite].path`; WAL mode and `synchronous` toggling are used to speed bulk upserts.
-- Creation DDLs live in `res/sql/sqlite/schema.sql` and `res/sql/postgres/schema.sql` and are applied at startup; non-schema migrations remain in code.
+- Creation DDLs live in `fetcher/res/sql/sqlite/schema.sql` and `fetcher/res/sql/postgres/schema.sql` and are applied at startup; non-schema migrations remain in code.
 - Postgres stores timestamps as `timestamptz`, using the timezone from config when converting epoch milliseconds to database values.
 - Key tables: `feeds` (definitions), `feed_state_current` + `feed_state_history`, `fetch_events`, `feed_payloads`, `feed_items`.
-- A prebuilt DB snapshot is checked in under `res/` for quick inspection; dev mode will delete it on boot.
+- A prebuilt DB snapshot is checked in under `fetcher/res/` for quick inspection; dev mode will delete it on boot.
 
 ## Development
-- Build/test: `cargo test` (no extra setup needed; uses the traits to avoid network access in tests).
+- Build/test: `cargo test -p fetcher` (no extra setup needed; uses the traits to avoid network access in tests).
 - Logs: configure via `logging.level` or `RUST_LOG`; log output includes targets and thread info.
 - HTTP client: reqwest with rustls, 30s timeout, gzip/brotli/deflate enabled.
 
 ## Docker
 - Image expects a full config bundle (config/domains/categories/feeds) to be present on disk.
-- Default path inside the container is `/app/res/config.toml`; override with `CONFIG_PATH`.
-- Feed definitions default to `/app/res/feeds`; override with `FEEDS_DIR`.
+- Default path inside the container is `/app/fetcher/res/config.toml`; override with `CONFIG_PATH`.
+- Feed definitions default to `/app/fetcher/res/feeds`; override with `FEEDS_DIR`.
 - For environment-specific settings, mount a config directory and point `CONFIG_PATH` at it.

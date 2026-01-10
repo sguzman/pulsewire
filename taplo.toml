@@ -6,17 +6,17 @@ inline_table_expand = true
 compact_inline_tables = false
 
 [[rule]]
-include = ["res/config.toml", "res/docker.toml"]
-schema = { path = "res/schemas/config.schema.json" }
+include = ["fetcher/res/config.toml", "fetcher/res/docker.toml"]
+schema = { path = "fetcher/res/schemas/config.schema.json" }
 
 [[rule]]
-include = ["res/domains.toml"]
-schema = { path = "res/schemas/domains.schema.json" }
+include = ["fetcher/res/domains.toml"]
+schema = { path = "fetcher/res/schemas/domains.schema.json" }
 
 [[rule]]
-include = ["res/categories.toml"]
-schema = { path = "res/schemas/categories.schema.json" }
+include = ["fetcher/res/categories.toml"]
+schema = { path = "fetcher/res/schemas/categories.schema.json" }
 
 [[rule]]
-include = ["res/feeds/**/*.toml"]
-schema = { path = "res/schemas/feeds.schema.json" }
+include = ["fetcher/res/feeds/**/*.toml"]
+schema = { path = "fetcher/res/schemas/feeds.schema.json" }

@@ -1,8 +1,8 @@
 use std::{path::PathBuf, sync::Arc};
 
-use feedrv3::app::{context::AppContext, scheduler::Scheduler};
-use feedrv3::domain::model::{AppConfig, AppMode, FeedConfig, SqlDialect};
-use feedrv3::infra::{
+use fetcher::app::{context::AppContext, scheduler::Scheduler};
+use fetcher::domain::model::{AppConfig, AppMode, FeedConfig, SqlDialect};
+use fetcher::infra::{
     config::{ConfigLoader, LoadedConfig},
     database,
     logging::{init_logging, BootError},
@@ -11,7 +11,7 @@ use feedrv3::infra::{
     reqwest_http::ReqwestHttp,
     system_clock::SystemClock,
 };
-use feedrv3::ports::repo::Repo;
+use fetcher::ports::repo::Repo;
 use tracing::{error, info, warn};
 
 /// Binary entrypoint:
@@ -66,7 +66,7 @@ async fn main() -> Result<(), BootError> {
                     port = app_cfg.postgres.port,
                     "Dev mode enabled, wiping database"
                 );
-                feedrv3::infra::postgres_repo::wipe_database(
+                fetcher::infra::postgres_repo::wipe_database(
                     &app_cfg.postgres,
                     &app_cfg.timezone,
                 )
@@ -153,6 +153,7 @@ fn pick_config_path(arg1: Option<String>) -> PathBuf {
 
     // Prefer repo-local res/ config; fall back to old resources path for compatibility.
     let candidates = [
+        PathBuf::from("fetcher/res/config.toml"),
         PathBuf::from("res/config.toml"),
         PathBuf::from("src/main/resources/config/config.toml"),
     ];
