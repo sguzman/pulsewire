@@ -7,96 +7,96 @@ id_prefix = "politico-"
 category = "news"
 provenance = "politico"
 tags = [
-  "news",
-  "politics",
+    "news",
+    "politics",
 ]
 language = "en"
 content_type = "xml"
 
 [[feeds]]
-id = "rss-politico-congress"
+id  = "congress"
 url = "http://rss.politico.com/congress.xml"
 
 [[feeds]]
-id = "rss-politico-health-care"
+id  = "health-care"
 url = "http://rss.politico.com/healthcare.xml"
 
 [[feeds]]
-id = "rss-politico-defense"
+id  = "defense"
 url = "http://rss.politico.com/defense.xml"
 
 [[feeds]]
-id = "rss-politico-economy"
+id  = "economy"
 url = "http://rss.politico.com/economy.xml"
 
 [[feeds]]
-id = "rss-politico-energy-and-environment"
+id  = "energy-and-environment"
 url = "http://rss.politico.com/energy.xml"
 
 [[feeds]]
-id = "rss-politico-politics"
+id  = "politics"
 url = "https://rss.politico.com/politics-news.xml"
 
 [[feeds]]
-id = "rss-politico-playbook"
+id  = "playbook"
 url = "http://rss.politico.com/playbook.xml"
 
 [[feeds]]
-id = "rss-politico-morning-tech"
+id  = "morning-tech"
 url = "http://rss.politico.com/morningtech.xml"
 
 [[feeds]]
-id = "rss-politico-morning-money"
+id  = "morning-money"
 url = "http://rss.politico.com/morningmoney.xml"
 
 [[feeds]]
-id = "rss-politico-politico-pulse"
+id  = "politico-pulse"
 url = "http://rss.politico.com/politicopulse.xml"
 
 [[feeds]]
-id = "rss-politico-huddle"
+id  = "huddle"
 url = "http://rss.politico.com/huddle.xml"
 
 [[feeds]]
-id = "rss-politico-morning-energy"
+id  = "morning-energy"
 url = "http://rss.politico.com/morningenergy.xml"
 
 [[feeds]]
-id = "rss-politico-morning-defense"
+id  = "morning-defense"
 url = "http://rss.politico.com/morningdefense.xml"
 
 [[feeds]]
-id = "rss-politico-politico-influence"
+id  = "politico-influence"
 url = "http://rss.politico.com/politicoinfluence.xml"
 
 [[feeds]]
-id = "rss-politico-morning-score"
+id  = "morning-score"
 url = "http://rss.politico.com/morningscore.xml"
 
 [[feeds]]
-id = "rss-politico-morning-transportation"
+id  = "morning-transportation"
 url = "http://rss.politico.com/morningtransportation.xml"
 
 [[feeds]]
-id = "rss-politico-morning-education"
+id  = "morning-education"
 url = "http://rss.politico.com/morningeducation.xml"
 
 [[feeds]]
-id = "rss-politico-morning-tax"
+id  = "morning-tax"
 url = "http://rss.politico.com/morningtax.xml"
 
 [[feeds]]
-id = "rss-politico-morning-agriculture"
+id  = "morning-agriculture"
 url = "http://rss.politico.com/morningagriculture.xml"
 
 [[feeds]]
-id = "rss-politico-morning-cybersecurity"
+id  = "morning-cybersecurity"
 url = "http://rss.politico.com/morningcybersecurity.xml"
 
 [[feeds]]
-id = "rss-politico-morning-shift"
+id  = "morning-shift"
 url = "http://rss.politico.com/morningshift.xml"
 
 [[feeds]]
-id = "rss-politico-morning-trade"
+id  = "morning-trade"
 url = "http://rss.politico.com/morningtrade.xml"
