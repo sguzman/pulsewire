@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "feedrv3 feeds",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["feeds"],
+  "properties": {
+    "feeds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "url"],
+        "properties": {
+          "id": { "type": "string" },
+          "url": { "type": "string" },
+          "base_poll_seconds": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

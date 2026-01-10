@@ -3,9 +3,13 @@ use std::path::{Path, PathBuf};
 use tokio::fs;
 
 use super::raw::RawFeedsFile;
+use super::schema::validate_toml;
 use super::ConfigError;
 
-pub(crate) async fn load_all_feeds(feeds_dir: &Path) -> Result<RawFeedsFile, ConfigError> {
+pub(crate) async fn load_all_feeds(
+    feeds_dir: &Path,
+    feeds_schema: &str,
+) -> Result<RawFeedsFile, ConfigError> {
     let files = collect_feed_files(feeds_dir).await?;
 
     if files.is_empty() {
@@ -18,6 +22,7 @@ pub(crate) async fn load_all_feeds(feeds_dir: &Path) -> Result<RawFeedsFile, Con
     let mut all = Vec::new();
     for p in files {
         let content = fs::read_to_string(&p).await?;
+        validate_toml(feeds_schema, &content, &p.display().to_string())?;
         let parsed: RawFeedsFile = toml::from_str(&content)?;
         all.extend(parsed.feeds);
     }

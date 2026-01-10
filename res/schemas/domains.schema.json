@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "feedrv3 domains",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["domains"],
+  "properties": {
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "max_concurrent_requests"],
+        "properties": {
+          "name": { "type": "string" },
+          "max_concurrent_requests": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

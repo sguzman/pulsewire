@@ -16,6 +16,7 @@ WORKDIR /app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /app/target/${TARGET}/release/feedrv3 /usr/local/bin/feedrv3
 COPY res/config.toml res/docker.toml res/domains.toml res/categories.toml /app/res/
+COPY res/schemas /app/res/schemas
 COPY res/feeds /app/res/feeds
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 ENV CONFIG_PATH=/app/res/docker.toml

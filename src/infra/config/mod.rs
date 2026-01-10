@@ -4,6 +4,7 @@ mod feeds;
 mod parse;
 mod paths;
 mod raw;
+mod schema;
 
 use std::{collections::HashMap, path::Path};
 
@@ -21,6 +22,7 @@ use feeds::load_all_feeds;
 use parse::{parse_dialect, parse_mode, parse_postgres, url_host};
 use paths::{resolve_db_base_dir, resolve_log_dir};
 use raw::{RawAppFile, RawCategoriesFile, RawDomainsFile};
+use schema::{load_schema, validate_toml};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ConfigError {
@@ -53,17 +55,38 @@ impl ConfigLoader {
             Ok(p) if !p.trim().is_empty() => Path::new(p.trim()).to_path_buf(),
             _ => base_dir.join("feeds"),
         };
+        let schema_dir = base_dir.join("schemas");
+
+        let config_schema = load_schema(&schema_dir, "config.schema.json").await?;
+        let domains_schema = load_schema(&schema_dir, "domains.schema.json").await?;
+        let categories_schema = load_schema(&schema_dir, "categories.schema.json").await?;
+        let feeds_schema = load_schema(&schema_dir, "feeds.schema.json").await?;
 
         let app_content = fs::read_to_string(config_path).await?;
+        validate_toml(
+            &config_schema,
+            &app_content,
+            &config_path.display().to_string(),
+        )?;
         let raw_cfg: RawAppFile = toml::from_str(&app_content)?;
 
         let domains_content = fs::read_to_string(&domains_path).await?;
+        validate_toml(
+            &domains_schema,
+            &domains_content,
+            &domains_path.display().to_string(),
+        )?;
         let raw_domains: RawDomainsFile = toml::from_str(&domains_content)?;
 
         let categories_content = fs::read_to_string(&categories_path).await?;
+        validate_toml(
+            &categories_schema,
+            &categories_content,
+            &categories_path.display().to_string(),
+        )?;
         let raw_categories: RawCategoriesFile = toml::from_str(&categories_content)?;
 
-        let raw_feeds = load_all_feeds(&feeds_dir).await?;
+        let raw_feeds = load_all_feeds(&feeds_dir, &feeds_schema).await?;
 
         let mode = parse_mode(raw_cfg.app.mode.as_deref())?;
         let tz_str = raw_cfg
