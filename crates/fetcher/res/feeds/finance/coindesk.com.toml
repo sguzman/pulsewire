@@ -1,4 +1,14 @@
-[[feeds]]
-id = "coindesk"
-url = "https://www.coindesk.com/arc/outboundfeeds/rss"
 base_poll_seconds = 600
+id_prefix = "coindesk"
+category = "finance"
+provenance = "coindesk"
+tags = [
+    "finance",
+    "crypto",
+]
+language = "en"
+content_type = "xml"
+
+[[feeds]]
+id = "main"
+url = "https://www.coindesk.com/arc/outboundfeeds/rss"

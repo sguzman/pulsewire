@@ -1,123 +1,109 @@
+base_poll_seconds = 1000
+id_prefix = "sa"
+category = "finance"
+provenance = "seekingalpha"
+tags = [
+    "finance",
+]
+language = "en"
+content_type = "xml"
+
 [[feeds]]
-id = "sa-apple"
+id = "apple"
 url = "https://seekingalpha.com/api/sa/combined/AAPL.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-tesla"
+id = "tesla"
 url = "https://seekingalpha.com/api/sa/combined/TSLA.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-ge"
+id = "ge"
 url = "https://seekingalpha.com/api/sa/combined/GE.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-latest"
+id = "latest"
 url = "https://seekingalpha.com/feed.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-ipo"
+id = "ipo"
 url = "https://seekingalpha.com/tag/ipo-analysis.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-long"
+id = "long"
 url = "https://seekingalpha.com/tag/long-ideas.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-transcript"
+id = "transcript"
 url = "https://seekingalpha.com/sector/transcripts.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-all-new"
+id = "all-new"
 url = "https://seekingalpha.com/market_currents.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-wall-street-breakfast"
+id = "wall-street-breakfast"
 url = "https://seekingalpha.com/tag/wall-st-breakfast.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-most-popular"
+id = "most-popular"
 url = "https://seekingalpha.com/listing/most-popular-articles.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-currencies"
+id = "currencies"
 url = "https://seekingalpha.com/tag/forex.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-editors-picks"
+id = "editors-picks"
 url = "https://seekingalpha.com/tag/editors-picks.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-etfs"
+id = "etfs"
 url = "https://seekingalpha.com/tag/etf-portfolio-strategy.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-sector-financial"
+id = "sector-financial"
 url = "https://seekingalpha.com/sector/financial.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-sector-healthcare"
+id = "sector-healthcare"
 url = "https://seekingalpha.com/sector/healthcare.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-sector-utilities"
+id = "sector-utilities"
 url = "https://seekingalpha.com/sector/utilities.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-sector-info-tech"
+id = "sector-info-tech"
 url = "https://seekingalpha.com/sector/information-technology.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-sector-banking"
+id = "sector-banking"
 url = "https://seekingalpha.com/sector/banking.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-india"
+id = "india"
 url = "https://seekingalpha.com/tag/india.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-israel"
+id = "israel"
 url = "https://seekingalpha.com/tag/israel.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-japan"
+id = "japan"
 url = "https://seekingalpha.com/tag/japan.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "sa-germany"
+id = "germany"
 url = "https://seekingalpha.com/tag/germany.xml"
-base_poll_seconds = 1000
 
 # France
 
 [[feeds]]
-id = "sa-france"
+id = "france"
 url = "https://seekingalpha.com/tag/france.xml"
-base_poll_seconds = 1000
 
 # Netherlands
 
 [[feeds]]
-id = "sa-netherlands"
+id = "netherlands"
 url = "https://seekingalpha.com/tag/netherlands.xml"
-base_poll_seconds = 1000

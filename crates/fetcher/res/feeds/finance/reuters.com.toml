@@ -1,14 +1,21 @@
+base_poll_seconds = 600
+id_prefix = "reuters"
+category = "finance"
+provenance = "reuters"
+tags = [
+    "finance",
+]
+language = "en"
+content_type = "xml"
+
 [[feeds]]
-id = "reuters-finance"
+id = "finance"
 url = "https://ir.thomsonreuters.com/rss/news-releases.xml?items=15"
-base_poll_seconds = 600
 
 [[feeds]]
-id = "reuters-calendar"
+id = "calendar"
 url = "https://ir.thomsonreuters.com/rss/events.xml?items=15"
-base_poll_seconds = 600
 
 [[feeds]]
-id = "reuters-sec-filings"
+id = "sec-filings"
 url = "https://ir.thomsonreuters.com/rss/sec-filings.xml?items=15"
-base_poll_seconds = 600

@@ -1,4 +1,14 @@
-[[feeds]]
-id = "cointelegraph"
-url = "https://cointelegraph.com/rss"
 base_poll_seconds = 600
+id_prefix = "cointelegraph"
+category = "finance"
+provenance = "cointelegraph"
+tags = [
+    "finance",
+    "crypto",
+]
+language = "en"
+content_type = "xml"
+
+[[feeds]]
+id = "main"
+url = "https://cointelegraph.com/rss"

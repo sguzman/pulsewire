@@ -1,4 +1,13 @@
-[[feeds]]
-id = "bloomberg"
-url = "https://feeds.bloomberg.com/markets/news.rss"
 base_poll_seconds = 600
+id_prefix = "bloomberg"
+category = "finance"
+provenance = "bloomberg"
+tags = [
+    "finance",
+]
+language = "en"
+content_type = "xml"
+
+[[feeds]]
+id = "markets"
+url = "https://feeds.bloomberg.com/markets/news.rss"
