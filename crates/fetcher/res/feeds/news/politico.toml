@@ -3,7 +3,7 @@
 # POLITICO RSS feeds (extracted from "POLITICO RSS Feeds - POLITICO.mhtml")
 
 base_poll_seconds = 1000
-id_prefix = "politico-"
+id_prefix = "politico"
 category = "news"
 provenance = "politico"
 tags = [
