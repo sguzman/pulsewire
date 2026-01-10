@@ -143,6 +143,17 @@ pub(crate) struct RawFeedsFile {
 }
 
 #[derive(Debug, Deserialize)]
+pub(crate) struct RawFeedDefaults {
+    pub base_poll_seconds: Option<u64>,
+    pub id_prefix: Option<String>,
+    pub category: Option<String>,
+    pub provenance: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub language: Option<String>,
+    pub content_type: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
 pub(crate) struct RawCategoriesFile {
     pub categories: Vec<RawCategoryEntry>,
 }

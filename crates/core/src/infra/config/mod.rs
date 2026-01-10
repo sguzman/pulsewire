@@ -81,6 +81,7 @@ impl ConfigLoader {
         let domains_schema = load_schema(&schema_dir, "domains.schema.json").await?;
         let categories_schema = load_schema(&schema_dir, "categories.schema.json").await?;
         let feeds_schema = load_schema(&schema_dir, "feeds.schema.json").await?;
+        let global_schema = load_schema(&schema_dir, "global.schema.json").await?;
 
         let app_content = fs::read_to_string(config_path).await?;
         validate_toml(
@@ -106,7 +107,7 @@ impl ConfigLoader {
         )?;
         let raw_categories: RawCategoriesFile = toml::from_str(&categories_content)?;
 
-        let raw_feeds = load_all_feeds(&feeds_dir, &feeds_schema).await?;
+        let raw_feeds = load_all_feeds(&feeds_dir, &feeds_schema, &global_schema).await?;
 
         let mode = parse_mode(raw_cfg.app.mode.as_deref())?;
         let tz_str = raw_cfg
