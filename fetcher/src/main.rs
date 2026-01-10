@@ -1,8 +1,8 @@
 use std::{path::PathBuf, sync::Arc};
 
-use fetcher::app::{context::AppContext, scheduler::Scheduler};
-use fetcher::domain::model::{AppConfig, AppMode, FeedConfig, SqlDialect};
-use fetcher::infra::{
+use feedrv3_core::app::{context::AppContext, scheduler::Scheduler};
+use feedrv3_core::domain::model::{AppConfig, AppMode, FeedConfig, SqlDialect};
+use feedrv3_core::infra::{
     config::{ConfigLoader, LoadedConfig},
     database,
     logging::{init_logging, BootError},
@@ -11,7 +11,7 @@ use fetcher::infra::{
     reqwest_http::ReqwestHttp,
     system_clock::SystemClock,
 };
-use fetcher::ports::repo::Repo;
+use feedrv3_core::ports::repo::Repo;
 use tracing::{error, info, warn};
 
 /// Binary entrypoint:
@@ -66,7 +66,7 @@ async fn main() -> Result<(), BootError> {
                     port = app_cfg.postgres.port,
                     "Dev mode enabled, wiping database"
                 );
-                fetcher::infra::postgres_repo::wipe_database(
+                feedrv3_core::infra::postgres_repo::wipe_database(
                     &app_cfg.postgres,
                     &app_cfg.timezone,
                 )

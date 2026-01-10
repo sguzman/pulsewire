@@ -10,14 +10,11 @@ Rust async worker that polls a set of RSS/Atom feeds, tracks HTTP state with ada
 - Logging uses `tracing` with env-filter override support. Dev mode wipes the DB on startup for a clean slate.
 
 ## Code Layout
+- `core/src/` – shared runtime logic (config, scheduler, infra, ports, domain, feed parsing).
+- `core/tests/` – shared property-style tests.
 - `fetcher/src/main.rs` – entrypoint; argument parsing, config loading, repo init/migrations, optional ingest benchmark, then scheduler loop.
-- `fetcher/src/app/` – `AppContext` wiring and `Scheduler` tick loop (due-feed selection, concurrency guards, fetch pipeline).
-- `fetcher/src/domain/` – core types: configs, link state machine, delay/backoff math, hashing helpers.
-- `fetcher/src/feed/` – feed parsing to normalized metadata/items.
-- `fetcher/src/infra/` – adapters: config loader, logging, random, reqwest HTTP client, SQLite repo, clock, time formatting.
-- `fetcher/src/ports/` – traits for HTTP, repo, clock, randomness.
-- `fetcher/tests/` – link state property-style tests.
 - `fetcher/res/` – example config bundle (`config.toml`, `domains.toml`, `feeds/*.toml`) and a sample SQLite DB snapshot.
+- `cli/src/main.rs` – ops CLI for validation/cleanup commands.
 
 ## Configuration
 Config is resolved from:
@@ -71,6 +68,10 @@ Metrics exported at `/metrics` when enabled:
 - Ingest benchmark only (no scheduler):  
   `cargo run -p fetcher --release -- --ingest-benchmark 50000`  
   Inserts synthetic feeds into the DB in bulk and exits. Requires a feed count > 0.
+- Validate config + semantic checks:  
+  `cargo run -p feedrv3-cli -- validate /path/to/config.toml`
+- Clean local SQLite + logs (requires flag):  
+  `cargo run -p feedrv3-cli -- clean /path/to/config.toml --confirm`
 
 ## Data & Schema Notes
 - SQLite path comes from `[sqlite].path`; WAL mode and `synchronous` toggling are used to speed bulk upserts.
@@ -80,7 +81,7 @@ Metrics exported at `/metrics` when enabled:
 - A prebuilt DB snapshot is checked in under `fetcher/res/` for quick inspection; dev mode will delete it on boot.
 
 ## Development
-- Build/test: `cargo test -p fetcher` (no extra setup needed; uses the traits to avoid network access in tests).
+- Build/test: `cargo test -p feedrv3-core` (no extra setup needed; uses the traits to avoid network access in tests).
 - Logs: configure via `logging.level` or `RUST_LOG`; log output includes targets and thread info.
 - HTTP client: reqwest with rustls, 30s timeout, gzip/brotli/deflate enabled.
 

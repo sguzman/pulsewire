@@ -42,6 +42,26 @@ pub struct LoadedConfig {
     pub categories: Vec<CategoryConfig>,
 }
 
+pub fn validate_semantic(
+    app: &AppConfig,
+    categories: &[CategoryConfig],
+) -> Result<(), ConfigError> {
+    let mut category_domains = std::collections::HashSet::new();
+    for c in categories {
+        for d in &c.domains {
+            category_domains.insert(d.as_str());
+        }
+    }
+    for domain in app.domains.keys() {
+        if !category_domains.contains(domain.as_str()) {
+            return Err(ConfigError::Invalid(format!(
+                "domain '{domain}' missing from categories.toml"
+            )));
+        }
+    }
+    Ok(())
+}
+
 impl ConfigLoader {
     pub async fn load(config_path: &Path) -> Result<LoadedConfig, ConfigError> {
         let default_timezone = "America/Mexico_City";

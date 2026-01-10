@@ -5,9 +5,12 @@ RUN apk add --no-cache musl-dev ca-certificates \
     && update-ca-certificates
 RUN rustup target add ${TARGET}
 COPY Cargo.toml Cargo.lock ./
-COPY src src
-COPY res/sql res/sql
-RUN cargo build --release --target ${TARGET}
+COPY core/Cargo.toml core/Cargo.toml
+COPY core/src core/src
+COPY core/res/sql core/res/sql
+COPY fetcher/Cargo.toml fetcher/Cargo.toml
+COPY fetcher/src fetcher/src
+RUN cargo build -p fetcher --release --target ${TARGET}
 RUN strip /app/target/${TARGET}/release/feedrv3
 
 FROM scratch

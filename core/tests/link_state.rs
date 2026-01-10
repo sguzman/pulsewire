@@ -1,4 +1,4 @@
-use fetcher::domain::link_state::{compute_delay_seconds, LinkPhase, LinkState, NextAction};
+use feedrv3_core::domain::link_state::{compute_delay_seconds, LinkPhase, LinkState, NextAction};
 
 #[test]
 fn delay_is_clamped_and_jittered() {
