@@ -23,6 +23,7 @@ domains = [
 name = "journals"
 domains = [
   "rss.arxiv.org",
+  "arxiv.org",
 ]
 
 [[categories]]

@@ -1,121 +1,107 @@
 # Washington Post RSS feeds (from https://www.washingtonpost.com/discussions/2018/10/12/washington-post-feeds/)
 
+base_poll_seconds = 1000
+id_prefix = "wapo"
+category = "news"
+provenance = "wapo"
+tags = [
+    "news",
+]
+language = "en"
+content_type = "xml"
+
 [[feeds]]
-id = "wapo-politics"
+id = "politics"
 url = "https://www.washingtonpost.com/arcio/rss/category/politics/"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-politics-the-fix"
+id = "politics-the-fix"
 url = "https://feeds.washingtonpost.com/rss/rss_the-fix"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-opinions"
+id = "opinions"
 url = "https://www.washingtonpost.com/arcio/rss/category/opinions/"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-opinions-george-f-will"
+id = "opinions-george-f-will"
 url = "https://www.washingtonpost.com/arcio/rss/author/George%20F%20-Will/"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-local"
+id = "local"
 url = "https://feeds.washingtonpost.com/rss/local"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-local-capital-weather-gang"
+id = "local-capital-weather-gang"
 url = "https://feeds.washingtonpost.com/rss/rss_capital-weather-gang"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-local-the-optimist"
+id = "local-the-optimist"
 url = "https://feeds.washingtonpost.com/rss/national/inspired-life"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-local-retropolis"
+id = "local-retropolis"
 url = "https://www.washingtonpost.com/arcio/rss/category/history/"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-sports"
+id = "sports"
 url = "https://www.washingtonpost.com/arcio/rss/category/sports/"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-sports-high-school-sports"
+id = "sports-high-school-sports"
 url = "https://feeds.washingtonpost.com/rss/rss_recruiting-insider"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-sports-dc-sports-bog"
+id = "sports-dc-sports-bog"
 url = "https://feeds.washingtonpost.com/rss/rss_dc-sports-bog"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-sports-maryland-terrapins"
+id = "sports-maryland-terrapins"
 url = "https://feeds.washingtonpost.com/rss/rss_terrapins-insider"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-sports-soccer"
+id = "sports-soccer"
 url = "https://feeds.washingtonpost.com/rss/rss_soccer-insider"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-sports-washington-commanders"
+id = "sports-washington-commanders"
 url = "https://feeds.washingtonpost.com/rss/rss_football-insider"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-sports-washington-capitals"
+id = "sports-washington-capitals"
 url = "https://feeds.washingtonpost.com/rss/rss_capitals-insider"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-sports-washington-nationals"
+id = "sports-washington-nationals"
 url = "https://feeds.washingtonpost.com/rss/rss_nationals-journal"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-sports-washington-wizards"
+id = "sports-washington-wizards"
 url = "https://feeds.washingtonpost.com/rss/rss_wizards-insider"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-technology"
+id = "technology"
 url = "https://feeds.washingtonpost.com/rss/business/technology"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-national"
+id = "national"
 url = "https://feeds.washingtonpost.com/rss/national"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-world"
+id = "world"
 url = "https://feeds.washingtonpost.com/rss/world"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-business"
+id = "business"
 url = "https://feeds.washingtonpost.com/rss/business"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-lifestyle"
+id = "lifestyle"
 url = "https://feeds.washingtonpost.com/rss/lifestyle"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-entertainment"
+id = "entertainment"
 url = "https://feeds.washingtonpost.com/rss/entertainment"
-base_poll_seconds = 1000
 
 [[feeds]]
-id = "wapo-entertainment-going-out-guide"
+id = "entertainment-going-out-guide"
 url = "https://feeds.washingtonpost.com/rss/rss_going-out-gurus"
-base_poll_seconds = 1000
