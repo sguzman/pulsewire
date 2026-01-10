@@ -2,112 +2,101 @@
 
 # POLITICO RSS feeds (extracted from "POLITICO RSS Feeds - POLITICO.mhtml")
 
+base_poll_seconds = 1000
+id_prefix = "politico-"
+category = "news"
+provenance = "politico"
+tags = [
+  "news",
+  "politics",
+]
+language = "en"
+content_type = "xml"
+
 [[feeds]]
 id = "rss-politico-congress"
 url = "http://rss.politico.com/congress.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-health-care"
 url = "http://rss.politico.com/healthcare.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-defense"
 url = "http://rss.politico.com/defense.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-economy"
 url = "http://rss.politico.com/economy.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-energy-and-environment"
 url = "http://rss.politico.com/energy.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-politics"
 url = "https://rss.politico.com/politics-news.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-playbook"
 url = "http://rss.politico.com/playbook.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-tech"
 url = "http://rss.politico.com/morningtech.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-money"
 url = "http://rss.politico.com/morningmoney.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-politico-pulse"
 url = "http://rss.politico.com/politicopulse.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-huddle"
 url = "http://rss.politico.com/huddle.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-energy"
 url = "http://rss.politico.com/morningenergy.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-defense"
 url = "http://rss.politico.com/morningdefense.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-politico-influence"
 url = "http://rss.politico.com/politicoinfluence.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-score"
 url = "http://rss.politico.com/morningscore.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-transportation"
 url = "http://rss.politico.com/morningtransportation.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-education"
 url = "http://rss.politico.com/morningeducation.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-tax"
 url = "http://rss.politico.com/morningtax.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-agriculture"
 url = "http://rss.politico.com/morningagriculture.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-cybersecurity"
 url = "http://rss.politico.com/morningcybersecurity.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-shift"
 url = "http://rss.politico.com/morningshift.xml"
-base_poll_seconds = 1000
 
 [[feeds]]
 id = "rss-politico-morning-trade"
 url = "http://rss.politico.com/morningtrade.xml"
-base_poll_seconds = 1000
