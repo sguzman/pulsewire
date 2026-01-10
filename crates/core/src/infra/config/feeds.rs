@@ -24,9 +24,9 @@ pub(crate) async fn load_all_feeds(
         let content = fs::read_to_string(&p).await?;
         validate_toml(feeds_schema, &content, &p.display().to_string())?;
         let parsed: RawFeedsFile = toml::from_str(&content)?;
-        let defaults = FeedDefaults::from_file(&parsed);
+        let defaults = FeedDefaults::from_file(&parsed, &p)?;
         for feed in parsed.feeds {
-            all.push(apply_defaults(feed, &defaults));
+            all.push(apply_defaults(feed, &defaults, &p)?);
         }
     }
     Ok(RawFeedsFile {
@@ -86,20 +86,32 @@ struct FeedDefaults {
 }
 
 impl FeedDefaults {
-    fn from_file(file: &RawFeedsFile) -> Self {
-        Self {
+    fn from_file(file: &RawFeedsFile, path: &Path) -> Result<Self, ConfigError> {
+        let id_prefix = match file.id_prefix.as_deref() {
+            Some(prefix) => Some(validate_id_prefix(
+                prefix,
+                &format!("feed defaults in {}", path.display()),
+            )?),
+            None => None,
+        };
+
+        Ok(Self {
             base_poll_seconds: file.base_poll_seconds,
-            id_prefix: file.id_prefix.clone(),
+            id_prefix,
             category: file.category.clone(),
             provenance: file.provenance.clone(),
             tags: file.tags.clone(),
             language: file.language.clone(),
             content_type: file.content_type.clone(),
-        }
+        })
     }
 }
 
-fn apply_defaults(mut feed: super::raw::RawFeed, defaults: &FeedDefaults) -> super::raw::RawFeed {
+fn apply_defaults(
+    mut feed: super::raw::RawFeed,
+    defaults: &FeedDefaults,
+    path: &Path,
+) -> Result<super::raw::RawFeed, ConfigError> {
     if feed.base_poll_seconds.is_none() {
         feed.base_poll_seconds = defaults.base_poll_seconds;
     }
@@ -119,22 +131,39 @@ fn apply_defaults(mut feed: super::raw::RawFeed, defaults: &FeedDefaults) -> sup
         feed.content_type = defaults.content_type.clone();
     }
 
-    let prefix = feed
-        .id_prefix
-        .as_deref()
-        .filter(|p| !p.trim().is_empty())
-        .map(|p| p.trim().to_string())
-        .or_else(|| {
-            defaults
-                .id_prefix
-                .as_deref()
-                .filter(|p| !p.trim().is_empty())
-                .map(|p| p.trim().to_string())
-        });
+    let prefix = match feed.id_prefix.as_deref() {
+        Some(raw) => {
+            let normalized = validate_id_prefix(
+                raw,
+                &format!("feed '{}' in {}", feed.id, path.display()),
+            )?;
+            feed.id_prefix = Some(normalized.clone());
+            Some(normalized)
+        }
+        None => defaults.id_prefix.clone(),
+    };
 
     if let Some(prefix) = prefix {
-        feed.id = format!("{prefix}{}", feed.id);
+        feed.id = format!("{prefix}-{}", feed.id);
     }
 
-    feed
+    Ok(feed)
+}
+
+fn validate_id_prefix(prefix: &str, context: &str) -> Result<String, ConfigError> {
+    let trimmed = prefix.trim();
+    if trimmed.is_empty() {
+        return Err(ConfigError::Invalid(format!(
+            "{context} id_prefix cannot be empty"
+        )));
+    }
+    if !trimmed
+        .chars()
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+    {
+        return Err(ConfigError::Invalid(format!(
+            "{context} id_prefix must be lowercase alphanumeric"
+        )));
+    }
+    Ok(trimmed.to_string())
 }
