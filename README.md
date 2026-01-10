@@ -48,7 +48,7 @@ Metrics exported at `/metrics` when enabled:
 
 `domains.toml`: list of `{ name, max_concurrent_requests }` entries limiting concurrent requests per host. Domains not listed default to a limit of 1.
 
-`feeds/*.toml`: one or more files shaped as `[[feeds]] { id, url, base_poll_seconds? }`. Domain is derived from the URL host automatically; `base_poll_seconds` falls back to `polling.default_seconds` when omitted.
+`feeds/*.toml`: one or more files shaped as `[[feeds]] { id, url, base_poll_seconds?, category?, provenance?, tags?, language?, content_type?, id_prefix? }`. File-level defaults can be set at top-level (`base_poll_seconds`, `id_prefix`, `category`, `provenance`, `tags`, `language`, `content_type`) and are inherited by feeds that omit them.
 
 ## Runtime & Orchestration
 - DB migrations run on startup (tables for feeds, current+historical state, fetch events, payloads, and items). WAL is enabled.

@@ -64,6 +64,10 @@ impl From<DueFeedRow> for FeedConfig {
             domain: row.domain,
             category: row.category,
             base_poll_seconds: row.base_poll_seconds.max(0) as u64,
+            provenance: None,
+            tags: None,
+            language: None,
+            content_type: None,
         }
     }
 }

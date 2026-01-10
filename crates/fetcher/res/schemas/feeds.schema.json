@@ -5,6 +5,16 @@
   "additionalProperties": false,
   "required": ["feeds"],
   "properties": {
+    "base_poll_seconds": { "type": "integer", "minimum": 0 },
+    "id_prefix": { "type": "string" },
+    "category": { "type": "string" },
+    "provenance": { "type": "string" },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "language": { "type": "string" },
+    "content_type": { "type": "string" },
     "feeds": {
       "type": "array",
       "items": {
@@ -14,7 +24,16 @@
         "properties": {
           "id": { "type": "string" },
           "url": { "type": "string" },
-          "base_poll_seconds": { "type": "integer", "minimum": 0 }
+          "base_poll_seconds": { "type": "integer", "minimum": 0 },
+          "id_prefix": { "type": "string" },
+          "category": { "type": "string" },
+          "provenance": { "type": "string" },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "language": { "type": "string" },
+          "content_type": { "type": "string" }
         }
       }
     }

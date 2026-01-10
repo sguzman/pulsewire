@@ -132,6 +132,13 @@ pub(crate) struct RawDomainEntry {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct RawFeedsFile {
+    pub base_poll_seconds: Option<u64>,
+    pub id_prefix: Option<String>,
+    pub category: Option<String>,
+    pub provenance: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub language: Option<String>,
+    pub content_type: Option<String>,
     pub feeds: Vec<RawFeed>,
 }
 
@@ -151,4 +158,10 @@ pub(crate) struct RawFeed {
     pub id: String,
     pub url: String,
     pub base_poll_seconds: Option<u64>,
+    pub id_prefix: Option<String>,
+    pub category: Option<String>,
+    pub provenance: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub language: Option<String>,
+    pub content_type: Option<String>,
 }

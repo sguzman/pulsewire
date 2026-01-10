@@ -22,6 +22,10 @@ pub struct FeedConfig {
     pub domain: String,
     pub category: String,
     pub base_poll_seconds: u64,
+    pub provenance: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub language: Option<String>,
+    pub content_type: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

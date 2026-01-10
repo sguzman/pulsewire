@@ -220,5 +220,9 @@ fn benchmark_feed_stream(
         domain: "bench.example.com".to_string(),
         category: category.clone(),
         base_poll_seconds: default_poll_seconds,
+        provenance: None,
+        tags: None,
+        language: None,
+        content_type: None,
     })
 }

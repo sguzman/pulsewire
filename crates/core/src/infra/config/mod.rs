@@ -200,12 +200,22 @@ impl ConfigLoader {
             let domain = url_host(&f.url)
                 .ok_or_else(|| ConfigError::Invalid(format!("feed '{}' missing host", f.id)))?;
             let domain = domain.to_ascii_lowercase();
-            let category = domain_to_category.get(&domain).cloned().ok_or_else(|| {
-                ConfigError::Invalid(format!(
-                    "feed '{}' domain '{domain}' missing from categories",
-                    f.id
-                ))
-            })?;
+            let category = if let Some(cat) = f.category.clone() {
+                if !category_names.contains(&cat) {
+                    return Err(ConfigError::Invalid(format!(
+                        "feed '{}' category '{cat}' missing from categories",
+                        f.id
+                    )));
+                }
+                cat
+            } else {
+                domain_to_category.get(&domain).cloned().ok_or_else(|| {
+                    ConfigError::Invalid(format!(
+                        "feed '{}' domain '{domain}' missing from categories",
+                        f.id
+                    ))
+                })?
+            };
             feeds.push(FeedConfig {
                 id: f.id,
                 url: f.url,
@@ -214,6 +224,10 @@ impl ConfigLoader {
                 base_poll_seconds: f
                     .base_poll_seconds
                     .unwrap_or(raw_cfg.polling.default_seconds),
+                provenance: f.provenance,
+                tags: f.tags,
+                language: f.language,
+                content_type: f.content_type,
             });
         }
 
