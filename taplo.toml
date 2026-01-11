@@ -24,3 +24,7 @@ schema = { path = "crates/fetcher/res/schemas/global.schema.json" }
 [[rule]]
 include = ["crates/fetcher/res/feeds/**/*.toml"]
 schema = { path = "crates/fetcher/res/schemas/feeds.schema.json" }
+
+[[rule]]
+include = ["crates/server/res/config.toml"]
+schema = { path = "crates/server/res/schemas/server.schema.json" }

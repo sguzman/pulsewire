@@ -1,0 +1,27 @@
+[app]
+mode = "dev"
+timezone = "America/Mexico_City"
+
+[http]
+host = "0.0.0.0"
+port = 8081
+
+[database]
+dialect = "sqlite"
+
+[sqlite]
+path = "res/db/server.sqlite"
+
+[postgres]
+host = "localhost"
+port = 5432
+database = "data"
+user = "admin"
+password = "admin"
+ssl_mode = "disable"
+
+[logging]
+level = "info"
+
+[dev]
+reset_on_start = true

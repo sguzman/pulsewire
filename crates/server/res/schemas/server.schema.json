@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "feedrv3 server config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["app", "http", "database", "sqlite", "logging", "dev"],
+  "properties": {
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["dev", "prod"] },
+        "timezone": { "type": "string" }
+      }
+    },
+    "http": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "port"],
+      "properties": {
+        "host": { "type": "string" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+      }
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dialect"],
+      "properties": {
+        "dialect": { "type": "string", "enum": ["sqlite", "postgres"] }
+      }
+    },
+    "sqlite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string" }
+      }
+    },
+    "postgres": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "port", "database", "user", "password", "ssl_mode"],
+      "properties": {
+        "host": { "type": "string" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "database": { "type": "string" },
+        "user": { "type": "string" },
+        "password": { "type": "string" },
+        "ssl_mode": { "type": "string" }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level"],
+      "properties": {
+        "level": { "type": "string" }
+      }
+    },
+    "dev": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reset_on_start"],
+      "properties": {
+        "reset_on_start": { "type": "boolean" }
+      }
+    }
+  }
+}
