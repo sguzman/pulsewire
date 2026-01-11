@@ -20,6 +20,11 @@ pub(crate) fn default_pg_database() -> String {
     "data".to_string()
 }
 
+
+pub(crate) fn default_pg_schema() -> String {
+    "fetcher".to_string()
+}
+
 pub(crate) fn default_sqlite_path() -> String {
     "rss.db".to_string()
 }

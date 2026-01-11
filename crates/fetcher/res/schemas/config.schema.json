@@ -35,7 +35,8 @@
         "password": { "type": "string" },
         "host": { "type": "string" },
         "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
-        "db": { "type": "string" }
+        "db": { "type": "string" },
+        "schema": { "type": "string" }
       }
     },
     "polling": {

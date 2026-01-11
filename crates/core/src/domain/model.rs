@@ -85,6 +85,7 @@ pub struct PostgresConfig {
     pub host: String,
     pub port: u16,
     pub database: String,
+    pub schema: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

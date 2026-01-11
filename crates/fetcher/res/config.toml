@@ -14,6 +14,7 @@ password = "admin"
 host     = "localhost"
 port     = 5432
 db       = "data"
+schema   = "fetcher"
 
 [polling]
 default_seconds = 100

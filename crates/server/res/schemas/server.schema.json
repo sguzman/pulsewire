@@ -49,7 +49,8 @@
         "database": { "type": "string" },
         "user": { "type": "string" },
         "password": { "type": "string" },
-        "ssl_mode": { "type": "string" }
+        "ssl_mode": { "type": "string" },
+        "schema": { "type": "string" }
       }
     },
     "logging": {

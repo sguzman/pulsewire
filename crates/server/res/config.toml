@@ -19,6 +19,7 @@ database = "data"
 user = "admin"
 password = "admin"
 ssl_mode = "disable"
+schema = "server"
 
 [logging]
 level = "info"

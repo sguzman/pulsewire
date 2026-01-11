@@ -4,8 +4,9 @@ use std::net::SocketAddr;
 use std::path::Path;
 
 use axum::{routing::get, Router};
-use config::{AppMode, ConfigError, ServerConfig, SqlDialect};
+use config::{validate_schema_name, AppMode, ConfigError, ServerConfig, SqlDialect};
 use sqlx::{Pool, Postgres, Sqlite};
+use sqlx::postgres::PgPoolOptions;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -82,11 +83,15 @@ async fn connect_db(
                 .postgres
                 .as_ref()
                 .ok_or_else(|| ConfigError::Invalid("postgres section missing".into()))?;
+            let schema = validate_schema_name(&pg.schema)?;
             let url = format!(
                 "postgres://{}:{}@{}:{}/{}?sslmode={}",
                 pg.user, pg.password, pg.host, pg.port, pg.database, pg.ssl_mode
             );
-            let pool = sqlx::PgPool::connect(&url)
+            let pool = PgPoolOptions::new()
+                .max_connections(10)
+                .after_connect(set_search_path(&schema))
+                .connect(&url)
                 .await
                 .map_err(|e| ConfigError::Invalid(format!("postgres connect failed: {e}")))?;
             Ok((None, Some(pool)))
@@ -126,7 +131,18 @@ async fn reset_server_data(
             let pool = postgres_pool
                 .as_ref()
                 .ok_or_else(|| ConfigError::Invalid("postgres pool missing".into()))?;
-            let table_list = tables.join(", ");
+            let schema = config
+                .postgres
+                .as_ref()
+                .ok_or_else(|| ConfigError::Invalid("postgres section missing".into()))?
+                .schema
+                .as_str();
+            let schema = validate_schema_name(schema)?;
+            let table_list = tables
+                .iter()
+                .map(|t| format!("{}.{}", quote_ident(&schema), quote_ident(t)))
+                .collect::<Vec<_>>()
+                .join(", ");
             let query = format!("TRUNCATE TABLE {table_list} RESTART IDENTITY");
             sqlx::query(&query)
                 .execute(pool)
@@ -136,4 +152,28 @@ async fn reset_server_data(
     }
 
     Ok(())
+}
+
+fn set_search_path(
+    schema: &str,
+) -> impl Fn(
+    &mut sqlx::PgConnection,
+    sqlx::pool::PoolConnectionMetadata,
+) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), sqlx::Error>> + Send + '_>> {
+    let schema_name = schema.to_string();
+    move |conn, _meta| {
+        let schema_copy = schema_name.clone();
+        Box::pin(async move {
+            let schema_ident = quote_ident(&schema_copy);
+            let create_stmt = format!("CREATE SCHEMA IF NOT EXISTS {schema_ident}");
+            sqlx::query(&create_stmt).execute(&mut *conn).await?;
+            let search_stmt = format!("SET search_path TO {schema_ident}");
+            sqlx::query(&search_stmt).execute(&mut *conn).await?;
+            Ok(())
+        })
+    }
+}
+
+fn quote_ident(name: &str) -> String {
+    format!("\"{}\"", name.replace('"', "\"\""))
 }

@@ -67,6 +67,7 @@ pub struct PostgresConfig {
     pub user: String,
     pub password: String,
     pub ssl_mode: String,
+    pub schema: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -144,4 +145,20 @@ fn validate_toml(schema: &str, toml_input: &str, name: &str) -> Result<(), Confi
     }
 
     Ok(())
+}
+
+pub(crate) fn validate_schema_name(raw: &str) -> Result<String, ConfigError> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Err(ConfigError::Invalid("postgres schema cannot be empty".into()));
+    }
+    if !trimmed
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '_')
+    {
+        return Err(ConfigError::Invalid(format!(
+            "invalid postgres schema '{trimmed}': only alphanumeric and '_' allowed"
+        )));
+    }
+    Ok(trimmed.to_string())
 }

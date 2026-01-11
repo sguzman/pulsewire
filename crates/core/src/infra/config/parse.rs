@@ -16,13 +16,31 @@ pub(crate) fn parse_dialect(s: Option<&str>) -> Result<SqlDialect, ConfigError> 
 
 pub(crate) fn parse_postgres(raw: Option<RawPostgres>) -> Result<PostgresConfig, ConfigError> {
     let pg = raw.unwrap_or_default();
+    let schema = validate_schema_name(&pg.schema)?;
     Ok(PostgresConfig {
         user: pg.user,
         password: pg.password,
         host: pg.host,
         port: pg.port,
         database: pg.db,
+        schema,
     })
+}
+
+fn validate_schema_name(raw: &str) -> Result<String, ConfigError> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Err(ConfigError::Invalid("postgres schema cannot be empty".into()));
+    }
+    if !trimmed
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '_')
+    {
+        return Err(ConfigError::Invalid(format!(
+            "invalid postgres schema '{trimmed}': only alphanumeric and '_' allowed"
+        )));
+    }
+    Ok(trimmed.to_string())
 }
 
 pub(crate) fn parse_mode(s: Option<&str>) -> Result<AppMode, ConfigError> {

@@ -11,7 +11,7 @@ pub async fn create_pool(cfg: &PostgresConfig, timezone: &Tz) -> Result<PgPool, 
     let opts = connect_options(cfg, Some(&cfg.database));
     let pool = PgPoolOptions::new()
         .max_connections(10)
-        .after_connect(set_time_zone(timezone))
+        .after_connect(set_session_defaults(cfg, timezone))
         .connect_with(opts.clone())
         .await;
 
@@ -21,7 +21,7 @@ pub async fn create_pool(cfg: &PostgresConfig, timezone: &Tz) -> Result<PgPool, 
             ensure_database_exists(cfg).await?;
             PgPoolOptions::new()
                 .max_connections(10)
-                .after_connect(set_time_zone(timezone))
+                .after_connect(set_session_defaults(cfg, timezone))
                 .connect_with(opts)
                 .await
                 .map_err(|e| format!("postgres connect error after create: {e}"))
@@ -31,18 +31,22 @@ pub async fn create_pool(cfg: &PostgresConfig, timezone: &Tz) -> Result<PgPool, 
 
 pub async fn wipe_database(cfg: &PostgresConfig, timezone: &Tz) -> Result<(), String> {
     let pool = create_pool(cfg, timezone).await?;
-    sqlx::query("DROP SCHEMA public CASCADE")
+    let schema = quote_ident(&cfg.schema);
+    let drop_sql = format!("DROP SCHEMA {schema} CASCADE");
+    sqlx::query(&drop_sql)
         .execute(&pool)
         .await
         .map_err(|e| format!("postgres drop schema error: {e}"))?;
-    sqlx::query("CREATE SCHEMA public")
+    let create_sql = format!("CREATE SCHEMA {schema}");
+    sqlx::query(&create_sql)
         .execute(&pool)
         .await
         .map_err(|e| format!("postgres create schema error: {e}"))?;
     Ok(())
 }
 
-fn set_time_zone(
+fn set_session_defaults(
+    cfg: &PostgresConfig,
     timezone: &Tz,
 ) -> impl Fn(
     &mut sqlx::PgConnection,
@@ -50,15 +54,26 @@ fn set_time_zone(
 )
     -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), sqlx::Error>> + Send + '_>> {
     let tz_name = timezone.name().to_string();
+    let schema = cfg.schema.clone();
     move |conn, _meta| {
         let tz = tz_name.clone();
+        let schema_name = schema.clone();
         Box::pin(async move {
+            let schema_ident = quote_ident(&schema_name);
+            let create_stmt = format!("CREATE SCHEMA IF NOT EXISTS {schema_ident}");
+            sqlx::query(&create_stmt).execute(&mut *conn).await?;
+            let search_stmt = format!("SET search_path TO {schema_ident}");
+            sqlx::query(&search_stmt).execute(&mut *conn).await?;
             // Postgres does not accept bind params in SET TIME ZONE; embed the literal safely.
             let stmt = format!("SET TIME ZONE '{}'", tz.replace('\'', "''"));
-            sqlx::query(&stmt).execute(conn).await?;
+            sqlx::query(&stmt).execute(&mut *conn).await?;
             Ok(())
         })
     }
+}
+
+fn quote_ident(name: &str) -> String {
+    format!("\"{}\"", name.replace('"', "\"\""))
 }
 
 fn connect_options(cfg: &PostgresConfig, database: Option<&str>) -> PgConnectOptions {

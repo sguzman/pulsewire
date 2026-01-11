@@ -5,7 +5,7 @@ use super::defaults::{
     default_log_file_level, default_log_file_name, default_log_file_rotation,
     default_log_tick_warn_seconds, default_immediate_error_statuses, default_max_consecutive_errors,
     default_metrics_bind, default_metrics_enabled, default_pg_database, default_pg_host,
-    default_pg_password, default_pg_port, default_pg_user, default_sqlite_path,
+    default_pg_password, default_pg_port, default_pg_schema, default_pg_user, default_sqlite_path,
 };
 
 #[derive(Debug, Deserialize)]
@@ -56,6 +56,8 @@ pub(crate) struct RawPostgres {
     pub port: u16,
     #[serde(default = "default_pg_database")]
     pub db: String,
+    #[serde(default = "default_pg_schema")]
+    pub schema: String,
 }
 
 #[derive(Debug, Deserialize)]
