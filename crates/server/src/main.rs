@@ -121,10 +121,11 @@ async fn reset_server_data(
                 .ok_or_else(|| ConfigError::Invalid("sqlite pool missing".into()))?;
             for table in tables {
                 let query = format!("DELETE FROM {table}");
-                sqlx::query(&query)
-                    .execute(pool)
-                    .await
-                    .map_err(|e| ConfigError::Invalid(format!("cleanup {table} failed: {e}")))?;
+                if let Err(e) = sqlx::query(&query).execute(pool).await {
+                    if !is_missing_table_error(&e) {
+                        return Err(ConfigError::Invalid(format!("cleanup {table} failed: {e}")));
+                    }
+                }
             }
         }
         SqlDialect::Postgres => {
@@ -138,16 +139,19 @@ async fn reset_server_data(
                 .schema
                 .as_str();
             let schema = validate_schema_name(schema)?;
-            let table_list = tables
-                .iter()
-                .map(|t| format!("{}.{}", quote_ident(&schema), quote_ident(t)))
-                .collect::<Vec<_>>()
-                .join(", ");
-            let query = format!("TRUNCATE TABLE {table_list} RESTART IDENTITY");
-            sqlx::query(&query)
-                .execute(pool)
-                .await
-                .map_err(|e| ConfigError::Invalid(format!("cleanup failed: {e}")))?;
+            let statements = tables.iter().map(|t| {
+                format!(
+                    "TRUNCATE TABLE IF EXISTS {}.{} RESTART IDENTITY",
+                    quote_ident(&schema),
+                    quote_ident(t)
+                )
+            });
+            for stmt in statements {
+                sqlx::query(&stmt)
+                    .execute(pool)
+                    .await
+                    .map_err(|e| ConfigError::Invalid(format!("cleanup failed: {e}")))?;
+            }
         }
     }
 
