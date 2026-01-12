@@ -1,5 +1,6 @@
 mod auth;
 mod entries;
+mod docs;
 mod feeds;
 mod favorites;
 mod folders;
@@ -17,6 +18,7 @@ use crate::app_state::AppState;
 pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health::health))
+        .route("/openapi.json", get(docs::openapi))
         .route("/v1/feeds", get(feeds::list_feeds))
         .route("/v1/favorites", get(favorites::list_favorites))
         .route("/v1/favorites", post(favorites::create_favorite))
