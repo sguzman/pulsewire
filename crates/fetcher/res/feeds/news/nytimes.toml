@@ -1,319 +1,319 @@
 # NYTimes.com Home Page (U.S.)
 
 base_poll_seconds = 1000
-id_prefix = "nytimes"
 category = "news"
+content_type = "xml"
+id_prefix = "nytimes"
+language = "en"
 provenance = "nytimes"
 tags = [
-    "news",
+  "news",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "homepage-us"
+id  = "homepage-us"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
 
 # World
 
 [[feeds]]
-id = "world"
+id  = "world"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
 
 [[feeds]]
-id = "africa"
+id  = "africa"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Africa.xml"
 
 [[feeds]]
-id = "americas"
+id  = "americas"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Americas.xml"
 
 [[feeds]]
-id = "asia-pacific"
+id  = "asia-pacific"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/AsiaPacific.xml"
 
 [[feeds]]
-id = "europe"
+id  = "europe"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Europe.xml"
 
 [[feeds]]
-id = "middle-east"
+id  = "middle-east"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/MiddleEast.xml"
 
 # U.S.
 
 [[feeds]]
-id = "us"
+id  = "us"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/US.xml"
 
 [[feeds]]
-id = "education"
+id  = "education"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Education.xml"
 
 [[feeds]]
-id = "politics"
+id  = "politics"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml"
 
 [[feeds]]
-id = "upshot"
+id  = "upshot"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Upshot.xml"
 
 [[feeds]]
-id = "ny-region"
+id  = "ny-region"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/NYRegion.xml"
 
 # Business
 
 [[feeds]]
-id = "business"
+id  = "business"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml"
 
 [[feeds]]
-id = "energy-environment"
+id  = "energy-environment"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/EnergyEnvironment.xml"
 
 [[feeds]]
-id = "small-business"
+id  = "small-business"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/SmallBusiness.xml"
 
 [[feeds]]
-id = "economy"
+id  = "economy"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Economy.xml"
 
 [[feeds]]
-id = "dealbook"
+id  = "dealbook"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Dealbook.xml"
 
 [[feeds]]
-id = "media-and-advertising"
+id  = "media-and-advertising"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/MediaandAdvertising.xml"
 
 [[feeds]]
-id = "your-money"
+id  = "your-money"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/YourMoney.xml"
 
 # Technology
 
 [[feeds]]
-id = "technology"
+id  = "technology"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml"
 
 [[feeds]]
-id = "personal-tech"
+id  = "personal-tech"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/PersonalTech.xml"
 
 # Sports
 
 [[feeds]]
-id = "sports"
+id  = "sports"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml"
 
 [[feeds]]
-id = "baseball"
+id  = "baseball"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Baseball.xml"
 
 [[feeds]]
-id = "college-basketball"
+id  = "college-basketball"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/CollegeBasketball.xml"
 
 [[feeds]]
-id = "college-football"
+id  = "college-football"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/CollegeFootball.xml"
 
 [[feeds]]
-id = "golf"
+id  = "golf"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Golf.xml"
 
 [[feeds]]
-id = "hockey"
+id  = "hockey"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Hockey.xml"
 
 [[feeds]]
-id = "pro-basketball"
+id  = "pro-basketball"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/ProBasketball.xml"
 
 [[feeds]]
-id = "pro-football"
+id  = "pro-football"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/ProFootball.xml"
 
 [[feeds]]
-id = "soccer"
+id  = "soccer"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Soccer.xml"
 
 [[feeds]]
-id = "tennis"
+id  = "tennis"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Tennis.xml"
 
 # Science / Health
 
 [[feeds]]
-id = "science"
+id  = "science"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml"
 
 [[feeds]]
-id = "climate"
+id  = "climate"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Climate.xml"
 
 [[feeds]]
-id = "space"
+id  = "space"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Space.xml"
 
 [[feeds]]
-id = "health"
+id  = "health"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Health.xml"
 
 [[feeds]]
-id = "well"
+id  = "well"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Well.xml"
 
 # Arts
 
 [[feeds]]
-id = "arts"
+id  = "arts"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Arts.xml"
 
 [[feeds]]
-id = "art-and-design"
+id  = "art-and-design"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/ArtandDesign.xml"
 
 [[feeds]]
-id = "books-review"
+id  = "books-review"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Books/Review.xml"
 
 [[feeds]]
-id = "dance"
+id  = "dance"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Dance.xml"
 
 [[feeds]]
-id = "movies"
+id  = "movies"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Movies.xml"
 
 [[feeds]]
-id = "music"
+id  = "music"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Music.xml"
 
 [[feeds]]
-id = "television"
+id  = "television"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Television.xml"
 
 [[feeds]]
-id = "theater"
+id  = "theater"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Theater.xml"
 
 [[feeds]]
-id = "fashion-and-style"
+id  = "fashion-and-style"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/FashionandStyle.xml"
 
 [[feeds]]
-id = "dining-and-wine"
+id  = "dining-and-wine"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/DiningandWine.xml"
 
 [[feeds]]
-id = "weddings"
+id  = "weddings"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Weddings.xml"
 
 [[feeds]]
-id = "t-magazine"
+id  = "t-magazine"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/tmagazine.xml"
 
 [[feeds]]
-id = "travel"
+id  = "travel"
 url = "https://www.nytimes.com/services/xml/rss/nyt/Travel.xml"
 
 # Other
 
 [[feeds]]
-id = "jobs"
+id  = "jobs"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Jobs.xml"
 
 [[feeds]]
-id = "real-estate"
+id  = "real-estate"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/RealEstate.xml"
 
 [[feeds]]
-id = "automobiles"
+id  = "automobiles"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Automobiles.xml"
 
 [[feeds]]
-id = "lens"
+id  = "lens"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Lens.xml"
 
 [[feeds]]
-id = "obituaries"
+id  = "obituaries"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/Obituaries.xml"
 
 # Popularity feeds
 
 [[feeds]]
-id = "most-emailed"
+id  = "most-emailed"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/MostEmailed.xml"
 
 [[feeds]]
-id = "most-shared"
+id  = "most-shared"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/MostShared.xml"
 
 [[feeds]]
-id = "most-viewed"
+id  = "most-viewed"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/MostViewed.xml"
 
 # Opinion columnists
 
 [[feeds]]
-id = "column-charles-m-blow"
+id  = "column-charles-m-blow"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/charles-m-blow/rss.xml"
 
 [[feeds]]
-id = "column-jamelle-bouie"
+id  = "column-jamelle-bouie"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/jamelle-bouie/rss.xml"
 
 [[feeds]]
-id = "column-david-brooks"
+id  = "column-david-brooks"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/david-brooks/rss.xml"
 
 [[feeds]]
-id = "column-frank-bruni"
+id  = "column-frank-bruni"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/frank-bruni/rss.xml"
 
 [[feeds]]
-id = "column-gail-collins"
+id  = "column-gail-collins"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/gail-collins/rss.xml"
 
 [[feeds]]
-id = "column-ross-douthat"
+id  = "column-ross-douthat"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/ross-douthat/rss.xml"
 
 [[feeds]]
-id = "column-maureen-dowd"
+id  = "column-maureen-dowd"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/maureen-dowd/rss.xml"
 
 [[feeds]]
-id = "column-thomas-l-friedman"
+id  = "column-thomas-l-friedman"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/thomas-l-friedman/rss.xml"
 
 [[feeds]]
-id = "column-michelle-goldberg"
+id  = "column-michelle-goldberg"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/michelle-goldberg/rss.xml"
 
 [[feeds]]
-id = "column-ezra-klein"
+id  = "column-ezra-klein"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/ezra-klein/rss.xml"
 
 [[feeds]]
-id = "column-nicholas-kristof"
+id  = "column-nicholas-kristof"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/nicholas-kristof/rss.xml"
 
 [[feeds]]
-id = "column-paul-krugman"
+id  = "column-paul-krugman"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/paul-krugman/rss.xml"
 
 [[feeds]]
-id = "column-farhad-manjoo"
+id  = "column-farhad-manjoo"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/farhad-manjoo/rss.xml"
 
 [[feeds]]
-id = "column-bret-stephens"
+id  = "column-bret-stephens"
 url = "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/bret-stephens/rss.xml"
 
 [[feeds]]
-id = "sunday-opinion"
+id  = "sunday-opinion"
 url = "https://rss.nytimes.com/services/xml/rss/nyt/sunday-review.xml"

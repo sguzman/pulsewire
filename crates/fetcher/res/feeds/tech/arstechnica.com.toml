@@ -1,53 +1,53 @@
 base_poll_seconds = 500
-id_prefix = "ars"
 category = "tech"
+content_type = "xml"
+id_prefix = "ars"
+language = "en"
 provenance = "arstechnica"
 tags = [
-    "tech",
+  "tech",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "all"
+id  = "all"
 url = "https://feeds.arstechnica.com/arstechnica/index"
 
 [[feeds]]
-id = "features"
+id  = "features"
 url = "https://feeds.arstechnica.com/arstechnica/features"
 
 [[feeds]]
-id = "ai-technology-lab"
+id  = "ai-technology-lab"
 url = "https://feeds.arstechnica.com/arstechnica/technology-lab"
 
 [[feeds]]
-id = "gears-and-gadgets"
+id  = "gears-and-gadgets"
 url = "https://feeds.arstechnica.com/arstechnica/gadgets"
 
 [[feeds]]
-id = "law-and-order"
+id  = "law-and-order"
 url = "https://feeds.arstechnica.com/arstechnica/tech-policy"
 
 [[feeds]]
-id = "apple"
+id  = "apple"
 url = "https://feeds.arstechnica.com/arstechnica/apple"
 
 [[feeds]]
-id = "gaming"
+id  = "gaming"
 url = "https://feeds.arstechnica.com/arstechnica/gaming"
 
 [[feeds]]
-id = "science"
+id  = "science"
 url = "https://feeds.arstechnica.com/arstechnica/science"
 
 [[feeds]]
-id = "cars"
+id  = "cars"
 url = "https://feeds.arstechnica.com/arstechnica/cars"
 
 [[feeds]]
-id = "security"
+id  = "security"
 url = "https://feeds.arstechnica.com/arstechnica/staff-blogs"
 
 [[feeds]]
-id = "boardgames"
+id  = "boardgames"
 url = "https://feeds.arstechnica.com/arstechnica/cardboard"

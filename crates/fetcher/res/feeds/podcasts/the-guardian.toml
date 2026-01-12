@@ -1,173 +1,141 @@
 base_poll_seconds = 1000
-id_prefix = "theguardian"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "theguardian"
+language = "en"
 provenance = "theguardian"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "1731314182"
+id  = "1731314182"
 url = "https://www.theguardian.com/technology/series/blackbox/podcast.xml"
 
-
 [[feeds]]
-id = "188674007"
+id  = "188674007"
 url = "https://www.theguardian.com/football/series/footballweekly/podcast.xml"
 
-
 [[feeds]]
-id = "1440133626"
+id  = "1440133626"
 url = "https://www.theguardian.com/news/series/todayinfocus/podcast.xml"
 
-
 [[feeds]]
-id = "587347784"
+id  = "587347784"
 url = "https://www.theguardian.com/news/series/the-audio-long-read/podcast.xml"
 
-
 [[feeds]]
-id = "136697669"
+id  = "136697669"
 url = "https://www.theguardian.com/science/series/science/podcast.xml"
 
-
 [[feeds]]
-id = "1610749444"
+id  = "1610749444"
 url = "https://www.theguardian.com/politics/series/politics-weekly-america/podcast.xml"
 
-
 [[feeds]]
-id = "1482061243"
+id  = "1482061243"
 url = "https://www.theguardian.com/australia-news/series/full-story/podcast.xml"
 
-
 [[feeds]]
-id = "1643870040"
+id  = "1643870040"
 url = "https://www.theguardian.com/society/series/canitellyouasecret/podcast.xml"
 
-
 [[feeds]]
-id = "136697472"
+id  = "136697472"
 url = "https://www.theguardian.com/politics/series/politicsweekly/podcast.xml"
 
-
 [[feeds]]
-id = "1608043151"
+id  = "1608043151"
 url = "https://www.theguardian.com/lifeandstyle/series/weekend/podcast.xml"
 
-
 [[feeds]]
-id = "1571446706"
+id  = "1571446706"
 url = "https://www.theguardian.com/lifeandstyle/series/comforteatingwithgracedent/podcast.xml"
 
-
 [[feeds]]
-id = "1632047182"
+id  = "1632047182"
 url = "https://www.theguardian.com/football/series/theguardianswomensfootballweekly/podcast.xml"
 
-
 [[feeds]]
-id = "1352919621"
+id  = "1352919621"
 url = "https://www.theguardian.com/science/series/a-neuroscientist-explains-podcast/podcast.xml"
 
-
 [[feeds]]
-id = "1323306591"
+id  = "1323306591"
 url = "https://www.theguardian.com/australia-news/series/the-reckoning-guardian-australia-podcast/podcast.xml"
 
-
 [[feeds]]
-id = "1650625380"
+id  = "1650625380"
 url = "https://www.theguardian.com/society/series/pop-culture-with-chante-joseph/podcast.xml"
 
-
 [[feeds]]
-id = "1650563511"
+id  = "1650563511"
 url = "https://www.theguardian.com/news/series/an-impossible-choice/podcast.xml"
 
-
 [[feeds]]
-id = "1679720503"
+id  = "1679720503"
 url = "https://www.theguardian.com/news/series/cotton-capital-podcast/podcast.xml"
 
-
 [[feeds]]
-id = "1651599506"
+id  = "1651599506"
 url = "https://www.theguardian.com/news/series/ben-roberts-smith-v-the-media/podcast.xml"
 
-
 [[feeds]]
-id = "1584049761"
+id  = "1584049761"
 url = "https://www.theguardian.com/australia-news/series/australia-reads/podcast.xml"
 
-
 [[feeds]]
-id = "1109943717"
+id  = "1109943717"
 url = "https://www.theguardian.com/australia-news/series/australian-politics-live/podcast.xml"
 
-
 [[feeds]]
-id = "1740661234"
+id  = "1740661234"
 url = "https://www.theguardian.com/australia-news/series/who-screwed-millennials/podcast.xml"
 
-
 [[feeds]]
-id = "1599024857"
+id  = "1599024857"
 url = "https://www.theguardian.com/sport/series/the-final-word-ashes-podcast/podcast.xml"
 
-
 [[feeds]]
-id = "1598488668"
+id  = "1598488668"
 url = "https://www.theguardian.com/culture/series/book-it-in/podcast.xml"
 
-
 [[feeds]]
-id = "1409525713"
+id  = "1409525713"
 url = "https://www.theguardian.com/australia-news/series/breathless-the-death-of-david-dungay-jnr/podcast.xml"
 
-
 [[feeds]]
-id = "1549774655"
+id  = "1549774655"
 url = "https://www.theguardian.com/music/series/reverberate/podcast.xml"
 
-
 [[feeds]]
-id = "1519052703"
+id  = "1519052703"
 url = "https://www.theguardian.com/society/series/innermost/podcast.xml"
 
-
 [[feeds]]
-id = "1512743018"
+id  = "1512743018"
 url = "https://www.theguardian.com/football/series/forgotten-stories-of-football/podcast.xml"
 
-
 [[feeds]]
-id = "1435668676"
+id  = "1435668676"
 url = "https://www.theguardian.com/society/series/beyondtheblade/podcast.xml"
 
-
 [[feeds]]
-id = "1540927312"
+id  = "1540927312"
 url = "https://www.theguardian.com/australia-news/series/temporary/podcast.xml"
 
-
 [[feeds]]
-id = "1496786870"
+id  = "1496786870"
 url = "https://www.theguardian.com/science/series/thegenegapcommonthreads/podcast.xml"
 
-
 [[feeds]]
-id = "1589004772"
+id  = "1589004772"
 url = "https://www.theguardian.com/culture/series/saved-for-later/podcast.xml"
 
-
 [[feeds]]
-id = "1337773497"
+id  = "1337773497"
 url = "https://www.theguardian.com/culture/series/thestart/podcast.xml"
 
-
 [[feeds]]
-id = "1651991283"
+id  = "1651991283"
 url = "https://www.theguardian.com/news/series/australia-v-the-climate/podcast.xml"

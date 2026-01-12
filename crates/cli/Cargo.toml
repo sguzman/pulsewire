@@ -1,13 +1,19 @@
 [package]
-name = "feedrv3-cli"
-version = "0.1.0"
 edition = "2024"
+name    = "feedrv3-cli"
+version = "0.1.0"
 
 [[bin]]
 name = "feedrv3-cli"
 path = "src/main.rs"
 
 [dependencies]
+clap = { features = [
+  "derive",
+], version = "4.5.54" }
 feedrv3-core = { path = "../core" }
-clap = { version = "4.5.54", features = ["derive"] }
-tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread", "fs"] }
+tokio = { features = [
+  "fs",
+  "macros",
+  "rt-multi-thread",
+], version = "1.49.0" }

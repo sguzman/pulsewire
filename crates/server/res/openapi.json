@@ -1388,9 +1388,7 @@
       },
       "EntryListResponse": {
         "type": "object",
-        "required": [
-          "items"
-        ],
+        "required": ["items"],
         "properties": {
           "items": {
             "type": "array",
@@ -1417,9 +1415,7 @@
       },
       "EntryBatchRequest": {
         "type": "object",
-        "required": [
-          "item_ids"
-        ],
+        "required": ["item_ids"],
         "properties": {
           "item_ids": {
             "type": "array",
@@ -1432,9 +1428,7 @@
       },
       "UnreadCountResponse": {
         "type": "object",
-        "required": [
-          "count"
-        ],
+        "required": ["count"],
         "properties": {
           "count": {
             "type": "integer",
@@ -1476,10 +1470,7 @@
       },
       "FolderRow": {
         "type": "object",
-        "required": [
-          "id",
-          "name"
-        ],
+        "required": ["id", "name"],
         "properties": {
           "id": {
             "type": "integer",
@@ -1492,9 +1483,7 @@
       },
       "FolderCreateRequest": {
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "properties": {
           "name": {
             "type": "string"
@@ -1503,9 +1492,7 @@
       },
       "FolderUpdateRequest": {
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "properties": {
           "name": {
             "type": "string"
@@ -1514,9 +1501,7 @@
       },
       "FolderFeedRequest": {
         "type": "object",
-        "required": [
-          "feed_id"
-        ],
+        "required": ["feed_id"],
         "properties": {
           "feed_id": {
             "type": "string"
@@ -1525,9 +1510,7 @@
       },
       "FolderFeedRow": {
         "type": "object",
-        "required": [
-          "feed_id"
-        ],
+        "required": ["feed_id"],
         "properties": {
           "feed_id": {
             "type": "string"
@@ -1569,9 +1552,7 @@
       },
       "FavoriteRequest": {
         "type": "object",
-        "required": [
-          "feed_id"
-        ],
+        "required": ["feed_id"],
         "properties": {
           "feed_id": {
             "type": "string"
@@ -1620,10 +1601,7 @@
       },
       "UserResponse": {
         "type": "object",
-        "required": [
-          "id",
-          "username"
-        ],
+        "required": ["id", "username"],
         "properties": {
           "id": {
             "type": "integer",
@@ -1651,9 +1629,7 @@
       },
       "PasswordResetRequest": {
         "type": "object",
-        "required": [
-          "username"
-        ],
+        "required": ["username"],
         "properties": {
           "username": {
             "type": "string"
@@ -1693,9 +1669,7 @@
       },
       "SubscriptionRequest": {
         "type": "object",
-        "required": [
-          "feed_id"
-        ],
+        "required": ["feed_id"],
         "properties": {
           "feed_id": {
             "type": "string"
@@ -1704,9 +1678,7 @@
       },
       "SubscriptionRow": {
         "type": "object",
-        "required": [
-          "feed_id"
-        ],
+        "required": ["feed_id"],
         "properties": {
           "feed_id": {
             "type": "string"
@@ -1745,9 +1717,7 @@
       },
       "ErrorEnvelope": {
         "type": "object",
-        "required": [
-          "error"
-        ],
+        "required": ["error"],
         "properties": {
           "error": {
             "type": "object",

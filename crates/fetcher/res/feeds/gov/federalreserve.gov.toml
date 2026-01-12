@@ -1,90 +1,90 @@
 base_poll_seconds = 720
-id_prefix = "fed"
 category = "gov"
+content_type = "xml"
+id_prefix = "fed"
+language = "en"
 provenance = "federalreserve"
 tags = [
-    "gov",
-    "economy",
+  "economy",
+  "gov",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "clp"
+id  = "clp"
 url = "https://www.federalreserve.gov/feeds/clp.xml"
 
 [[feeds]]
-id = "boardmeetings"
+id  = "boardmeetings"
 url = "https://www.federalreserve.gov/feeds/boardmeetings.xml"
 
 [[feeds]]
-id = "reportforms-rss"
+id  = "reportforms-rss"
 url = "https://www.federalreserve.gov/feeds/reportforms-rss.xml"
 
 [[feeds]]
-id = "datadownload"
+id  = "datadownload"
 url = "https://www.federalreserve.gov/feeds/datadownload.xml"
 
 [[feeds]]
-id = "h8"
+id  = "h8"
 url = "https://www.federalreserve.gov/feeds/h8.xml"
 
 [[feeds]]
-id = "chgdel"
+id  = "chgdel"
 url = "https://www.federalreserve.gov/feeds/chgdel.xml"
 
 [[feeds]]
-id = "cp"
+id  = "cp"
 url = "https://www.federalreserve.gov/feeds/cp.xml"
 
 [[feeds]]
-id = "g19"
+id  = "g19"
 url = "https://www.federalreserve.gov/feeds/g19.xml"
 
 [[feeds]]
-id = "h41"
+id  = "h41"
 url = "https://www.federalreserve.gov/feeds/h41.xml"
 
 [[feeds]]
-id = "g20"
+id  = "g20"
 url = "https://www.federalreserve.gov/feeds/g20.xml"
 
 [[feeds]]
-id = "for"
+id  = "for"
 url = "https://www.federalreserve.gov/feeds/for.xml"
 
 [[feeds]]
-id = "z1"
+id  = "z1"
 url = "https://www.federalreserve.gov/feeds/z1.xml"
 
 [[feeds]]
-id = "fofguide"
+id  = "fofguide"
 url = "https://www.federalreserve.gov/feeds/fofguide.xml"
 
 [[feeds]]
-id = "h10"
+id  = "h10"
 url = "https://www.federalreserve.gov/feeds/h10.xml"
 
 [[feeds]]
-id = "g17"
+id  = "g17"
 url = "https://www.federalreserve.gov/feeds/g17.xml"
 
 [[feeds]]
-id = "prates"
+id  = "prates"
 url = "https://www.federalreserve.gov/feeds/prates.xml"
 
 [[feeds]]
-id = "h15"
+id  = "h15"
 url = "https://www.federalreserve.gov/feeds/h15.xml"
 
 [[feeds]]
-id = "scoos"
+id  = "scoos"
 url = "https://www.federalreserve.gov/feeds/scoos.xml"
 
 [[feeds]]
-id = "sloos"
+id  = "sloos"
 url = "https://www.federalreserve.gov/feeds/sloos.xml"
 
 [[feeds]]
-id = "e2"
+id  = "e2"
 url = "https://www.federalreserve.gov/feeds/e2.xml"

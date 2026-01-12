@@ -1,20 +1,28 @@
-//! Records feeds that exceeded the consecutive error threshold in Postgres.
+//! Records feeds that exceeded the
+//! consecutive error threshold in
+//! Postgres.
+
 use chrono_tz::Tz;
 use sqlx::PgPool;
 
 use crate::domain::model::ErrorKind;
 
 pub async fn mark_feed_error(
-    pool: &PgPool,
-    feed_id: &str,
-    error_kind: Option<ErrorKind>,
-    status: Option<i64>,
-    error_count: i64,
-    observed_at_ms: i64,
-    zone: &Tz,
+  pool: &PgPool,
+  feed_id: &str,
+  error_kind: Option<ErrorKind>,
+  status: Option<i64>,
+  error_count: i64,
+  observed_at_ms: i64,
+  zone: &Tz
 ) -> Result<(), String> {
-    let observed_at = super::util::ts_from_ms(observed_at_ms, zone);
-    sqlx::query(
+  let observed_at =
+    super::util::ts_from_ms(
+      observed_at_ms,
+      zone
+    );
+
+  sqlx::query(
         r#"
       INSERT INTO error_feeds(
         feed_id, error_count, last_error_kind, last_error_status, last_error_at, note
@@ -38,5 +46,6 @@ pub async fn mark_feed_error(
     .execute(pool)
     .await
     .map_err(|e| format!("mark_feed_error error: {e}"))?;
-    Ok(())
+
+  Ok(())
 }

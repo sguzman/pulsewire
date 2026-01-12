@@ -1,5 +1,5 @@
 [app]
-mode = "dev"
+mode     = "dev"
 timezone = "America/Mexico_City"
 
 [http]
@@ -13,14 +13,14 @@ dialect = "postgres"
 path = "res/db/server.sqlite"
 
 [postgres]
-host = "localhost"
-port = 5432
-database = "data"
-user = "admin"
-password = "admin"
-ssl_mode = "disable"
-schema = "server"
+database       = "data"
 fetcher_schema = "fetcher"
+host           = "localhost"
+password       = "admin"
+port           = 5432
+schema         = "server"
+ssl_mode       = "disable"
+user           = "admin"
 
 [logging]
 level = "info"
@@ -32,5 +32,5 @@ token_ttl_seconds = 86400
 reset_on_start = true
 
 [seed]
-username = "admin"
 password = "admin"
+username = "admin"

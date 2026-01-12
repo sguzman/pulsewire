@@ -1,4 +1,7 @@
-//! Inserts feed payload metadata and associated feed items in a single transaction.
+//! Inserts feed payload metadata and
+//! associated feed items in a single
+//! transaction.
+
 use chrono_tz::Tz;
 use sqlx::SqlitePool;
 use tracing::debug;
@@ -6,18 +9,21 @@ use tracing::debug;
 use crate::feed::parser::ParsedFeed;
 
 pub async fn insert_payload_with_items(
-    pool: &SqlitePool,
-    feed_id: &str,
-    fetched_at_ms: i64,
-    etag: Option<&str>,
-    last_modified_ms: Option<i64>,
-    content_hash: Option<&str>,
-    parsed: &ParsedFeed,
-    _zone: &Tz,
+  pool: &SqlitePool,
+  feed_id: &str,
+  fetched_at_ms: i64,
+  etag: Option<&str>,
+  last_modified_ms: Option<i64>,
+  content_hash: Option<&str>,
+  parsed: &ParsedFeed,
+  _zone: &Tz
 ) -> Result<(), String> {
-    let mut tx = pool.begin().await.map_err(|e| format!("tx begin: {e}"))?;
+  let mut tx =
+    pool.begin().await.map_err(
+      |e| format!("tx begin: {e}")
+    )?;
 
-    let payload_id: i64 = sqlx::query_scalar(
+  let payload_id: i64 = sqlx::query_scalar(
         r#"
   INSERT INTO feed_payloads(
         feed_id, fetched_at_ms, etag,
@@ -47,8 +53,8 @@ pub async fn insert_payload_with_items(
     .await
     .map_err(|e| format!("insert payload: {e}"))?;
 
-    for it in &parsed.items {
-        sqlx::query(
+  for it in &parsed.items {
+    sqlx::query(
             r#"
         INSERT INTO feed_items(
           payload_id, feed_id, title, link, guid,
@@ -73,9 +79,17 @@ pub async fn insert_payload_with_items(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert item: {e}"))?;
-    }
+  }
 
-    tx.commit().await.map_err(|e| format!("tx commit: {e}"))?;
-    debug!(feed_id, payload_id, "Inserted payload + items");
-    Ok(())
+  tx.commit().await.map_err(|e| {
+    format!("tx commit: {e}")
+  })?;
+
+  debug!(
+    feed_id,
+    payload_id,
+    "Inserted payload + items"
+  );
+
+  Ok(())
 }

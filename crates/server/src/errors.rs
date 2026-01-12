@@ -1,65 +1,92 @@
-use axum::{http::StatusCode, response::IntoResponse};
+use axum::http::StatusCode;
+use axum::response::IntoResponse;
 use serde::Serialize;
 
 #[derive(Debug)]
+
 pub struct ServerError {
-    status: StatusCode,
-    code: String,
-    message: String,
+  status:  StatusCode,
+  code:    String,
+  message: String
 }
 
 #[derive(Debug, Serialize)]
+
 struct ErrorEnvelope {
-    error: ErrorBody,
+  error: ErrorBody
 }
 
 #[derive(Debug, Serialize)]
+
 struct ErrorBody {
-    code: String,
-    message: String,
+  code:    String,
+  message: String
 }
 
 impl ServerError {
-    pub fn new(status: StatusCode, message: impl Into<String>) -> Self {
-        let code = status_code_to_string(status);
-        Self {
-            status,
-            code,
-            message: message.into(),
-        }
+  pub fn new(
+    status: StatusCode,
+    message: impl Into<String>
+  ) -> Self {
+    let code =
+      status_code_to_string(status);
+
+    Self {
+      status,
+      code,
+      message: message.into()
     }
+  }
 }
 
 impl IntoResponse for ServerError {
-    fn into_response(self) -> axum::response::Response {
-        let body = ErrorEnvelope {
-            error: ErrorBody {
-                code: self.code,
-                message: self.message,
-            },
-        };
-        (self.status, axum::Json(body)).into_response()
-    }
+  fn into_response(
+    self
+  ) -> axum::response::Response {
+    let body = ErrorEnvelope {
+      error: ErrorBody {
+        code:    self.code,
+        message: self.message
+      }
+    };
+
+    (self.status, axum::Json(body))
+      .into_response()
+  }
 }
 
-pub fn map_db_error(err: sqlx::Error, message: &str) -> ServerError {
-    if is_unique_violation(&err) {
-        return ServerError::new(StatusCode::CONFLICT, message);
-    }
-    ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+pub fn map_db_error(
+  err: sqlx::Error,
+  message: &str
+) -> ServerError {
+  if is_unique_violation(&err) {
+    return ServerError::new(
+      StatusCode::CONFLICT,
+      message
+    );
+  }
+
+  ServerError::new(
+    StatusCode::INTERNAL_SERVER_ERROR,
+    err.to_string()
+  )
 }
 
-pub fn is_unique_violation(err: &sqlx::Error) -> bool {
-    matches!(
-        err,
-        sqlx::Error::Database(db_err)
-            if db_err.code().as_deref() == Some("23505")
-                || db_err.code().as_deref() == Some("2067")
-    )
+pub fn is_unique_violation(
+  err: &sqlx::Error
+) -> bool {
+  matches!(
+      err,
+      sqlx::Error::Database(db_err)
+          if db_err.code().as_deref() == Some("23505")
+              || db_err.code().as_deref() == Some("2067")
+  )
 }
 
-fn status_code_to_string(status: StatusCode) -> String {
-    match status {
+fn status_code_to_string(
+  status: StatusCode
+) -> String {
+  match status {
         StatusCode::BAD_REQUEST => "bad_request",
         StatusCode::UNAUTHORIZED => "unauthorized",
         StatusCode::FORBIDDEN => "forbidden",

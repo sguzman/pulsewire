@@ -1,103 +1,85 @@
 base_poll_seconds = 1000
-id_prefix = "audiochuck"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "audiochuck"
+language = "en"
 provenance = "audiochuck"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "1322200189"
+id  = "1322200189"
 url = "https://feeds.simplecast.com/qm_9xx0g"
 
-
 [[feeds]]
-id = "1603011962"
+id  = "1603011962"
 url = "https://feeds.simplecast.com/ZH32N6UM"
 
-
 [[feeds]]
-id = "1532894981"
+id  = "1532894981"
 url = "https://feeds.simplecast.com/GdzgJRQH"
 
-
 [[feeds]]
-id = "1535403320"
+id  = "1535403320"
 url = "https://feeds.simplecast.com/LqfhW4oK"
 
-
 [[feeds]]
-id = "1500667648"
+id  = "1500667648"
 url = "https://feeds.simplecast.com/kC8PV5p6"
 
-
 [[feeds]]
-id = "1483252435"
+id  = "1483252435"
 url = "https://feeds.simplecast.com/6E74sk6q"
 
-
 [[feeds]]
-id = "1728272114"
+id  = "1728272114"
 url = "https://feeds.simplecast.com/q8EXDCJg"
 
-
 [[feeds]]
-id = "1668474126"
+id  = "1668474126"
 url = "https://feeds.simplecast.com/sxk7RTyt"
 
-
 [[feeds]]
-id = "1750724132"
+id  = "1750724132"
 url = "https://feeds.simplecast.com/EByNnoqi"
 
-
 [[feeds]]
-id = "1544279344"
+id  = "1544279344"
 url = "https://feeds.simplecast.com/rHwKqPkj"
 
-
 [[feeds]]
-id = "1525430395"
+id  = "1525430395"
 url = "https://feeds.simplecast.com/APPRR1zE"
 
-
 [[feeds]]
-id = "1590577089"
+id  = "1590577089"
 url = "https://feeds.simplecast.com/Gg33ecoK"
 
-
 [[feeds]]
-id = "1571194279"
+id  = "1571194279"
 url = "https://feeds.simplecast.com/of_GM9lR"
 
-
 [[feeds]]
-id = "1713959765"
+id  = "1713959765"
 url = "https://feeds.simplecast.com/654kY38X"
 
-
 [[feeds]]
-id = "1487402394"
+id  = "1487402394"
 url = "https://feeds.simplecast.com/V6PKvcd1"
 
-
 [[feeds]]
-id = "1557670111"
+id  = "1557670111"
 url = "https://feeds.simplecast.com/HAWfzrHC"
 
-
 [[feeds]]
-id = "1576206663"
+id  = "1576206663"
 url = "https://feeds.simplecast.com/Pgxho1td"
 
-
 [[feeds]]
-id = "1640747488"
+id  = "1640747488"
 url = "https://feeds.simplecast.com/e8KuTkTk"
 
-
 [[feeds]]
-id = "1582833356"
+id  = "1582833356"
 url = "https://feeds.simplecast.com/1AmhqQ4_"

@@ -1,42 +1,42 @@
 base_poll_seconds = 600
-id_prefix = "sec"
 category = "gov"
+content_type = "xml"
+id_prefix = "sec"
+language = "en"
 provenance = "sec"
 tags = [
-    "gov",
+  "gov",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "press-releases"
+id  = "press-releases"
 url = "https://www.sec.gov/news/pressreleases.rss"
 
 [[feeds]]
-id = "speeches-and-statements"
+id  = "speeches-and-statements"
 url = "https://www.sec.gov/news/speeches-statements.rss"
 
 [[feeds]]
-id = "testimony"
+id  = "testimony"
 url = "https://www.sec.gov/news/testimony.rss"
 
 [[feeds]]
-id = "statements"
+id  = "statements"
 url = "https://www.sec.gov/news/statements.rss"
 
 [[feeds]]
-id = "litigation"
+id  = "litigation"
 url = "https://www.sec.gov/enforcement-litigation/litigation-releases/rss"
 
 [[feeds]]
-id = "administrative-proceedings"
+id  = "administrative-proceedings"
 url = "https://www.sec.gov/enforcement-litigation/administrative-proceedings/rss"
 
 [[feeds]]
-id = "trading-suspensions"
+id  = "trading-suspensions"
 url = "https://www.sec.gov/enforcement-litigation/trading-suspensions/rss"
 
 [[feeds]]
-id = "latest-filings"
-url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=&company=&dateb=&owner=include&start=0&count=40&output=atom"
 base_poll_seconds = 400
+id                = "latest-filings"
+url               = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=&company=&dateb=&owner=include&start=0&count=40&output=atom"

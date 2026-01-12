@@ -1,148 +1,269 @@
-use axum::{
-    extract::{Path as AxumPath, Query, State},
-    http::{HeaderMap, StatusCode},
-    Json,
+use axum::Json;
+use axum::extract::{
+  Path as AxumPath,
+  Query,
+  State
 };
-use sqlx::{Postgres, QueryBuilder, Sqlite};
+use axum::http::{
+  HeaderMap,
+  StatusCode
+};
+use sqlx::{
+  Postgres,
+  QueryBuilder,
+  Sqlite
+};
 
 use crate::app_state::AppState;
 use crate::auth::auth_user_id;
 use crate::db::quote_ident;
 use crate::errors::ServerError;
-use crate::models::{EntryListQuery, EntryListResponse, EntrySummary};
+use crate::models::{
+  EntryListQuery,
+  EntryListResponse,
+  EntrySummary
+};
 
 pub async fn list_entries(
-    State(state): State<AppState>,
-    headers: HeaderMap,
-    Query(query): Query<EntryListQuery>,
-) -> Result<Json<EntryListResponse>, ServerError> {
-    let user_id = auth_user_id(&state, &headers).await?;
-    let limit = query.limit.unwrap_or(50).min(200) as i64;
-    let offset = query.offset.unwrap_or(0) as i64;
-    let read_filter = query.read.as_deref();
-    let feed_filter = query.feed_id.as_deref();
-    let since = query.since;
+  State(state): State<AppState>,
+  headers: HeaderMap,
+  Query(query): Query<EntryListQuery>
+) -> Result<
+  Json<EntryListResponse>,
+  ServerError
+> {
+  let user_id =
+    auth_user_id(&state, &headers)
+      .await?;
 
-    if let Some(pool) = &state.postgres {
-        let schema = state.fetcher_schema.as_deref().unwrap_or("fetcher");
-        let mut builder = QueryBuilder::<Postgres>::new(format!(
-            "SELECT fi.id, fi.feed_id, fi.title, fi.link, \
-            CAST(EXTRACT(EPOCH FROM fi.published_at) * 1000 AS BIGINT) AS published_at_ms, \
-            (es.read_at IS NOT NULL) AS is_read \
-            FROM {}.feed_items fi \
-            LEFT JOIN entry_states es ON es.item_id = fi.id AND es.user_id = ",
-            quote_ident(schema)
-        ));
-        builder.push_bind(user_id);
-        builder.push(" WHERE 1=1");
+  let limit =
+    query.limit.unwrap_or(50).min(200)
+      as i64;
 
-        if let Some(filter) = read_filter {
-            match filter {
-                "read" => {
-                    builder.push(" AND es.read_at IS NOT NULL");
-                }
-                "unread" => {
-                    builder.push(" AND es.read_at IS NULL");
-                }
-                "all" => {}
-                other => {
-                    return Err(ServerError::new(
-                        StatusCode::BAD_REQUEST,
-                        format!("invalid read filter: {other}"),
-                    ));
-                }
-            }
+  let offset =
+    query.offset.unwrap_or(0) as i64;
+
+  let read_filter =
+    query.read.as_deref();
+
+  let feed_filter =
+    query.feed_id.as_deref();
+
+  let since = query.since;
+
+  if let Some(pool) = &state.postgres {
+    let schema = state
+      .fetcher_schema
+      .as_deref()
+      .unwrap_or("fetcher");
+
+    let mut builder = QueryBuilder::<
+      Postgres
+    >::new(
+      format!(
+      "SELECT fi.id, fi.feed_id, \
+       fi.title, fi.link, \
+       CAST(EXTRACT(EPOCH FROM \
+       fi.published_at) * 1000 AS \
+       BIGINT) AS published_at_ms, \
+       (es.read_at IS NOT NULL) AS \
+       is_read FROM {}.feed_items fi \
+       LEFT JOIN entry_states es ON \
+       es.item_id = fi.id AND \
+       es.user_id = ",
+      quote_ident(schema)
+    )
+    );
+
+    builder.push_bind(user_id);
+
+    builder.push(" WHERE 1=1");
+
+    if let Some(filter) = read_filter {
+      match filter {
+        | "read" => {
+          builder.push(
+            " AND es.read_at IS NOT \
+             NULL"
+          );
         }
-
-        if let Some(feed_id) = feed_filter {
-            builder.push(" AND fi.feed_id = ");
-            builder.push_bind(feed_id);
+        | "unread" => {
+          builder.push(
+            " AND es.read_at IS NULL"
+          );
         }
-
-        if let Some(since_id) = since {
-            builder.push(" AND fi.id > ");
-            builder.push_bind(since_id);
+        | "all" => {}
+        | other => {
+          return Err(ServerError::new(
+            StatusCode::BAD_REQUEST,
+            format!(
+              "invalid read filter: \
+               {other}"
+            )
+          ));
         }
+      }
+    }
 
-        builder.push(" ORDER BY fi.id DESC LIMIT ");
-        builder.push_bind(limit);
-        builder.push(" OFFSET ");
-        builder.push_bind(offset);
+    if let Some(feed_id) = feed_filter {
+      builder
+        .push(" AND fi.feed_id = ");
 
-        let rows = builder
+      builder.push_bind(feed_id);
+    }
+
+    if let Some(since_id) = since {
+      builder.push(" AND fi.id > ");
+
+      builder.push_bind(since_id);
+    }
+
+    builder.push(
+      " ORDER BY fi.id DESC LIMIT "
+    );
+
+    builder.push_bind(limit);
+
+    builder.push(" OFFSET ");
+
+    builder.push_bind(offset);
+
+    let rows = builder
             .build_query_as::<EntrySummary>()
             .fetch_all(pool)
             .await
             .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-        let next_cursor = rows.iter().map(|row| row.id).max();
-        let next_offset = if rows.is_empty() { None } else { Some(offset + rows.len() as i64) };
-        return Ok(Json(EntryListResponse { items: rows, next_cursor, next_offset, since }));
-    }
 
-    let pool = state
+    let next_cursor = rows
+      .iter()
+      .map(|row| row.id)
+      .max();
+
+    let next_offset = if rows.is_empty()
+    {
+      None
+    } else {
+      Some(offset + rows.len() as i64)
+    };
+
+    return Ok(Json(
+      EntryListResponse {
+        items: rows,
+        next_cursor,
+        next_offset,
+        since
+      }
+    ));
+  }
+
+  let pool = state
         .sqlite
         .as_ref()
         .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
-    let mut builder = QueryBuilder::<Sqlite>::new(
-        "SELECT fi.id, fi.feed_id, fi.title, fi.link, \
-        fi.published_at_ms, \
-        (es.read_at IS NOT NULL) AS is_read \
-        FROM feed_items fi \
-        LEFT JOIN entry_states es ON es.item_id = fi.id AND es.user_id = ",
-    );
-    builder.push_bind(user_id);
-    builder.push(" WHERE 1=1");
 
-    if let Some(filter) = read_filter {
-        match filter {
-            "read" => {
-                builder.push(" AND es.read_at IS NOT NULL");
-            }
-            "unread" => {
-                builder.push(" AND es.read_at IS NULL");
-            }
-            "all" => {}
-            other => {
-                return Err(ServerError::new(
-                    StatusCode::BAD_REQUEST,
-                    format!("invalid read filter: {other}"),
-                ));
-            }
-        }
+  let mut builder = QueryBuilder::<
+    Sqlite
+  >::new(
+    "SELECT fi.id, fi.feed_id, \
+     fi.title, fi.link, \
+     fi.published_at_ms, (es.read_at \
+     IS NOT NULL) AS is_read FROM \
+     feed_items fi LEFT JOIN \
+     entry_states es ON es.item_id = \
+     fi.id AND es.user_id = "
+  );
+
+  builder.push_bind(user_id);
+
+  builder.push(" WHERE 1=1");
+
+  if let Some(filter) = read_filter {
+    match filter {
+      | "read" => {
+        builder.push(
+          " AND es.read_at IS NOT NULL"
+        );
+      }
+      | "unread" => {
+        builder.push(
+          " AND es.read_at IS NULL"
+        );
+      }
+      | "all" => {}
+      | other => {
+        return Err(ServerError::new(
+          StatusCode::BAD_REQUEST,
+          format!(
+            "invalid read filter: \
+             {other}"
+          )
+        ));
+      }
     }
+  }
 
-    if let Some(feed_id) = feed_filter {
-        builder.push(" AND fi.feed_id = ");
-        builder.push_bind(feed_id);
-    }
+  if let Some(feed_id) = feed_filter {
+    builder.push(" AND fi.feed_id = ");
 
-    if let Some(since_id) = since {
-        builder.push(" AND fi.id > ");
-        builder.push_bind(since_id);
-    }
+    builder.push_bind(feed_id);
+  }
 
-    builder.push(" ORDER BY fi.id DESC LIMIT ");
-    builder.push_bind(limit);
-    builder.push(" OFFSET ");
-    builder.push_bind(offset);
+  if let Some(since_id) = since {
+    builder.push(" AND fi.id > ");
 
-    let rows = builder
+    builder.push_bind(since_id);
+  }
+
+  builder.push(
+    " ORDER BY fi.id DESC LIMIT "
+  );
+
+  builder.push_bind(limit);
+
+  builder.push(" OFFSET ");
+
+  builder.push_bind(offset);
+
+  let rows = builder
         .build_query_as::<EntrySummary>()
         .fetch_all(pool)
         .await
         .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    let next_cursor = rows.iter().map(|row| row.id).max();
-    let next_offset = if rows.is_empty() { None } else { Some(offset + rows.len() as i64) };
-    Ok(Json(EntryListResponse { items: rows, next_cursor, next_offset, since }))
+
+  let next_cursor =
+    rows.iter().map(|row| row.id).max();
+
+  let next_offset = if rows.is_empty() {
+    None
+  } else {
+    Some(offset + rows.len() as i64)
+  };
+
+  Ok(Json(EntryListResponse {
+    items: rows,
+    next_cursor,
+    next_offset,
+    since
+  }))
 }
 
 pub async fn list_feed_entries(
-    State(state): State<AppState>,
-    headers: HeaderMap,
-    AxumPath(feed_id): AxumPath<String>,
-    Query(query): Query<EntryListQuery>,
-) -> Result<Json<EntryListResponse>, ServerError> {
-    let mut query = query;
-    query.feed_id = Some(feed_id);
-    list_entries(State(state), headers, Query(query)).await
+  State(state): State<AppState>,
+  headers: HeaderMap,
+  AxumPath(feed_id): AxumPath<String>,
+  Query(query): Query<EntryListQuery>
+) -> Result<
+  Json<EntryListResponse>,
+  ServerError
+> {
+  let mut query = query;
+
+  query.feed_id = Some(feed_id);
+
+  list_entries(
+    State(state),
+    headers,
+    Query(query)
+  )
+  .await
 }

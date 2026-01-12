@@ -1,173 +1,141 @@
 base_poll_seconds = 1000
-id_prefix = "vox"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "vox"
+language = "en"
 provenance = "vox"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "1073226719"
+id  = "1073226719"
 url = "https://feeds.megaphone.fm/pivot"
 
-
 [[feeds]]
-id = "1498802610"
+id  = "1498802610"
 url = "https://feeds.megaphone.fm/WWO6655869236"
 
-
 [[feeds]]
-id = "1346207297"
+id  = "1346207297"
 url = "https://feeds.megaphone.fm/VMP5705694065"
 
-
 [[feeds]]
-id = "1643307527"
+id  = "1643307527"
 url = "https://feeds.megaphone.fm/VMP1684715893"
 
-
 [[feeds]]
-id = "1744631325"
+id  = "1744631325"
 url = "https://feeds.megaphone.fm/profgmarkets"
 
-
 [[feeds]]
-id = "1774505095"
+id  = "1774505095"
 url = "https://feeds.megaphone.fm/VMP7229898872"
 
-
 [[feeds]]
-id = "1850526014"
+id  = "1850526014"
 url = "https://feeds.megaphone.fm/VMP3740058044"
 
-
 [[feeds]]
-id = "1554578197"
+id  = "1554578197"
 url = "https://feeds.megaphone.fm/VMP9331026707"
 
-
 [[feeds]]
-id = "1730985049"
+id  = "1730985049"
 url = "https://feeds.megaphone.fm/daretolead"
 
-
 [[feeds]]
-id = "1081584611"
+id  = "1081584611"
 url = "https://feeds.megaphone.fm/theezrakleinshow"
 
-
 [[feeds]]
-id = "1494350511"
+id  = "1494350511"
 url = "https://feeds.megaphone.fm/GLT4889391284"
 
-
 [[feeds]]
-id = "430333725"
+id  = "430333725"
 url = "https://feeds.megaphone.fm/vergecast"
 
-
 [[feeds]]
-id = "918896288"
+id  = "918896288"
 url = "https://feeds.megaphone.fm/VMP6255701211"
 
-
 [[feeds]]
-id = "1533533467"
+id  = "1533533467"
 url = "https://feeds.megaphone.fm/HOOSWTABSGLOBALLLC7896801906"
 
-
 [[feeds]]
-id = "1676999261"
+id  = "1676999261"
 url = "https://feeds.megaphone.fm/VMP1282389759"
 
-
 [[feeds]]
-id = "934552872"
+id  = "934552872"
 url = "https://feeds.megaphone.fm/switchedonpop"
 
-
 [[feeds]]
-id = "1042433083"
+id  = "1042433083"
 url = "https://feeds.megaphone.fm/theweeds"
 
-
 [[feeds]]
-id = "1840983742"
+id  = "1840983742"
 url = "https://feeds.megaphone.fm/VMP1872211679"
 
-
 [[feeds]]
-id = "1011668648"
+id  = "1011668648"
 url = "https://feeds.megaphone.fm/recodedecode"
 
-
 [[feeds]]
-id = "1203393721"
+id  = "1203393721"
 url = "https://feeds.megaphone.fm/VMP8521265258"
 
-
 [[feeds]]
-id = "1510142364"
+id  = "1510142364"
 url = "https://feeds.megaphone.fm/BLU4105848842"
 
-
 [[feeds]]
-id = "1812530040"
+id  = "1812530040"
 url = "https://feeds.megaphone.fm/VMP8863223339"
 
-
 [[feeds]]
-id = "1080467174"
+id  = "1080467174"
 url = "https://feeds.megaphone.fm/recodemedia"
 
-
 [[feeds]]
-id = "1633134223"
+id  = "1633134223"
 url = "https://feeds.megaphone.fm/VMP7932485726"
 
-
 [[feeds]]
-id = "1829793986"
+id  = "1829793986"
 url = "https://feeds.megaphone.fm/VMP1222419031"
 
-
 [[feeds]]
-id = "1465767420"
+id  = "1465767420"
 url = "https://feeds.megaphone.fm/landofthegiants"
 
-
 [[feeds]]
-id = "1840154537"
+id  = "1840154537"
 url = "https://feeds.megaphone.fm/VMP5858892209"
 
-
 [[feeds]]
-id = "1832076220"
+id  = "1832076220"
 url = "https://feeds.megaphone.fm/VMP6677258445"
 
-
 [[feeds]]
-id = "1594675355"
+id  = "1594675355"
 url = "https://feeds.megaphone.fm/coverstory"
 
-
 [[feeds]]
-id = "1437189814"
+id  = "1437189814"
 url = "https://feeds.megaphone.fm/thecut"
 
-
 [[feeds]]
-id = "1438157174"
+id  = "1438157174"
 url = "https://feeds.megaphone.fm/futureperfect"
 
-
 [[feeds]]
-id = "1585658065"
+id  = "1585658065"
 url = "https://feeds.megaphone.fm/STU4418364045"
 
-
 [[feeds]]
-id = "1535242667"
+id  = "1535242667"
 url = "https://feeds.megaphone.fm/VMP3653409962"

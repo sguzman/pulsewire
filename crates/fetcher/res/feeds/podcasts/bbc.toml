@@ -1,268 +1,217 @@
 base_poll_seconds = 1000
-id_prefix = "bbc"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "bbc"
+language = "en"
 provenance = "bbc"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "135067274"
+id  = "135067274"
 url = "https://podcasts.files.bbci.co.uk/p02nq0gn.rss"
 
-
 [[feeds]]
-id = "1704480561"
+id  = "1704480561"
 url = "https://podcasts.files.bbci.co.uk/w13xtvs0.rss"
 
-
 [[feeds]]
-id = "73330895"
+id  = "73330895"
 url = "https://podcasts.files.bbci.co.uk/b006qykl.rss"
 
-
 [[feeds]]
-id = "1479973402"
+id  = "1479973402"
 url = "https://podcasts.files.bbci.co.uk/p07mdbhg.rss"
 
-
 [[feeds]]
-id = "356157099"
+id  = "356157099"
 url = "https://podcasts.files.bbci.co.uk/p002vsnk.rss"
 
-
 [[feeds]]
-id = "1524778767"
+id  = "1524778767"
 url = "https://podcasts.files.bbci.co.uk/p08llv8n.rss"
 
-
 [[feeds]]
-id = "343580439"
+id  = "343580439"
 url = "https://podcasts.files.bbci.co.uk/b00snr0w.rss"
 
-
 [[feeds]]
-id = "1715473158"
+id  = "1715473158"
 url = "https://podcasts.files.bbci.co.uk/w13xtvsd.rss"
 
-
 [[feeds]]
-id = "1589938734"
+id  = "1589938734"
 url = "https://podcasts.files.bbci.co.uk/m0010x7c.rss"
 
-
 [[feeds]]
-id = "1745306259"
+id  = "1745306259"
 url = "https://podcasts.files.bbci.co.uk/m001z66c.rss"
 
-
 [[feeds]]
-id = "1473150244"
+id  = "1473150244"
 url = "https://podcasts.files.bbci.co.uk/p07h19zz.rss"
 
-
 [[feeds]]
-id = "1561990291"
+id  = "1561990291"
 url = "https://podcasts.files.bbci.co.uk/w13xtvg9.rss"
 
-
 [[feeds]]
-id = "267300884"
+id  = "267300884"
 url = "https://podcasts.files.bbci.co.uk/p02nrss1.rss"
 
-
 [[feeds]]
-id = "265307784"
+id  = "265307784"
 url = "https://podcasts.files.bbci.co.uk/p02pc9pj.rss"
 
-
 [[feeds]]
-id = "1084340508"
+id  = "1084340508"
 url = "https://podcasts.files.bbci.co.uk/b07dx75g.rss"
 
-
 [[feeds]]
-id = "1689369106"
+id  = "1689369106"
 url = "https://podcasts.files.bbci.co.uk/m001mcbp.rss"
 
-
 [[feeds]]
-id = "261291929"
+id  = "261291929"
 url = "https://podcasts.files.bbci.co.uk/p02nrsln.rss"
 
-
 [[feeds]]
-id = "1793748839"
+id  = "1793748839"
 url = "https://podcasts.files.bbci.co.uk/p0klkdww.rss"
 
-
 [[feeds]]
-id = "292651411"
+id  = "292651411"
 url = "https://podcasts.files.bbci.co.uk/p02tb8vq.rss"
 
-
 [[feeds]]
-id = "1620155570"
+id  = "1620155570"
 url = "https://podcasts.files.bbci.co.uk/m0016pq3.rss"
 
-
 [[feeds]]
-id = "1741328387"
+id  = "1741328387"
 url = "https://podcasts.files.bbci.co.uk/m0000nfh.rss"
 
-
 [[feeds]]
-id = "339986758"
+id  = "339986758"
 url = "https://podcasts.files.bbci.co.uk/p004t1hd.rss"
 
-
 [[feeds]]
-id = "1701585239"
+id  = "1701585239"
 url = "https://podcasts.files.bbci.co.uk/p0g7xj36.rss"
 
-
 [[feeds]]
-id = "1459657136"
+id  = "1459657136"
 url = "https://podcasts.files.bbci.co.uk/w13xttx2.rss"
 
-
 [[feeds]]
-id = "1465290044"
+id  = "1465290044"
 url = "https://podcasts.files.bbci.co.uk/m0005fdz.rss"
 
-
 [[feeds]]
-id = "130520763"
+id  = "130520763"
 url = "https://podcasts.files.bbci.co.uk/p02nrsjn.rss"
 
-
 [[feeds]]
-id = "1540251892"
+id  = "1540251892"
 url = "https://podcasts.files.bbci.co.uk/p08yblkf.rss"
 
-
 [[feeds]]
-id = "261786876"
+id  = "261786876"
 url = "https://podcasts.files.bbci.co.uk/p002vsxs.rss"
 
-
 [[feeds]]
-id = "670199157"
+id  = "670199157"
 url = "https://podcasts.files.bbci.co.uk/b036f7w2.rss"
 
-
 [[feeds]]
-id = "1744545000"
+id  = "1744545000"
 url = "https://podcasts.files.bbci.co.uk/p0hvvqqr.rss"
 
-
 [[feeds]]
-id = "1234185718"
+id  = "1234185718"
 url = "https://podcasts.files.bbci.co.uk/p05299nl.rss"
 
-
 [[feeds]]
-id = "1683405079"
+id  = "1683405079"
 url = "https://podcasts.files.bbci.co.uk/p0fhzh45.rss"
 
-
 [[feeds]]
-id = "1735016800"
+id  = "1735016800"
 url = "https://podcasts.files.bbci.co.uk/p0hhgmp6.rss"
 
-
 [[feeds]]
-id = "263570559"
+id  = "263570559"
 url = "https://podcasts.files.bbci.co.uk/p02nrtyw.rss"
 
-
 [[feeds]]
-id = "1356142765"
+id  = "1356142765"
 url = "https://podcasts.files.bbci.co.uk/p0605sx6.rss"
 
-
 [[feeds]]
-id = "1819480664"
+id  = "1819480664"
 url = "https://podcasts.files.bbci.co.uk/p0lgrwds.rss"
 
-
 [[feeds]]
-id = "351096296"
+id  = "351096296"
 url = "https://podcasts.files.bbci.co.uk/b00nrtd2.rss"
 
-
 [[feeds]]
-id = "1592984136"
+id  = "1592984136"
 url = "https://podcasts.files.bbci.co.uk/m0011cpr.rss"
 
-
 [[feeds]]
-id = "932499233"
+id  = "932499233"
 url = "https://podcasts.files.bbci.co.uk/p029399x.rss"
 
-
 [[feeds]]
-id = "342927791"
+id  = "342927791"
 url = "https://podcasts.files.bbci.co.uk/b006qnx3.rss"
 
-
 [[feeds]]
-id = "1480370173"
+id  = "1480370173"
 url = "https://podcasts.files.bbci.co.uk/p07nkd84.rss"
 
-
 [[feeds]]
-id = "469912037"
+id  = "469912037"
 url = "https://podcasts.files.bbci.co.uk/b015sqc7.rss"
 
-
 [[feeds]]
-id = "1436036246"
+id  = "1436036246"
 url = "https://podcasts.files.bbci.co.uk/p07915kd.rss"
 
-
 [[feeds]]
-id = "1758749165"
+id  = "1758749165"
 url = "https://podcasts.files.bbci.co.uk/m0021j2v.rss"
 
-
 [[feeds]]
-id = "73331209"
+id  = "73331209"
 url = "https://podcasts.files.bbci.co.uk/p02nrtpm.rss"
 
-
 [[feeds]]
-id = "1197440162"
+id  = "1197440162"
 url = "https://podcasts.files.bbci.co.uk/p04q5p2n.rss"
 
-
 [[feeds]]
-id = "1756109243"
+id  = "1756109243"
 url = "https://podcasts.files.bbci.co.uk/m00199xy.rss"
 
-
 [[feeds]]
-id = "1601195264"
+id  = "1601195264"
 url = "https://podcasts.files.bbci.co.uk/m001324r.rss"
 
-
 [[feeds]]
-id = "1714615567"
+id  = "1714615567"
 url = "https://podcasts.files.bbci.co.uk/p0gq38lc.rss"
 
-
 [[feeds]]
-id = "1781636710"
+id  = "1781636710"
 url = "https://podcasts.files.bbci.co.uk/p0k61syt.rss"
 
-
 [[feeds]]
-id = "1690561703"
+id  = "1690561703"
 url = "https://podcasts.files.bbci.co.uk/m001mssm.rss"
 
-
 [[feeds]]
-id = "1570414193"
+id  = "1570414193"
 url = "https://podcasts.files.bbci.co.uk/p09k7ctp.rss"

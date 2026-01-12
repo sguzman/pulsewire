@@ -1,13 +1,13 @@
 base_poll_seconds = 180
-id_prefix = "xkcd"
 category = "comics"
+content_type = "xml"
+id_prefix = "xkcd"
+language = "en"
 provenance = "xkcd"
 tags = [
-    "comics",
+  "comics",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "main"
+id  = "main"
 url = "https://xkcd.com/rss.xml"

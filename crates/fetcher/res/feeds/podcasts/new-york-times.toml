@@ -1,148 +1,129 @@
 # The Daily
 
 base_poll_seconds = 1000
-id_prefix = "nytimes"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "nytimes"
+language = "en"
 provenance = "nytimes"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "the-daily"
+id  = "the-daily"
 url = "https://feeds.simplecast.com/54nAGcIl"
 
 # The Ezra Klein Show
 
-
 [[feeds]]
-id = "ezra-klein-show"
+id  = "ezra-klein-show"
 url = "https://feeds.simplecast.com/kEKXbjuJ"
 
 # Hard Fork
 
-
 [[feeds]]
-id = "hard-fork"
+id  = "hard-fork"
 url = "https://feeds.simplecast.com/6HKOhNgS"
 
 # Modern Love
 
-
 [[feeds]]
-id = "modern-love"
+id  = "modern-love"
 url = "https://feeds.simplecast.com/0N8Hs1MH"
 
 # The Opinion
 
-
 [[feeds]]
-id = "the-opinion"
+id  = "the-opinion"
 url = "https://feeds.simplecast.com/kphrlDnb"
 
 # The Interview
 
-
 [[feeds]]
-id = "the-interview"
+id  = "the-interview"
 url = "https://feeds.simplecast.com/HpGMoS4g"
 
 # The Headlines
 
-
 [[feeds]]
-id = "the-headlines"
+id  = "the-headlines"
 url = "https://feeds.simplecast.com/ydACIPHO"
 
 # Popcast
 
-
 [[feeds]]
-id = "popcast"
+id  = "popcast"
 url = "https://feeds.simplecast.com/TzbxCT1l"
 
 # The Book Review
 
-
 [[feeds]]
-id = "the-book-review"
+id  = "the-book-review"
 url = "https://feeds.simplecast.com/MssIhx9y"
 
 # The Latest
 
-
 [[feeds]]
-id = "the-latest"
+id  = "the-latest"
 url = "https://feeds.simplecast.com/h3B4DmZM"
 
 # Cannonball with Wesley Morris
 
-
 [[feeds]]
-id = "cannonball-with-wesley-morris"
+id  = "cannonball-with-wesley-morris"
 url = "https://feeds.simplecast.com/JJrAJ_VY"
 
 # The New York Times Narrated
 
-
 [[feeds]]
-id = "the-new-york-times-narrated"
+id  = "the-new-york-times-narrated"
 url = "https://feeds.simplecast.com/WHvRQ7B1"
 
 # The Run-Up
 
-
 [[feeds]]
-id = "the-run-up"
+id  = "the-run-up"
 url = "https://feeds.simplecast.com/Kctn1RDB"
 
 # Interesting Times with Ross Douthat
 
-
 [[feeds]]
-id = "interesting-times-with-ross-douthat"
+id  = "interesting-times-with-ross-douthat"
 url = "https://feeds.simplecast.com/bS1LZG8m"
 
 # Cannonball with Wesley Morris
 
-
 [[feeds]]
-id = "cannonball-with-wesley-morris"
+id  = "cannonball-with-wesley-morris"
 url = "https://feeds.simplecast.com/XguOuIhG"
 
 # Rabbit Hole
 
-
 [[feeds]]
-id = "rabbit-hole"
+id  = "rabbit-hole"
 url = "https://feeds.simplecast.com/oCXij9l2"
 
 # Change Agent
 
-
 [[feeds]]
-id = "change-agent"
+id  = "change-agent"
 url = "https://feeds.simplecast.com/l_5ad_l7"
 
 # Jungle Prince
 
-
 [[feeds]]
-id = "jungle-prince"
+id  = "jungle-prince"
 url = "https://feeds.simplecast.com/RCWrSQj0"
 
 # Sway
 
-
 [[feeds]]
-id = "sway"
+id  = "sway"
 url = "https://feeds.simplecast.com/ZJt36p4I"
 
 # Dealbook Summit
 
-
 [[feeds]]
-id = "dealbook-summit"
+id  = "dealbook-summit"
 url = "https://feeds.simplecast.com/HZtr0HV5"

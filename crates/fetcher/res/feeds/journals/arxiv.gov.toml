@@ -1,82 +1,82 @@
 base_poll_seconds = 500
-id_prefix = "arxiv"
 category = "journals"
+content_type = "xml"
+id_prefix = "arxiv"
+language = "en"
 provenance = "arxiv"
 tags = [
-    "journals",
-    "research",
+  "journals",
+  "research",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "econ"
+id  = "econ"
 url = "https://rss.arxiv.org/rss/econ"
 
 [[feeds]]
-id = "eess"
+id  = "eess"
 url = "https://rss.arxiv.org/rss/eess"
 
 [[feeds]]
-id = "stat"
+id  = "stat"
 url = "https://rss.arxiv.org/rss/stat"
 
 [[feeds]]
-id = "q-fin"
+id  = "q-fin"
 url = "https://rss.arxiv.org/rss/q-fin"
 
 [[feeds]]
-id = "q-bio"
+id  = "q-bio"
 url = "https://rss.arxiv.org/rss/q-bio"
 
 [[feeds]]
-id = "cs"
+id  = "cs"
 url = "https://rss.arxiv.org/rss/cs"
 
 [[feeds]]
-id = "quant-ph"
+id  = "quant-ph"
 url = "https://rss.arxiv.org/rss/quant-ph"
 
 [[feeds]]
-id = "physics"
+id  = "physics"
 url = "https://rss.arxiv.org/rss/physics"
 
 [[feeds]]
-id = "nucl-th"
+id  = "nucl-th"
 url = "https://rss.arxiv.org/rss/nucl-th"
 
 [[feeds]]
-id = "nucl-ex"
+id  = "nucl-ex"
 url = "https://rss.arxiv.org/rss/nucl-ex"
 
 [[feeds]]
-id = "nlin"
+id  = "nlin"
 url = "https://rss.arxiv.org/rss/nlin"
 
 [[feeds]]
-id = "math-ph"
+id  = "math-ph"
 url = "https://rss.arxiv.org/rss/math-ph"
 
 [[feeds]]
-id = "hep-th"
+id  = "hep-th"
 url = "https://rss.arxiv.org/rss/hep-th"
 
 [[feeds]]
-id = "hep-lat"
+id  = "hep-lat"
 url = "https://rss.arxiv.org/rss/hep-lat"
 
 [[feeds]]
-id = "hep-ex"
+id  = "hep-ex"
 url = "https://rss.arxiv.org/rss/hep-ex"
 
 [[feeds]]
-id = "gr-qc"
+id  = "gr-qc"
 url = "https://rss.arxiv.org/rss/gr-qc"
 
 [[feeds]]
-id = "cond-mat"
+id  = "cond-mat"
 url = "https://rss.arxiv.org/rss/cond-mat"
 
 [[feeds]]
-id = "astro-ph"
+id  = "astro-ph"
 url = "https://rss.arxiv.org/rss/astro-ph"

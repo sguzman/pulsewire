@@ -1,267 +1,231 @@
 # News Now
 
 base_poll_seconds = 1000
-id_prefix = "npr"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "npr"
+language = "en"
 provenance = "npr"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "news-now"
+id  = "news-now"
 url = "https://feeds.npr.org/500005/podcast.xml"
 
 # Up First
 
-
 [[feeds]]
-id = "up-first"
+id  = "up-first"
 url = "https://feeds.npr.org/510318/podcast.xml"
 
 # Consider This
 
-
 [[feeds]]
-id = "consider-this"
+id  = "consider-this"
 url = "https://feeds.npr.org/510355/podcast.xml"
 
 # The NPR Politics Podcast
 
-
 [[feeds]]
-id = "politics-podcast"
+id  = "politics-podcast"
 url = "https://feeds.npr.org/510310/podcast.xml"
 
 # Trump's Terms
 
-
 [[feeds]]
-id = "trumps-terms"
+id  = "trumps-terms"
 url = "https://feeds.npr.org/510374/podcast.xml"
 
 # State of the World
 
-
 [[feeds]]
-id = "state-of-the-world"
+id  = "state-of-the-world"
 url = "https://feeds.npr.org/510366/podcast.xml"
 
 # Here & Now Anytime
 
-
 [[feeds]]
-id = "here-and-now-anytime"
+id  = "here-and-now-anytime"
 url = "https://feeds.npr.org/510051/podcast.xml"
 
 # 1A
 
-
 [[feeds]]
-id = "1a"
+id  = "1a"
 url = "https://feeds.npr.org/510316/podcast.xml"
 
 # Sources & Methods
 
-
 [[feeds]]
-id = "sources-and-methods"
+id  = "sources-and-methods"
 url = "https://feeds.npr.org/g-s1-84651/podcast.xml"
 
 # How To Do Everything
 
-
 [[feeds]]
-id = "how-to-do-everything"
+id  = "how-to-do-everything"
 url = "https://feeds.npr.org/510384/podcast.xml"
 
 # Wild Card with Rachel Martin
 
-
 [[feeds]]
-id = "wild-card-with-rachel-martin"
+id  = "wild-card-with-rachel-martin"
 url = "https://feeds.npr.org/510379/podcast.xml"
 
 # Wait Wait... Don't Tell Me!
 
-
 [[feeds]]
-id = "wait-wait-dont-tell-me"
+id  = "wait-wait-dont-tell-me"
 url = "https://feeds.npr.org/344098539/podcast.xml"
 
 # Fresh Air
 
-
 [[feeds]]
-id = "fresh-air"
+id  = "fresh-air"
 url = "https://feeds.npr.org/381444908/podcast.xml"
 
 # Pop Culture Happy Hour
 
-
 [[feeds]]
-id = "pop-culture-happy-hour"
+id  = "pop-culture-happy-hour"
 url = "https://feeds.npr.org/510282/podcast.xml"
 
 # Code Switch
 
-
 [[feeds]]
-id = "code-switch"
+id  = "code-switch"
 url = "https://feeds.npr.org/510312/podcast.xml"
 
 # The Best of Car Talk
 
-
 [[feeds]]
-id = "the-best-of-car-talk"
+id  = "the-best-of-car-talk"
 url = "https://feeds.npr.org/510208/podcast.xml"
 
 # Book of the Day
 
-
 [[feeds]]
-id = "book-of-the-day"
+id  = "book-of-the-day"
 url = "https://feeds.npr.org/510364/podcast.xml"
 
 # It's Been a Minute
 
-
 [[feeds]]
-id = "its-been-a-minute"
+id  = "its-been-a-minute"
 url = "https://feeds.npr.org/510317/podcast.xml"
 
 # Bullseye with Jesse Thorn
 
-
 [[feeds]]
-id = "bullseye-with-jesse-thorn"
+id  = "bullseye-with-jesse-thorn"
 url = "https://feeds.npr.org/510309/podcast.xml"
 
 # StoryCorps
 
-
 [[feeds]]
-id = "storycorps"
+id  = "storycorps"
 url = "https://feeds.npr.org/510200/podcast.xml"
 
 # Alt.Latino
 
-
 [[feeds]]
-id = "alt-latino"
+id  = "alt-latino"
 url = "https://feeds.npr.org/510305/podcast.xml"
 
 # All Songs Considered
 
-
 [[feeds]]
-id = "all-songs-considered"
+id  = "all-songs-considered"
 url = "https://feeds.npr.org/510019/podcast.xml"
 
 # From the Top
 
-
 [[feeds]]
-id = "from-the-top"
+id  = "from-the-top"
 url = "https://feeds.npr.org/510026/podcast.xml"
 
 # World Cafe Words and Music Podcast
 
-
 [[feeds]]
-id = "world-cafe-words-and-music-podcast"
+id  = "world-cafe-words-and-music-podcast"
 url = "https://feeds.npr.org/510008/podcast.xml"
 
 # Louder Than A Riot
 
-
 [[feeds]]
-id = "louder-than-a-riot"
+id  = "louder-than-a-riot"
 url = "https://feeds.npr.org/510357/podcast.xml"
 
 # Planet Money
 
-
 [[feeds]]
-id = "planet-money"
+id  = "planet-money"
 url = "https://feeds.npr.org/510289/podcast.xml"
 
 # The Indicator
 
-
 [[feeds]]
-id = "the-indicator"
+id  = "the-indicator"
 url = "https://feeds.npr.org/510325/podcast.xml"
 
 # Short Wave
 
-
 [[feeds]]
-id = "short-wave"
+id  = "short-wave"
 url = "https://feeds.npr.org/510351/podcast.xml"
 
 # TED Radio Hour
 
-
 [[feeds]]
-id = "ted-radio-hour"
+id  = "ted-radio-hour"
 url = "https://feeds.npr.org/510298/podcast.xml"
 
 # Life Kit
 
-
 [[feeds]]
-id = "life-kit"
+id  = "life-kit"
 url = "https://feeds.npr.org/510338/podcast.xml"
 
 # Body Electric
 
-
 [[feeds]]
-id = "body-electric"
+id  = "body-electric"
 url = "https://feeds.npr.org/510375/podcast.xml"
 
 # Throughline
 
-
 [[feeds]]
-id = "throughline"
+id  = "throughline"
 url = "https://feeds.npr.org/510333/podcast.xml"
 
 # Embedded
 
-
 [[feeds]]
-id = "embedded"
+id  = "embedded"
 url = "https://feeds.npr.org/510311/podcast.xml"
 
 # Radio Ambulante
 
-
 [[feeds]]
-id = "radio-ambulante"
+id  = "radio-ambulante"
 url = "https://feeds.npr.org/510315/podcast.xml"
 
 # Invisibilia
 
-
 [[feeds]]
-id = "invisibilia"
+id  = "invisibilia"
 url = "https://feeds.npr.org/510307/podcast.xml"
 
 # Rough Translation
 
-
 [[feeds]]
-id = "rough-translation"
+id  = "rough-translation"
 url = "https://feeds.npr.org/510324/podcast.xml"
 
 # How Wild
 
-
 [[feeds]]
-id = "how-wild"
+id  = "how-wild"
 url = "https://feeds.npr.org/510383/podcast.xml"

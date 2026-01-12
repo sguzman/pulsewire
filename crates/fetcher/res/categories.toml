@@ -1,93 +1,93 @@
 [[categories]]
-name = "youtube"
 domains = [
-  "youtube.com",
-  "youtu.be",
   "www.youtube.com",
+  "youtu.be",
+  "youtube.com",
 ]
+name = "youtube"
 
 [[categories]]
-name = "gov"
 domains = [
-  "govinfo.gov",
-  "www.govinfo.gov",
-  "www.bls.gov",
   "bls.gov",
   "federalregister.gov",
-  "www.federalreserve.gov",
+  "govinfo.gov",
   "sec.gov",
+  "www.bls.gov",
+  "www.federalreserve.gov",
+  "www.govinfo.gov",
   "www.sec.gov",
 ]
+name = "gov"
 
 [[categories]]
-name = "journals"
 domains = [
-  "rss.arxiv.org",
   "arxiv.org",
+  "rss.arxiv.org",
 ]
+name = "journals"
 
 [[categories]]
-name = "comics"
 domains = [
   "xkcd.com",
 ]
+name = "comics"
 
 [[categories]]
-name = "tech"
 domains = [
   "feeds.arstechnica.com",
   "hnrss.org",
   "rss.slashdot.org",
 ]
+name = "tech"
 
 [[categories]]
-name = "finance"
 domains = [
+  "cointelegraph.com",
+  "feeds.bloomberg.com",
   "ir.thomsonreuters.com",
   "seekingalpha.com",
-  "feeds.bloomberg.com",
   "www.coindesk.com",
-  "cointelegraph.com",
 ]
+name = "finance"
 
 [[categories]]
-name = "news"
 domains = [
   "edition.cnn.com",
-  "rss.politico.com",
   "feeds.content.dowjones.io",
-  "www.washingtonpost.com",
   "feeds.washingtonpost.com",
-  "www.nytimes.com",
   "rss.nytimes.com",
+  "rss.politico.com",
+  "www.nytimes.com",
+  "www.washingtonpost.com",
 ]
+name = "news"
 
 [[categories]]
-name = "podcasts"
 domains = [
-  "feed.cdnstream1.com",
-  "wondery.com",
-  "www.spreaker.com",
-  "publicfeeds.net",
-  "feed.podbean.com",
-  "feeds.redcircle.com",
-  "podcastfeeds.nbcnews.com",
+  "access.acast.com",
   "anchor.fm",
   "audioboom.com",
-  "rss.amperwave.net",
-  "www.theguardian.com",
-  "rss.acast.com",
-  "subscribe.acast.com",
+  "feed.cdnstream1.com",
+  "feed.podbean.com",
   "feeds.acast.com",
-  "access.acast.com",
-  "rss.art19.com",
-  "podcasts.files.bbci.co.uk",
-  "omnycontent.com",
-  "www.omnycontent.com",
-  "feeds.npr.org",
-  "omny.fm",
-  "www.omny.fm",
-  "feeds.simplecast.com",
   "feeds.megaphone.fm",
+  "feeds.npr.org",
+  "feeds.redcircle.com",
+  "feeds.simplecast.com",
+  "omny.fm",
+  "omnycontent.com",
+  "podcastfeeds.nbcnews.com",
+  "podcasts.files.bbci.co.uk",
+  "publicfeeds.net",
+  "rss.acast.com",
+  "rss.amperwave.net",
+  "rss.art19.com",
   "rss.libsyn.com",
+  "subscribe.acast.com",
+  "wondery.com",
+  "www.omny.fm",
+  "www.omnycontent.com",
+  "www.spreaker.com",
+  "www.theguardian.com",
 ]
+name = "podcasts"

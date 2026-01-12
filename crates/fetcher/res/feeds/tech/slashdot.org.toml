@@ -1,13 +1,13 @@
 base_poll_seconds = 1800
-id_prefix = "slashdot"
 category = "tech"
+content_type = "xml"
+id_prefix = "slashdot"
+language = "en"
 provenance = "slashdot"
 tags = [
-    "tech",
+  "tech",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "main"
+id  = "main"
 url = "http://rss.slashdot.org/Slashdot/slashdotMain"

@@ -1,13 +1,13 @@
 base_poll_seconds = 1000
-id_prefix = "becauselanguage"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "becauselanguage"
+language = "en"
 provenance = "becauselanguage"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "main"
+id  = "main"
 url = "https://rss.libsyn.com/shows/142466/destinations/897956.xml"

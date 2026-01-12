@@ -1,15 +1,22 @@
-//! Persist/read current and historical link state snapshots.
+//! Persist/read current and historical
+//! link state snapshots.
+
 use chrono_tz::Tz;
 use sqlx::SqlitePool;
 
+use super::models::StateRowRecord;
 use crate::domain::link_state::LinkState;
 use crate::ports::repo::StateRow;
 
-use super::models::StateRowRecord;
-
-pub async fn latest_state(pool: &SqlitePool, feed_id: &str) -> Result<Option<StateRow>, String> {
-    let row = sqlx::query_as::<_, StateRowRecord>(
-        r#"
+pub async fn latest_state(
+  pool: &SqlitePool,
+  feed_id: &str
+) -> Result<Option<StateRow>, String> {
+  let row = sqlx::query_as::<
+    _,
+    StateRowRecord
+  >(
+    r#"
       SELECT
         feed_id,
         phase,
@@ -29,24 +36,27 @@ pub async fn latest_state(pool: &SqlitePool, feed_id: &str) -> Result<Option<Sta
         consecutive_error_count
       FROM feed_state_current
       WHERE feed_id = ?1
-      "#,
-    )
-    .bind(feed_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(|e| format!("latest_state error: {e}"))?;
-    Ok(row.map(StateRow::from))
+      "#
+  )
+  .bind(feed_id)
+  .fetch_optional(pool)
+  .await
+  .map_err(|e| {
+    format!("latest_state error: {e}")
+  })?;
+
+  Ok(row.map(StateRow::from))
 }
 
 pub async fn insert_state(
-    pool: &SqlitePool,
-    state: &LinkState,
-    recorded_at_ms: i64,
-    _zone: &Tz,
-    record_history: bool,
+  pool: &SqlitePool,
+  state: &LinkState,
+  recorded_at_ms: i64,
+  _zone: &Tz,
+  record_history: bool
 ) -> Result<(), String> {
-    if record_history {
-        sqlx::query(
+  if record_history {
+    sqlx::query(
             r#"
         INSERT INTO feed_state_history(
           feed_id, recorded_at_ms, phase,
@@ -85,9 +95,9 @@ pub async fn insert_state(
         .execute(pool)
         .await
         .map_err(|e| format!("insert_state history error: {e}"))?;
-    }
+  }
 
-    sqlx::query(
+  sqlx::query(
         r#"
       INSERT INTO feed_state_current(
         feed_id, phase,
@@ -142,5 +152,5 @@ pub async fn insert_state(
     .await
     .map_err(|e| format!("insert_state current error: {e}"))?;
 
-    Ok(())
+  Ok(())
 }

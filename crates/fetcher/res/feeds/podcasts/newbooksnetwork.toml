@@ -1,500 +1,449 @@
 # Ancient History
 
 base_poll_seconds = 1000
-id_prefix = "newbooksnetwork"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "newbooksnetwork"
+language = "en"
 provenance = "newbooksnetwork"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "ancient-history"
+id  = "ancient-history"
 url = "https://feeds.megaphone.fm/NBN7930284079"
 
 # Arguing History
 
-
 [[feeds]]
-id = "arguing-history"
+id  = "arguing-history"
 url = "https://feeds.megaphone.fm/LIT5051178858"
 
 # Biography
 
-
 [[feeds]]
-id = "biography"
+id  = "biography"
 url = "https://feeds.megaphone.fm/LIT3954564801"
 
 # Diplomatic History
 
-
 [[feeds]]
-id = "diplomatic-history"
+id  = "diplomatic-history"
 url = "https://feeds.megaphone.fm/NBN4221620160"
 
 # Early Modern History
 
-
 [[feeds]]
-id = "early-modern-history"
+id  = "early-modern-history"
 url = "https://feeds.megaphone.fm/NBN3010927619"
 
 # Economic and Business History
 
-
 [[feeds]]
-id = "economic-and-business-history"
+id  = "economic-and-business-history"
 url = "https://feeds.megaphone.fm/NBN8101037583"
 
 # General History
 
-
 [[feeds]]
-id = "general-history"
+id  = "general-history"
 url = "https://feeds.megaphone.fm/LIT3360275696"
 
 # Intellectual History
 
-
 [[feeds]]
-id = "intellectual-history"
+id  = "intellectual-history"
 url = "https://feeds.megaphone.fm/LIT3169108505"
 
 # Late Antiquity
 
-
 [[feeds]]
-id = "late-antiquity"
+id  = "late-antiquity"
 url = "https://feeds.megaphone.fm/NBNK7959080489"
 
 # Medieval History
 
-
 [[feeds]]
-id = "medieval-history"
+id  = "medieval-history"
 url = "https://feeds.megaphone.fm/NBN6213996495"
 
 # Military History
 
-
 [[feeds]]
-id = "military-history"
+id  = "military-history"
 url = "https://feeds.megaphone.fm/LIT5868539187"
 
 # Women's History
 
-
 [[feeds]]
-id = "womens-history"
+id  = "womens-history"
 url = "https://feeds.megaphone.fm/NBN5185885598"
 
 # Architecture
 
 [[feeds]]
-id = "arts-letters-architecture"
+id  = "arts-letters-architecture"
 url = "https://feeds.megaphone.fm/LIT5569218006"
 
 # Art
 
 [[feeds]]
-id = "arts-letters-art"
+id  = "arts-letters-art"
 url = "https://feeds.megaphone.fm/LIT4705177591"
 
 # Children's Literature
 
 [[feeds]]
-id = "arts-letters-childrens-literature"
+id  = "arts-letters-childrens-literature"
 url = "https://feeds.megaphone.fm/NBN4085303954"
 
 # Comics and Graphic Novels
 
 [[feeds]]
-id = "arts-letters-comics-and-graphic-novels"
+id  = "arts-letters-comics-and-graphic-novels"
 url = "https://feeds.megaphone.fm/NSR1143330870"
 
 # Digital Humanities
 
 [[feeds]]
-id = "arts-letters-digital-humanities"
+id  = "arts-letters-digital-humanities"
 url = "https://feeds.megaphone.fm/digitalhumanties"
 
 # Fantasy
 
 [[feeds]]
-id = "arts-letters-fantasy"
+id  = "arts-letters-fantasy"
 url = "https://feeds.megaphone.fm/LIT3826935375"
 
 # Film
 
 [[feeds]]
-id = "arts-letters-film"
+id  = "arts-letters-film"
 url = "https://feeds.megaphone.fm/LIT6660444378"
 
 # Folklore
 
 [[feeds]]
-id = "arts-letters-folklore"
+id  = "arts-letters-folklore"
 url = "https://feeds.megaphone.fm/LIT6330413236"
 
 # Food
 
 [[feeds]]
-id = "arts-letters-food"
+id  = "arts-letters-food"
 url = "https://feeds.megaphone.fm/LIT3477516260"
 
 # Game Studies
 
 [[feeds]]
-id = "arts-letters-game-studies"
+id  = "arts-letters-game-studies"
 url = "https://feeds.megaphone.fm/NSR5362328079"
 
 # Historical Fiction
 
 [[feeds]]
-id = "arts-letters-historical-fiction"
+id  = "arts-letters-historical-fiction"
 url = "https://feeds.megaphone.fm/LIT6932828125"
 
 # Library Science
 
 [[feeds]]
-id = "arts-letters-library-science"
+id  = "arts-letters-library-science"
 url = "https://feeds.megaphone.fm/NBN1152836190"
 
 # Literary Studies
 
 [[feeds]]
-id = "arts-letters-literary-studies"
+id  = "arts-letters-literary-studies"
 url = "https://feeds.megaphone.fm/LIT7489921391"
 
 # Literature
 
 [[feeds]]
-id = "arts-letters-literature"
+id  = "arts-letters-literature"
 url = "https://feeds.megaphone.fm/LIT3662756671"
 
 # Museum Studies
 
 [[feeds]]
-id = "arts-letters-museum-studies"
+id  = "arts-letters-museum-studies"
 url = "https://feeds.megaphone.fm/NBN7936496793"
 
 # Music
 
 [[feeds]]
-id = "arts-letters-music"
+id  = "arts-letters-music"
 url = "https://feeds.megaphone.fm/LIT1985735353"
 
 # Performing Arts
 
 [[feeds]]
-id = "arts-letters-performing-arts"
+id  = "arts-letters-performing-arts"
 url = "https://feeds.megaphone.fm/LIT9810498522"
 
 # Photography
 
 [[feeds]]
-id = "arts-letters-photography"
+id  = "arts-letters-photography"
 url = "https://feeds.megaphone.fm/LIT7602147273"
 
 # Poetry
 
 [[feeds]]
-id = "arts-letters-poetry"
+id  = "arts-letters-poetry"
 url = "https://feeds.megaphone.fm/LIT1279112701"
 
 # Popular Culture
 
 [[feeds]]
-id = "arts-letters-popular-culture"
+id  = "arts-letters-popular-culture"
 url = "https://feeds.megaphone.fm/LIT2984583128"
 
 # Science Fiction
 
 [[feeds]]
-id = "arts-letters-science-fiction"
+id  = "arts-letters-science-fiction"
 url = "https://feeds.megaphone.fm/LIT6037340033"
 
 # African Studies
 
-
 [[feeds]]
-id = "peoples-places-african-studies"
+id  = "peoples-places-african-studies"
 url = "https://feeds.megaphone.fm/LIT4224425735"
 
 # African American Studies
 
-
 [[feeds]]
-id = "peoples-places-african-american-studies"
+id  = "peoples-places-african-american-studies"
 url = "https://feeds.megaphone.fm/LIT9884742733"
 
 # American Politics
 
-
 [[feeds]]
-id = "peoples-places-american-politics"
+id  = "peoples-places-american-politics"
 url = "https://feeds.megaphone.fm/NBN2537872845"
 
 # American Studies
 
-
 [[feeds]]
-id = "peoples-places-american-studies"
+id  = "peoples-places-american-studies"
 url = "https://feeds.megaphone.fm/LIT2571364172"
 
 # American South
 
-
 [[feeds]]
-id = "peoples-places-american-south"
+id  = "peoples-places-american-south"
 url = "https://feeds.megaphone.fm/LIT9141081432"
 
 # American West
 
-
 [[feeds]]
-id = "peoples-places-american-west"
+id  = "peoples-places-american-west"
 url = "https://feeds.megaphone.fm/LIT3997202566"
 
 # Asian American Studies
 
-
 [[feeds]]
-id = "peoples-places-asian-american-studies"
+id  = "peoples-places-asian-american-studies"
 url = "https://feeds.megaphone.fm/LIT8694547118"
 
 # Australian and New Zealand Studies
 
-
 [[feeds]]
-id = "peoples-places-australian-and-new-zealand-studies"
+id  = "peoples-places-australian-and-new-zealand-studies"
 url = "https://feeds.megaphone.fm/LIT4392416069"
 
 # British Studies
 
-
 [[feeds]]
-id = "peoples-places-british-studies"
+id  = "peoples-places-british-studies"
 url = "https://feeds.megaphone.fm/LIT4185533436"
 
 # Canadian Studies
 
-
 [[feeds]]
-id = "peoples-places-canadian-studies"
+id  = "peoples-places-canadian-studies"
 url = "https://feeds.megaphone.fm/NBN5526700120"
 
 # Caribbean Studies
 
-
 [[feeds]]
-id = "peoples-places-caribbean-studies"
+id  = "peoples-places-caribbean-studies"
 url = "https://feeds.megaphone.fm/LIT6488864857"
 
 # Central Asian Studies
 
-
 [[feeds]]
-id = "peoples-places-central-asian-studies"
+id  = "peoples-places-central-asian-studies"
 url = "https://feeds.megaphone.fm/LIT9438616575"
 
 # Chinese Studies
 
-
 [[feeds]]
-id = "peoples-places-chinese-studies"
+id  = "peoples-places-chinese-studies"
 url = "https://feeds.megaphone.fm/LIT1170601646"
 
 # East Asian Studies
 
-
 [[feeds]]
-id = "peoples-places-east-asian-studies"
+id  = "peoples-places-east-asian-studies"
 url = "https://feeds.megaphone.fm/LIT3976960259"
 
 # Eastern European Studies
 
-
 [[feeds]]
-id = "peoples-places-eastern-european-studies"
+id  = "peoples-places-eastern-european-studies"
 url = "https://feeds.megaphone.fm/LIT7794950156"
 
 # European Politics
 
-
 [[feeds]]
-id = "peoples-places-european-politics"
+id  = "peoples-places-european-politics"
 url = "https://feeds.megaphone.fm/NBN9455698150"
 
 # French Studies
 
-
 [[feeds]]
-id = "peoples-places-french-studies"
+id  = "peoples-places-french-studies"
 url = "https://feeds.megaphone.fm/LIT6196813446"
 
 # German Studies
 
-
 [[feeds]]
-id = "peoples-places-german-studies"
+id  = "peoples-places-german-studies"
 url = "https://feeds.megaphone.fm/LIT5197330968"
 
 # Iberian Studies
 
-
 [[feeds]]
-id = "peoples-places-iberian-studies"
+id  = "peoples-places-iberian-studies"
 url = "https://feeds.megaphone.fm/NBN6051163392"
 
 # Indian Ocean World
 
-
 [[feeds]]
-id = "peoples-places-indian-ocean-world"
+id  = "peoples-places-indian-ocean-world"
 url = "https://feeds.megaphone.fm/newbooksindianoceanworld"
 
 # Iranian Studies
 
-
 [[feeds]]
-id = "peoples-places-iranian-studies"
+id  = "peoples-places-iranian-studies"
 url = "https://feeds.megaphone.fm/NBNK4310987155"
 
 # Irish Studies
 
-
 [[feeds]]
-id = "peoples-places-irish-studies"
+id  = "peoples-places-irish-studies"
 url = "https://feeds.megaphone.fm/NBN2322031686"
 
 # Israel Studies
 
-
 [[feeds]]
-id = "peoples-places-israel-studies"
+id  = "peoples-places-israel-studies"
 url = "https://feeds.megaphone.fm/LIT6092173261"
 
 # Italian Studies
 
-
 [[feeds]]
-id = "peoples-places-italian-studies"
+id  = "peoples-places-italian-studies"
 url = "https://feeds.megaphone.fm/italianstudies"
 
 # Japanese Studies
 
-
 [[feeds]]
-id = "peoples-places-japanese-studies"
+id  = "peoples-places-japanese-studies"
 url = "https://feeds.megaphone.fm/LIT9977052542"
 
 # Korean Studies
 
-
 [[feeds]]
-id = "peoples-places-korean-studies"
+id  = "peoples-places-korean-studies"
 url = "https://feeds.megaphone.fm/LIT9530842449"
 
 # Latino Studies
 
-
 [[feeds]]
-id = "peoples-places-latino-studies"
+id  = "peoples-places-latino-studies"
 url = "https://feeds.megaphone.fm/LIT1165032769"
 
 # Latin American Studies
 
-
 [[feeds]]
-id = "peoples-places-latin-american-studies"
+id  = "peoples-places-latin-american-studies"
 url = "https://feeds.megaphone.fm/LIT8547951194"
 
 # Mexican Studies
 
-
 [[feeds]]
-id = "peoples-places-mexican-studies"
+id  = "peoples-places-mexican-studies"
 url = "https://feeds.megaphone.fm/NBN3370967518"
 
 # Middle Eastern Studies
 
-
 [[feeds]]
-id = "peoples-places-middle-eastern-studies"
+id  = "peoples-places-middle-eastern-studies"
 url = "https://feeds.megaphone.fm/LIT1877366845"
 
 # Native American Studies
 
-
 [[feeds]]
-id = "peoples-places-native-american-studies"
+id  = "peoples-places-native-american-studies"
 url = "https://feeds.megaphone.fm/LIT5697542958"
 
 # Pacific Studies
 
-
 [[feeds]]
-id = "peoples-places-pacific-studies"
+id  = "peoples-places-pacific-studies"
 url = "https://feeds.megaphone.fm/NBN3745371863"
 
 # Polish Studies
 
-
 [[feeds]]
-id = "peoples-places-polish-studies"
+id  = "peoples-places-polish-studies"
 url = "https://feeds.megaphone.fm/NBN5662189435"
 
 # Russian and Eurasian Studies
 
-
 [[feeds]]
-id = "peoples-places-russian-and-eurasian-studies"
+id  = "peoples-places-russian-and-eurasian-studies"
 url = "https://feeds.megaphone.fm/LIT6780696927"
 
 # Southeast Asian Studies
 
-
 [[feeds]]
-id = "peoples-places-southeast-asian-studies"
+id  = "peoples-places-southeast-asian-studies"
 url = "https://feeds.megaphone.fm/LIT4430509368"
 
 # South Asian Studies
 
-
 [[feeds]]
-id = "peoples-places-south-asian-studies"
+id  = "peoples-places-south-asian-studies"
 url = "https://feeds.megaphone.fm/LIT2660294853"
 
 # Turkish Studies
 
-
 [[feeds]]
-id = "peoples-places-turkish-studies"
+id  = "peoples-places-turkish-studies"
 url = "https://feeds.megaphone.fm/NSR2954190952"
 
 # Ukrainian Studies
 
-
 [[feeds]]
-id = "peoples-places-ukrainian-studies"
+id  = "peoples-places-ukrainian-studies"
 url = "https://feeds.megaphone.fm/NBN7681184580"
 
 # Western European Studies
 
-
 [[feeds]]
-id = "peoples-places-western-european-studies"
+id  = "peoples-places-western-european-studies"
 url = "https://feeds.megaphone.fm/LIT5699084207"
 
 # World Affairs
 
-
 [[feeds]]
-id = "peoples-places-world-affairs"
+id  = "peoples-places-world-affairs"
 url = "https://feeds.megaphone.fm/LIT6200923204"
 
 # New Books Network - Politics & Society
@@ -504,518 +453,513 @@ url = "https://feeds.megaphone.fm/LIT6200923204"
 # Animal Studies
 
 [[feeds]]
-id = "politics-society-animal-studies"
+id  = "politics-society-animal-studies"
 url = "https://feeds.megaphone.fm/animalstudies"
 
 # Anthropology (verified RSS target)
 
 [[feeds]]
-id = "politics-society-anthropology"
+id  = "politics-society-anthropology"
 url = "https://feeds.megaphone.fm/LIT5223487889"
 
 # Archaeology
 
 [[feeds]]
-id = "politics-society-archaeology"
+id  = "politics-society-archaeology"
 url = "https://feeds.megaphone.fm/LIT7466012449"
 
 # Business, Management, and Marketing
 
 [[feeds]]
-id = "politics-society-business-management-and-marketing"
+id  = "politics-society-business-management-and-marketing"
 url = "https://feeds.megaphone.fm/NBN1887539973"
 
 # Media and Communications
 
 [[feeds]]
-id = "politics-society-media-and-communications"
+id  = "politics-society-media-and-communications"
 url = "https://feeds.megaphone.fm/LIT1384621729"
 
 # Critical Theory
 
 [[feeds]]
-id = "politics-society-critical-theory"
+id  = "politics-society-critical-theory"
 url = "https://feeds.megaphone.fm/LIT8251633117"
 
 # Disability Studies
 
 [[feeds]]
-id = "politics-society-disability-studies"
+id  = "politics-society-disability-studies"
 url = "https://feeds.megaphone.fm/NBN5832934978"
 
 # Drugs, Addiction and Recovery
 
 [[feeds]]
-id = "politics-society-drugs-addiction-and-recovery"
+id  = "politics-society-drugs-addiction-and-recovery"
 url = "https://feeds.megaphone.fm/LIT7292762155"
 
 # Education
 
 [[feeds]]
-id = "politics-society-education"
+id  = "politics-society-education"
 url = "https://feeds.megaphone.fm/LIT4894369277"
 
 # Economics
 
 [[feeds]]
-id = "politics-society-economics"
+id  = "politics-society-economics"
 url = "https://feeds.megaphone.fm/LIT6811763985"
 
 # Finance
 
 [[feeds]]
-id = "politics-society-finance"
+id  = "politics-society-finance"
 url = "https://feeds.megaphone.fm/finance"
 
 # Geography
 
 [[feeds]]
-id = "politics-society-geography"
+id  = "politics-society-geography"
 url = "https://feeds.megaphone.fm/LIT1603835782"
 
 # Gender Studies
 
 [[feeds]]
-id = "politics-society-gender-studies"
+id  = "politics-society-gender-studies"
 url = "https://feeds.megaphone.fm/LIT3077747900"
 
 # Genocide Studies
 
 [[feeds]]
-id = "politics-society-genocide-studies"
+id  = "politics-society-genocide-studies"
 url = "https://feeds.megaphone.fm/LIT8032989522"
 
 # Higher Education
 
 [[feeds]]
-id = "politics-society-higher-education"
+id  = "politics-society-higher-education"
 url = "https://feeds.megaphone.fm/NBN6191988705"
 
 # Human Rights
 
 [[feeds]]
-id = "politics-society-human-rights"
+id  = "politics-society-human-rights"
 url = "https://feeds.megaphone.fm/NBN4841577731"
 
 # Journalism
 
 [[feeds]]
-id = "politics-society-journalism"
+id  = "politics-society-journalism"
 url = "https://feeds.megaphone.fm/LIT9181619095"
 
 # Language
 
 [[feeds]]
-id = "politics-society-language"
+id  = "politics-society-language"
 url = "https://feeds.megaphone.fm/LIT7632558716"
 
 # Law
 
 [[feeds]]
-id = "politics-society-law"
+id  = "politics-society-law"
 url = "https://feeds.megaphone.fm/LIT9194668674"
 
 # LGBTQ+ Studies
 
 [[feeds]]
-id = "politics-society-lgbtq-studies"
+id  = "politics-society-lgbtq-studies"
 url = "https://feeds.megaphone.fm/lgbtqstudies"
 
 # National Security
 
 [[feeds]]
-id = "politics-society-national-security"
+id  = "politics-society-national-security"
 url = "https://feeds.megaphone.fm/LIT3614552456"
 
 # Philanthropy
 
 [[feeds]]
-id = "politics-society-philanthropy"
+id  = "politics-society-philanthropy"
 url = "https://feeds.megaphone.fm/NBNK7124586766"
 
 # Philosophy
 
 [[feeds]]
-id = "politics-society-philosophy"
+id  = "politics-society-philosophy"
 url = "https://feeds.megaphone.fm/LIT3426521806"
 
 # Policing, Incarceration, and Reform
 
 [[feeds]]
-id = "politics-society-policing-incarceration-and-reform"
+id  = "politics-society-policing-incarceration-and-reform"
 url = "https://feeds.megaphone.fm/NBN7312885287"
 
 # Political Science
 
 [[feeds]]
-id = "politics-society-political-science"
+id  = "politics-society-political-science"
 url = "https://feeds.megaphone.fm/LIT7047417664"
 
 # Politics & Polemics
 
 [[feeds]]
-id = "politics-society-politics-polemics"
+id  = "politics-society-politics-polemics"
 url = "https://feeds.megaphone.fm/LIT3660976705"
 
 # Public Policy
 
 [[feeds]]
-id = "politics-society-public-policy"
+id  = "politics-society-public-policy"
 url = "https://feeds.megaphone.fm/LIT5619479076"
 
 # Sex, Sexuality, and Sex Work
 
 [[feeds]]
-id = "politics-society-sex-sexuality-and-sex-work"
+id  = "politics-society-sex-sexuality-and-sex-work"
 url = "https://feeds.megaphone.fm/NBN9099016434"
 
 # Sociology
 
 [[feeds]]
-id = "politics-society-sociology"
+id  = "politics-society-sociology"
 url = "https://feeds.megaphone.fm/LIT3382719913"
 
 # Sound Studies
 
 [[feeds]]
-id = "politics-society-sound-studies"
+id  = "politics-society-sound-studies"
 url = "https://feeds.megaphone.fm/LIT3648923516"
 
 # Sports
 
 [[feeds]]
-id = "politics-society-sports"
+id  = "politics-society-sports"
 url = "https://feeds.megaphone.fm/LIT5126616900"
 
 # Urban Studies
 
 [[feeds]]
-id = "politics-society-urban-studies"
+id  = "politics-society-urban-studies"
 url = "https://feeds.megaphone.fm/NBN5256992629"
 
 # Biblical Studies
 
 [[feeds]]
-id = "religion-faith-biblical-studies"
+id  = "religion-faith-biblical-studies"
 url = "https://feeds.megaphone.fm/LIT5975927091"
 
 # Buddhist Studies
 
 [[feeds]]
-id = "religion-faith-buddhist-studies"
+id  = "religion-faith-buddhist-studies"
 url = "https://feeds.megaphone.fm/LIT8948303572"
 
 # Catholic Studies
 
 [[feeds]]
-id = "religion-faith-catholic-studies"
+id  = "religion-faith-catholic-studies"
 url = "https://feeds.megaphone.fm/NBN1060171847"
 
 # Christian Studies
 
 [[feeds]]
-id = "religion-faith-christian-studies"
+id  = "religion-faith-christian-studies"
 url = "https://feeds.megaphone.fm/LIT4981288691"
 
 # Indian Religions
 
 [[feeds]]
-id = "religion-faith-indian-religions"
+id  = "religion-faith-indian-religions"
 url = "https://feeds.megaphone.fm/LIT4181452222"
 
 # Islamic Studies
 
 [[feeds]]
-id = "religion-faith-islamic-studies"
+id  = "religion-faith-islamic-studies"
 url = "https://feeds.megaphone.fm/LIT7782346334"
 
 # Jewish Studies
 
 [[feeds]]
-id = "religion-faith-jewish-studies"
+id  = "religion-faith-jewish-studies"
 url = "https://feeds.megaphone.fm/LIT1748646590"
 
 # Religion
 
 [[feeds]]
-id = "religion-faith-religion"
+id  = "religion-faith-religion"
 url = "https://feeds.megaphone.fm/LIT9789987066"
 
 # Secularism
 
 [[feeds]]
-id = "religion-faith-secularism"
+id  = "religion-faith-secularism"
 url = "https://feeds.megaphone.fm/LIT5027395222"
 
 # Spiritual Practice and Mindfulness
 
 [[feeds]]
-id = "religion-faith-spiritual-practice-and-mindfulness"
+id  = "religion-faith-spiritual-practice-and-mindfulness"
 url = "https://feeds.megaphone.fm/LIT2462536800"
 
 # World Christianity
 
 [[feeds]]
-id = "religion-faith-world-christianity"
+id  = "religion-faith-world-christianity"
 url = "https://feeds.megaphone.fm/NBN6684554822"
 
 # Princeton UP Ideas Podcast
 
 [[feeds]]
-id = "princeton-up-ideas-podcast"
+id  = "princeton-up-ideas-podcast"
 url = "https://feeds.megaphone.fm/princetonup"
 
 # The Harvard Brief
 
 [[feeds]]
-id = "the-harvard-brief"
+id  = "the-harvard-brief"
 url = "https://feeds.megaphone.fm/NBNK6029646569"
 
 # Open Society Ideas Podcast
 
 [[feeds]]
-id = "open-society-ideas-podcast"
+id  = "open-society-ideas-podcast"
 url = "https://feeds.megaphone.fm/NBNK7432556114"
 
 # In Conversation: An OUP Podcast
 
 [[feeds]]
-id = "in-conversation-an-oup-podcast"
+id  = "in-conversation-an-oup-podcast"
 url = "https://feeds.megaphone.fm/NBN7311111504"
 
 # Library of America presents LOA LIVE
 
 [[feeds]]
-id = "library-of-america-presents-loa-live"
+id  = "library-of-america-presents-loa-live"
 url = "https://feeds.megaphone.fm/NBNK6295485480"
 
 # Exchanges: A Cambridge UP Podcast
 
 [[feeds]]
-id = "exchanges-a-cambridge-up-podcast"
+id  = "exchanges-a-cambridge-up-podcast"
 url = "https://feeds.megaphone.fm/NBN2314872489"
 
 # The Truth About Bullshit
 
 [[feeds]]
-id = "the-truth-about-bullshit"
+id  = "the-truth-about-bullshit"
 url = "https://feeds.megaphone.fm/NBNK2522131676"
 
 # The University of Alberta Press Podcast
 
 [[feeds]]
-id = "the-university-of-alberta-press-podcast"
+id  = "the-university-of-alberta-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK4712488633"
 
 # The University of Arizona Press Podcast
 
 [[feeds]]
-id = "the-university-of-arizona-press-podcast"
+id  = "the-university-of-arizona-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK7382143686"
 
 # Behind the Book: A Nebraska UP Podcast
 
 [[feeds]]
-id = "behind-the-book-a-nebraska-up-podcast"
+id  = "behind-the-book-a-nebraska-up-podcast"
 url = "https://feeds.megaphone.fm/NBN4415150846"
 
 # Behind the Cover with Indiana University Press
 
 [[feeds]]
-id = "behind-the-cover-with-indiana-university-press"
+id  = "behind-the-cover-with-indiana-university-press"
 url = "https://feeds.megaphone.fm/NBNK3084099524"
 
 # Beyond Pages: A SUNY Press Podcast
 
 [[feeds]]
-id = "beyond-pages-a-suny-press-podcast"
+id  = "beyond-pages-a-suny-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK7774679586"
 
 # Brill | Nijhoff Lawcast
 
 [[feeds]]
-id = "brill-nijhoff-lawcast"
+id  = "brill-nijhoff-lawcast"
 url = "https://feeds.megaphone.fm/NBNK1456267442"
 
 # De Gruyter Brill on the Wire
 
 [[feeds]]
-id = "de-gruyter-brill-on-the-wire"
+id  = "de-gruyter-brill-on-the-wire"
 url = "https://feeds.megaphone.fm/NBN8358582757"
 
 # Beyond the Margins: The University of California Press Podcast
 
 [[feeds]]
-id = "beyond-the-margins-the-university-of-california-press-podcast"
+id  = "beyond-the-margins-the-university-of-california-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK1043790352"
 
 # CEU Press Podcast
 
 [[feeds]]
-id = "ceu-press-podcast"
+id  = "ceu-press-podcast"
 url = "https://feeds.megaphone.fm/NSR3999582012"
 
 # The University of Chicago Press Podcast
 
 [[feeds]]
-id = "the-university-of-chicago-press-podcast"
+id  = "the-university-of-chicago-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK7051800991"
 
 # Florida Press Podcast
 
 [[feeds]]
-id = "florida-press-podcast"
+id  = "florida-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK5604049550"
 
 # From the Square: An NYU Press Podcast
 
 [[feeds]]
-id = "from-the-square-an-nyu-press-podcast"
+id  = "from-the-square-an-nyu-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK1721185061"
 
 # Georgetown University Press Podcast
 
 [[feeds]]
-id = "georgetown-university-press-podcast"
+id  = "georgetown-university-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK9099480394"
 
 # University of Georgia Press Podcast
 
 [[feeds]]
-id = "university-of-georgia-press-podcast"
+id  = "university-of-georgia-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK2878019220"
 
 # The Hong Kong University Press Podcast
 
 [[feeds]]
-id = "the-hong-kong-university-press-podcast"
+id  = "the-hong-kong-university-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK5305341006"
 
 # Leuven University Press Podcast
 
 [[feeds]]
-id = "leuven-university-press-podcast"
+id  = "leuven-university-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK9837268559"
 
 # MIT Press Podcast
 
 [[feeds]]
-id = "mit-press-podcast"
+id  = "mit-press-podcast"
 url = "https://feeds.megaphone.fm/NBN7299055001"
 
 # UMass Press Podcast
 
 [[feeds]]
-id = "umass-press-podcast"
+id  = "umass-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK1053580809"
 
 # University of Michigan Press Podcast
 
 [[feeds]]
-id = "university-of-michigan-press-podcast"
+id  = "university-of-michigan-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK6880528257"
 
 # University of Nevada Press Podcast
 
 [[feeds]]
-id = "university-of-nevada-press-podcast"
+id  = "university-of-nevada-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK9837389091"
 
 # UNC Press Presents Podcast
 
 [[feeds]]
-id = "unc-press-presents-podcast"
+id  = "unc-press-presents-podcast"
 url = "https://feeds.megaphone.fm/NBN6249617498"
 
 # Off the Page: A Columbia UP Podcast
 
 [[feeds]]
-id = "off-the-page-a-columbia-up-podcast"
+id  = "off-the-page-a-columbia-up-podcast"
 url = "https://feeds.megaphone.fm/NBN2998548382"
 
 # Off the Record with UT Press
 
 [[feeds]]
-id = "off-the-record-with-ut-press"
+id  = "off-the-record-with-ut-press"
 url = "https://feeds.megaphone.fm/NBNK1828804898"
 
 # The Ohio University Press Podcast
 
 [[feeds]]
-id = "the-ohio-university-press-podcast"
+id  = "the-ohio-university-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK1072337180"
 
 # The Ohio State University Press Podcast
 
 [[feeds]]
-id = "the-ohio-state-university-press-podcast"
+id  = "the-ohio-state-university-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK4122723386"
 
 # Rutgers University Press Podcast
 
 [[feeds]]
-id = "rutgers-university-press-podcast"
+id  = "rutgers-university-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK5650935983"
 
 # University of South Carolina Press Podcast
 
 [[feeds]]
-id = "university-of-south-carolina-press-podcast"
+id  = "university-of-south-carolina-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK9090590739"
 
 # The CUA Press Podcast
 
 [[feeds]]
-id = "the-cua-press-podcast"
+id  = "the-cua-press-podcast"
 url = "https://feeds.megaphone.fm/NBNK6055970402"
 
 # The University Press of Kentucky Podcast
 
 [[feeds]]
-id = "the-university-press-of-kentucky-podcast"
+id  = "the-university-press-of-kentucky-podcast"
 url = "https://feeds.megaphone.fm/NBNK1375487579"
 
 # Unlocking Academia
 
 [[feeds]]
-id = "unlocking-academia"
+id  = "unlocking-academia"
 url = "https://feeds.megaphone.fm/NBNK4168654887"
 
 # Writers & Ideas: A NewSouth Publishing Podcast
 
 [[feeds]]
-id = "writers-and-ideas-a-newsouth-publishing-podcast"
+id  = "writers-and-ideas-a-newsouth-publishing-podcast"
 url = "https://feeds.megaphone.fm/NBNK5211236398"
 
 # The University Press of Colorado Podcast
 
 [[feeds]]
-id = "the-university-press-of-colorado-podcast"
+id  = "the-university-press-of-colorado-podcast"
 url = "https://feeds.megaphone.fm/NBNK1663893654"
 
 # New Books Network - Academic Partners (partial)
 
-
 [[feeds]]
-id = "academicpartners-higher-education"
+id  = "academicpartners-higher-education"
 url = "https://feeds.megaphone.fm/NBN6191988705"
 
-
 [[feeds]]
-id = "academicpartners-asian-review-of-books"
+id  = "academicpartners-asian-review-of-books"
 url = "https://feeds.megaphone.fm/LIT6320645562"
 
-
 [[feeds]]
-id = "academicpartners-burned-by-books"
+id  = "academicpartners-burned-by-books"
 url = "https://feeds.megaphone.fm/NBN9700170327"
 
-
 [[feeds]]
-id = "academicpartners-darts-and-letters"
+id  = "academicpartners-darts-and-letters"
 url = "https://feeds.megaphone.fm/NBN3953553639"
 
-
 [[feeds]]
-id = "academicpartners-recall-this-book"
+id  = "academicpartners-recall-this-book"
 url = "https://feeds.megaphone.fm/NBN6407101527"

@@ -3,15 +3,15 @@
 # POLITICO RSS feeds (extracted from "POLITICO RSS Feeds - POLITICO.mhtml")
 
 base_poll_seconds = 1000
-id_prefix = "politico"
 category = "news"
+content_type = "xml"
+id_prefix = "politico"
+language = "en"
 provenance = "politico"
 tags = [
-    "news",
-    "politics",
+  "news",
+  "politics",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
 id  = "congress"

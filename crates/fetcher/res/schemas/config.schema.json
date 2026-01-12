@@ -3,7 +3,14 @@
   "title": "feedrv3 config",
   "type": "object",
   "additionalProperties": false,
-  "required": ["app", "database", "polling", "backoff", "requests", "logging"],
+  "required": [
+    "app",
+    "database",
+    "polling",
+    "backoff",
+    "requests",
+    "logging"
+  ],
   "properties": {
     "app": {
       "type": "object",
@@ -32,9 +39,15 @@
       "additionalProperties": false,
       "properties": {
         "user": { "type": "string" },
-        "password": { "type": "string" },
+        "password": {
+          "type": "string"
+        },
         "host": { "type": "string" },
-        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
         "db": { "type": "string" },
         "schema": { "type": "string" }
       }
@@ -42,24 +55,53 @@
     "polling": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["default_seconds", "max_seconds", "jitter_fraction"],
+      "required": [
+        "default_seconds",
+        "max_seconds",
+        "jitter_fraction"
+      ],
       "properties": {
-        "default_seconds": { "type": "integer", "minimum": 0 },
-        "max_seconds": { "type": "integer", "minimum": 0 },
-        "jitter_fraction": { "type": "number", "minimum": 0 }
+        "default_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "jitter_fraction": {
+          "type": "number",
+          "minimum": 0
+        }
       }
     },
     "backoff": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["error_base_seconds", "max_error_seconds"],
+      "required": [
+        "error_base_seconds",
+        "max_error_seconds"
+      ],
       "properties": {
-        "error_base_seconds": { "type": "integer", "minimum": 0 },
-        "max_error_seconds": { "type": "integer", "minimum": 0 },
-        "max_consecutive_errors": { "type": "integer", "minimum": 0 },
+        "error_base_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_error_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_consecutive_errors": {
+          "type": "integer",
+          "minimum": 0
+        },
         "immediate_error_statuses": {
           "type": "array",
-          "items": { "type": "integer", "minimum": 100, "maximum": 599 }
+          "items": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 599
+          }
         }
       }
     },
@@ -68,8 +110,13 @@
       "additionalProperties": false,
       "required": ["user_agent"],
       "properties": {
-        "global_max_concurrent_requests": { "type": "integer", "minimum": 0 },
-        "user_agent": { "type": "string" }
+        "global_max_concurrent_requests": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "user_agent": {
+          "type": "string"
+        }
       }
     },
     "logging": {
@@ -77,26 +124,48 @@
       "additionalProperties": false,
       "properties": {
         "level": { "type": "string" },
-        "file_enabled": { "type": "boolean" },
-        "file_directory": { "type": "string" },
-        "file_name": { "type": "string" },
-        "file_rotation": { "type": "string" },
-        "file_level": { "type": "string" },
-        "tick_warn_seconds": { "type": "integer", "minimum": 0 },
-        "feed_timing_enabled": { "type": "boolean" },
+        "file_enabled": {
+          "type": "boolean"
+        },
+        "file_directory": {
+          "type": "string"
+        },
+        "file_name": {
+          "type": "string"
+        },
+        "file_rotation": {
+          "type": "string"
+        },
+        "file_level": {
+          "type": "string"
+        },
+        "tick_warn_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "feed_timing_enabled": {
+          "type": "boolean"
+        },
         "feed_timing_domains": {
           "type": "array",
           "items": { "type": "string" }
         },
-        "feed_timing_warn_ms": { "type": "integer", "minimum": 0 },
-        "feed_timing_log_all": { "type": "boolean" }
+        "feed_timing_warn_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "feed_timing_log_all": {
+          "type": "boolean"
+        }
       }
     },
     "metrics": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "enabled": { "type": "boolean" },
+        "enabled": {
+          "type": "boolean"
+        },
         "bind": { "type": "string" }
       }
     },
@@ -104,7 +173,11 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "sample_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+        "sample_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
       }
     }
   }

@@ -1,27 +1,40 @@
-//! Records fetch events (HEAD/GET) with timing/status/error info for Postgres.
+//! Records fetch events (HEAD/GET) with
+//! timing/status/error info for
+//! Postgres.
+
 use chrono_tz::Tz;
 use sqlx::PgPool;
 
+use super::util::{
+  now_epoch_ms,
+  ts_from_ms
+};
 use crate::domain::model::ErrorKind;
 
-use super::util::{now_epoch_ms, ts_from_ms};
-
 pub async fn insert_event(
-    pool: &PgPool,
-    feed_id: &str,
-    method: &str,
-    status: Option<i64>,
-    error_kind: Option<ErrorKind>,
-    latency_ms: Option<i64>,
-    backoff_index: i64,
-    scheduled_next_action_at_ms: i64,
-    debug: Option<&str>,
-    zone: &Tz,
+  pool: &PgPool,
+  feed_id: &str,
+  method: &str,
+  status: Option<i64>,
+  error_kind: Option<ErrorKind>,
+  latency_ms: Option<i64>,
+  backoff_index: i64,
+  scheduled_next_action_at_ms: i64,
+  debug: Option<&str>,
+  zone: &Tz
 ) -> Result<(), String> {
-    let now_ms = now_epoch_ms();
-    let event_time = ts_from_ms(now_ms, zone);
-    let scheduled_next_action_at = ts_from_ms(scheduled_next_action_at_ms, zone);
-    sqlx::query(
+  let now_ms = now_epoch_ms();
+
+  let event_time =
+    ts_from_ms(now_ms, zone);
+
+  let scheduled_next_action_at =
+    ts_from_ms(
+      scheduled_next_action_at_ms,
+      zone
+    );
+
+  sqlx::query(
         r#"
       INSERT INTO fetch_events(
         feed_id, event_time, method,
@@ -46,5 +59,6 @@ pub async fn insert_event(
     .execute(pool)
     .await
     .map_err(|e| format!("insert_event error: {e}"))?;
-    Ok(())
+
+  Ok(())
 }

@@ -1,383 +1,309 @@
 base_poll_seconds = 1000
-id_prefix = "audacity"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "audacity"
+language = "en"
 provenance = "audacity"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "1846701533"
+id  = "1846701533"
 url = "https://feeds.megaphone.fm/unpaused"
 
-
 [[feeds]]
-id = "1480311435"
+id  = "1480311435"
 url = "https://feeds.megaphone.fm/office-ladies"
 
-
 [[feeds]]
-id = "1603639502"
+id  = "1603639502"
 url = "https://feeds.megaphone.fm/fly-on-the-wall"
 
-
 [[feeds]]
-id = "1291579828"
+id  = "1291579828"
 url = "https://feeds.megaphone.fm/NSR6392631259"
 
-
 [[feeds]]
-id = "1506436093"
+id  = "1506436093"
 url = "https://feeds.megaphone.fm/tcb"
 
-
 [[feeds]]
-id = "1811878340"
+id  = "1811878340"
 url = "https://feeds.megaphone.fm/emma-grede"
 
-
 [[feeds]]
-id = "1793999230"
+id  = "1793999230"
 url = "https://feeds.megaphone.fm/hwmym"
 
-
 [[feeds]]
-id = "1529346075"
+id  = "1529346075"
 url = "https://feeds.megaphone.fm/hell-high-water"
 
-
 [[feeds]]
-id = "1761190671"
+id  = "1761190671"
 url = "https://feeds.megaphone.fm/heedthecall"
 
-
 [[feeds]]
-id = "431167790"
+id  = "431167790"
 url = "https://feeds.megaphone.fm/jill-on-money"
 
-
 [[feeds]]
-id = "1466851347"
+id  = "1466851347"
 url = "https://feeds.megaphone.fm/WWO7970459882"
 
-
 [[feeds]]
-id = "1352546554"
+id  = "1352546554"
 url = "https://feeds.megaphone.fm/goop-podcast"
 
-
 [[feeds]]
-id = "1627097720"
+id  = "1627097720"
 url = "https://feeds.megaphone.fm/rico-brogna"
 
-
 [[feeds]]
-id = "1592823205"
+id  = "1592823205"
 url = "https://feeds.megaphone.fm/gone-south"
 
-
 [[feeds]]
-id = "1576266622"
+id  = "1576266622"
 url = "https://feeds.megaphone.fm/hwigi"
 
-
 [[feeds]]
-id = "1806711479"
+id  = "1806711479"
 url = "https://feeds.megaphone.fm/what-we-spend"
 
-
 [[feeds]]
-id = "1586269186"
+id  = "1586269186"
 url = "https://feeds.megaphone.fm/powers-that-be"
 
-
 [[feeds]]
-id = "1788381175"
+id  = "1788381175"
 url = "https://feeds.megaphone.fm/severance-ben-adam"
 
-
 [[feeds]]
-id = "1549903604"
+id  = "1549903604"
 url = "https://feeds.megaphone.fm/unsolved-mysteries"
 
-
 [[feeds]]
-id = "1741589082"
+id  = "1741589082"
 url = "https://feeds.megaphone.fm/fashion-people"
 
-
 [[feeds]]
-id = "1840228484"
+id  = "1840228484"
 url = "https://feeds.megaphone.fm/nancy-cartwright"
 
-
 [[feeds]]
-id = "1477610450"
+id  = "1477610450"
 url = "https://feeds.megaphone.fm/ENTDM6870186862"
 
-
 [[feeds]]
-id = "952449164"
+id  = "952449164"
 url = "https://feeds.megaphone.fm/ENTDM8818453953"
 
-
 [[feeds]]
-id = "1829499340"
+id  = "1829499340"
 url = "https://feeds.megaphone.fm/the-c-word"
 
-
 [[feeds]]
-id = "1526581627"
+id  = "1526581627"
 url = "https://feeds.megaphone.fm/relative-unknown"
 
-
 [[feeds]]
-id = "1595716948"
+id  = "1595716948"
 url = "https://feeds.megaphone.fm/draymond-green"
 
-
 [[feeds]]
-id = "1219728105"
+id  = "1219728105"
 url = "https://feeds.megaphone.fm/yoga-girl"
 
-
 [[feeds]]
-id = "1301767428"
+id  = "1301767428"
 url = "https://feeds.megaphone.fm/ENTDM4274283917"
 
-
 [[feeds]]
-id = "1842883739"
+id  = "1842883739"
 url = "https://feeds.megaphone.fm/undomesticated"
 
-
 [[feeds]]
-id = "1775515432"
+id  = "1775515432"
 url = "https://feeds.megaphone.fm/grill-room"
 
-
 [[feeds]]
-id = "1762692129"
+id  = "1762692129"
 url = "https://feeds.megaphone.fm/the-varsity"
 
-
 [[feeds]]
-id = "1366264191"
+id  = "1366264191"
 url = "https://feeds.megaphone.fm/sports-media-deitsch"
 
-
 [[feeds]]
-id = "1624739131"
+id  = "1624739131"
 url = "https://feeds.megaphone.fm/gameday-in-buffalo"
 
-
 [[feeds]]
-id = "1631178784"
+id  = "1631178784"
 url = "https://feeds.megaphone.fm/love-of-the-star"
 
-
 [[feeds]]
-id = "1651632213"
+id  = "1651632213"
 url = "https://feeds.megaphone.fm/baseball-isnt-boring"
 
-
 [[feeds]]
-id = "1460320573"
+id  = "1460320573"
 url = "https://feeds.megaphone.fm/gangster-capitalism"
 
-
 [[feeds]]
-id = "1643228107"
+id  = "1643228107"
 url = "https://feeds.megaphone.fm/kickoff-with-boomer-and-valenti"
 
-
 [[feeds]]
-id = "1521731236"
+id  = "1521731236"
 url = "https://feeds.megaphone.fm/in-the-valley"
 
-
 [[feeds]]
-id = "1507276251"
+id  = "1507276251"
 url = "https://feeds.megaphone.fm/hope-through-history"
 
-
 [[feeds]]
-id = "1212715122"
+id  = "1212715122"
 url = "https://feeds.megaphone.fm/CAD8479412636"
 
-
 [[feeds]]
-id = "1849212536"
+id  = "1849212536"
 url = "https://feeds.megaphone.fm/von-miller"
 
-
 [[feeds]]
-id = "1527280716"
+id  = "1527280716"
 url = "https://feeds.megaphone.fm/it-was-said"
 
-
 [[feeds]]
-id = "1636534576"
+id  = "1636534576"
 url = "https://feeds.megaphone.fm/the-sunshine-place"
 
-
 [[feeds]]
-id = "1691539676"
+id  = "1691539676"
 url = "https://feeds.megaphone.fm/the-set"
 
-
 [[feeds]]
-id = "1804401177"
+id  = "1804401177"
 url = "https://feeds.megaphone.fm/rulebreakers-saraya"
 
-
 [[feeds]]
-id = "1635420001"
+id  = "1635420001"
 url = "https://rss.amperwave.net/v2/feed/podcorn/e464c1b3c52e16a7b77894686c2b44fdaa"
 
-
 [[feeds]]
-id = "1650460136"
+id  = "1650460136"
 url = "https://feeds.megaphone.fm/best-football-show"
 
-
 [[feeds]]
-id = "1709963682"
+id  = "1709963682"
 url = "https://feeds.megaphone.fm/puck-putin"
 
-
 [[feeds]]
-id = "1681606343"
+id  = "1681606343"
 url = "https://feeds.megaphone.fm/queens-of-the-court"
 
-
 [[feeds]]
-id = "1334778747"
+id  = "1334778747"
 url = "https://feeds.megaphone.fm/skate-podcast"
 
-
 [[feeds]]
-id = "1642525489"
+id  = "1642525489"
 url = "https://feeds.megaphone.fm/wolves-among-us"
 
-
 [[feeds]]
-id = "1483798832"
+id  = "1483798832"
 url = "https://feeds.megaphone.fm/spits-and-suds"
 
-
 [[feeds]]
-id = "386002669"
+id  = "386002669"
 url = "https://feeds.megaphone.fm/wfandaily"
 
-
 [[feeds]]
-id = "1738048424"
+id  = "1738048424"
 url = "https://feeds.megaphone.fm/mtv"
 
-
 [[feeds]]
-id = "1563421928"
+id  = "1563421928"
 url = "https://feeds.megaphone.fm/fate-of-fact"
 
-
 [[feeds]]
-id = "1596530271"
+id  = "1596530271"
 url = "https://feeds.megaphone.fm/ghostwriter"
 
-
 [[feeds]]
-id = "1479120204"
+id  = "1479120204"
 url = "https://feeds.megaphone.fm/lmtr"
 
-
 [[feeds]]
-id = "1266445999"
+id  = "1266445999"
 url = "https://feeds.megaphone.fm/origins-jam"
 
-
 [[feeds]]
-id = "1622836811"
+id  = "1622836811"
 url = "https://feeds.megaphone.fm/bustin-out-baseball"
 
-
 [[feeds]]
-id = "1531522658"
+id  = "1531522658"
 url = "https://feeds.megaphone.fm/the-edge"
 
-
 [[feeds]]
-id = "1570685298"
+id  = "1570685298"
 url = "https://feeds.megaphone.fm/no-place-like-home"
 
-
 [[feeds]]
-id = "1625313174"
+id  = "1625313174"
 url = "https://feeds.megaphone.fm/history-is-us"
 
-
 [[feeds]]
-id = "1589777606"
+id  = "1589777606"
 url = "https://feeds.megaphone.fm/treat"
 
-
 [[feeds]]
-id = "1626162594"
+id  = "1626162594"
 url = "https://feeds.simplecast.com/N8L_zL3Q"
 
-
 [[feeds]]
-id = "1617076670"
+id  = "1617076670"
 url = "https://feeds.megaphone.fm/fof-2"
 
-
 [[feeds]]
-id = "1530292222"
+id  = "1530292222"
 url = "https://feeds.megaphone.fm/whirlwind"
 
-
 [[feeds]]
-id = "1642587453"
+id  = "1642587453"
 url = "https://feeds.megaphone.fm/first-and-pod"
 
-
 [[feeds]]
-id = "1711278966"
+id  = "1711278966"
 url = "https://feeds.megaphone.fm/south-philly-sauce"
 
-
 [[feeds]]
-id = "1583582515"
+id  = "1583582515"
 url = "https://feeds.megaphone.fm/it-was-said-sports"
 
-
 [[feeds]]
-id = "1728742759"
+id  = "1728742759"
 url = "https://feeds.megaphone.fm/one-handshake-away"
 
-
 [[feeds]]
-id = "1620050867"
+id  = "1620050867"
 url = "https://feeds.megaphone.fm/garlic-fries-and-baseball-guys"
 
-
 [[feeds]]
-id = "1656135611"
+id  = "1656135611"
 url = "https://rss.amperwave.net/v2/feed/audacy/d478777ac2960e9320db7e399d52319d"
 
-
 [[feeds]]
-id = "1617139805"
+id  = "1617139805"
 url = "https://feeds.megaphone.fm/beat-the-streak-daily"
 
-
 [[feeds]]
-id = "1700703533"
+id  = "1700703533"
 url = "https://feeds.megaphone.fm/glitter-might"
 
-
 [[feeds]]
-id = "1654739637"
+id  = "1654739637"
 url = "https://feeds.megaphone.fm/htown-hoops"

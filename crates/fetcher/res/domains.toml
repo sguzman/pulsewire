@@ -1,31 +1,31 @@
 [[domains]]
+max_concurrent_requests = 1
 name                    = "hnrss.org"
-max_concurrent_requests = 1
 
 [[domains]]
+max_concurrent_requests = 1
 name                    = "xkcd.com"
-max_concurrent_requests = 1
 
 [[domains]]
+max_concurrent_requests = 1
 name                    = "govinfo.gov"
-max_concurrent_requests = 1
 
 [[domains]]
+max_concurrent_requests = 1
 name                    = "youtube.com"
-max_concurrent_requests = 1
 
 [[domains]]
+max_concurrent_requests = 1
 name                    = "arxiv.org"
-max_concurrent_requests = 1
 
 [[domains]]
+max_concurrent_requests = 1
 name                    = "bls.gov"
-max_concurrent_requests = 1
 
 [[domains]]
+max_concurrent_requests = 1
 name                    = "federalregister.gov"
-max_concurrent_requests = 1
 
 [[domains]]
-name                    = "omny.fm"
 max_concurrent_requests = 1
+name                    = "omny.fm"

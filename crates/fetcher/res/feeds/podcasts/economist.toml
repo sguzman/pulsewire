@@ -1,108 +1,89 @@
 base_poll_seconds = 1000
-id_prefix = "economist"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "economist"
+language = "en"
 provenance = "economist"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "151230264"
+id  = "151230264"
 url = "https://access.acast.com/rss/ec380acc-fe13-46a0-991f-a1e508d126f8"
 
-
 [[feeds]]
-id = "1449631195"
+id  = "1449631195"
 url = "https://access.acast.com/rss/d556eb54-6160-4c85-95f4-47d9f5216c49"
 
-
 [[feeds]]
-id = "1487173754"
+id  = "1487173754"
 url = "https://access.acast.com/rss/theeconomistmorningbriefing/default"
 
-
 [[feeds]]
-id = "1785226676"
+id  = "1785226676"
 url = "https://access.acast.com/rss/672ceccb61e4ef810ff282c0/default"
 
-
 [[feeds]]
-id = "420929545"
+id  = "420929545"
 url = "https://access.acast.com/rss/39fc4a99-8861-437d-81e2-684d13e48f92"
 
-
 [[feeds]]
-id = "1494037881"
+id  = "1494037881"
 url = "https://access.acast.com/rss/57cc3c7d-b0fd-4930-9279-4e84c75df457"
 
-
 [[feeds]]
-id = "508376907"
+id  = "508376907"
 url = "https://feeds.acast.com/public/shows/e421d786-ec36-4148-aa99-7a3b2928a779"
 
-
 [[feeds]]
-id = "1651657142"
+id  = "1651657142"
 url = "https://access.acast.com/rss/633ebf6dfc7f5a0012acdc97"
 
-
 [[feeds]]
-id = "313848583"
+id  = "313848583"
 url = "https://access.acast.com/rss/8457b14f-24d4-4f1a-a274-e6188315170b"
 
-
 [[feeds]]
-id = "1705972518"
+id  = "1705972518"
 url = "https://access.acast.com/rss/64ee35bafc643000110d1607"
 
-
 [[feeds]]
-id = "1642926713"
+id  = "1642926713"
 url = "https://access.acast.com/rss/62cff2d9d455860013698a7f"
 
-
 [[feeds]]
-id = "1850969703"
+id  = "1850969703"
 url = "https://feeds.acast.com/public/shows/6909b7a46204e248db2b1b29"
 
-
 [[feeds]]
-id = "1572322263"
+id  = "1572322263"
 url = "https://access.acast.com/rss/bb7c5a84-b3ab-4912-950b-ded7a7f6fc17"
 
-
 [[feeds]]
-id = "1484868161"
+id  = "1484868161"
 url = "https://access.acast.com/rss/55ec5063-b0f7-4d0d-9d8b-7535915f3aec"
 
-
 [[feeds]]
-id = "1738484939"
+id  = "1738484939"
 url = "https://access.acast.com/rss/65ef1d0f3e599300175a2a58"
 
-
 [[feeds]]
-id = "1670758917"
+id  = "1670758917"
 url = "https://access.acast.com/rss/63beed437ae74e001002382f"
 
-
 [[feeds]]
-id = "1108555682"
+id  = "1108555682"
 url = "https://access.acast.com/rss/4d641cbd-af7c-4475-81e8-c6a118bde4ee"
 
-
 [[feeds]]
-id = "1752139463"
+id  = "1752139463"
 url = "https://access.acast.com/rss/6660d0875259600012b78f75"
 
-
 [[feeds]]
-id = "1409838532"
+id  = "1409838532"
 url = "https://access.acast.com/rss/8044dc9e-e5f2-44bd-9c1c-e86bd88b72a0"
 
-
 [[feeds]]
-id = "1586004652"
+id  = "1586004652"
 url = "https://access.acast.com/rss/a2466097-64ef-4550-b53b-24d082145a43"

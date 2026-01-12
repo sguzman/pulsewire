@@ -1,25 +1,27 @@
-//! Records fetch events (HEAD/GET) with timing/status/error info.
+//! Records fetch events (HEAD/GET) with
+//! timing/status/error info.
+
 use chrono_tz::Tz;
 use sqlx::SqlitePool;
 
+use super::util::now_epoch_ms;
 use crate::domain::model::ErrorKind;
 
-use super::util::now_epoch_ms;
-
 pub async fn insert_event(
-    pool: &SqlitePool,
-    feed_id: &str,
-    method: &str,
-    status: Option<i64>,
-    error_kind: Option<ErrorKind>,
-    latency_ms: Option<i64>,
-    backoff_index: i64,
-    scheduled_next_action_at_ms: i64,
-    debug: Option<&str>,
-    _zone: &Tz,
+  pool: &SqlitePool,
+  feed_id: &str,
+  method: &str,
+  status: Option<i64>,
+  error_kind: Option<ErrorKind>,
+  latency_ms: Option<i64>,
+  backoff_index: i64,
+  scheduled_next_action_at_ms: i64,
+  debug: Option<&str>,
+  _zone: &Tz
 ) -> Result<(), String> {
-    let now_ms = now_epoch_ms();
-    sqlx::query(
+  let now_ms = now_epoch_ms();
+
+  sqlx::query(
         r#"
       INSERT INTO fetch_events(
         feed_id, event_time_ms, method,
@@ -44,5 +46,6 @@ pub async fn insert_event(
     .execute(pool)
     .await
     .map_err(|e| format!("insert_event error: {e}"))?;
-    Ok(())
+
+  Ok(())
 }

@@ -1,14 +1,14 @@
 base_poll_seconds = 600
-id_prefix = "cointelegraph"
 category = "finance"
+content_type = "xml"
+id_prefix = "cointelegraph"
+language = "en"
 provenance = "cointelegraph"
 tags = [
-    "finance",
-    "crypto",
+  "crypto",
+  "finance",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "main"
+id  = "main"
 url = "https://cointelegraph.com/rss"

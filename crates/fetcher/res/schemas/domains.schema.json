@@ -10,10 +10,16 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "max_concurrent_requests"],
+        "required": [
+          "name",
+          "max_concurrent_requests"
+        ],
         "properties": {
           "name": { "type": "string" },
-          "max_concurrent_requests": { "type": "integer", "minimum": 1 }
+          "max_concurrent_requests": {
+            "type": "integer",
+            "minimum": 1
+          }
         }
       }
     }

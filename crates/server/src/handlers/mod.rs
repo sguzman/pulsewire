@@ -1,22 +1,27 @@
 mod auth;
-mod entries;
 mod docs;
-mod feeds;
+mod entries;
 mod favorites;
+mod feeds;
 mod folders;
 mod health;
 mod subscriptions;
 mod users;
 
-use axum::{
-    routing::{delete, get, patch, post},
-    Router,
+use axum::Router;
+use axum::routing::{
+  delete,
+  get,
+  patch,
+  post
 };
 
 use crate::app_state::AppState;
 
-pub fn router(state: AppState) -> Router {
-    Router::new()
+pub fn router(
+  state: AppState
+) -> Router {
+  Router::new()
         .route("/health", get(health::health))
         .route("/openapi.json", get(docs::openapi))
         .route("/docs", get(docs::openapi_html))

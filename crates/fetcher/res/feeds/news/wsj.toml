@@ -1,71 +1,71 @@
 # Wall Street Journal (WSJ) RSS feeds (extracted from news-and-feeds.mhtml)
 
 base_poll_seconds = 1000
-id_prefix = "wsj"
 category = "news"
+content_type = "xml"
+id_prefix = "wsj"
+language = "en"
 provenance = "wsj"
 tags = [
-    "news",
+  "news",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "opinion"
+id  = "opinion"
 url = "https://feeds.content.dowjones.io/public/rss/RSSOpinion"
 
 [[feeds]]
-id = "world-news"
+id  = "world-news"
 url = "https://feeds.content.dowjones.io/public/rss/RSSWorldNews"
 
 [[feeds]]
-id = "u-s-business"
+id  = "u-s-business"
 url = "https://feeds.content.dowjones.io/public/rss/WSJcomUSBusiness"
 
 [[feeds]]
-id = "markets-news"
+id  = "markets-news"
 url = "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain"
 
 [[feeds]]
-id = "technology-whats-news"
+id  = "technology-whats-news"
 url = "https://feeds.content.dowjones.io/public/rss/RSSWSJD"
 
 [[feeds]]
-id = "lifestyle"
+id  = "lifestyle"
 url = "https://feeds.content.dowjones.io/public/rss/RSSLifestyle"
 
 [[feeds]]
-id = "u-s"
+id  = "u-s"
 url = "https://feeds.content.dowjones.io/public/rss/RSSUSnews"
 
 [[feeds]]
-id = "politics"
+id  = "politics"
 url = "https://feeds.content.dowjones.io/public/rss/socialpoliticsfeed"
 
 [[feeds]]
-id = "economy"
+id  = "economy"
 url = "https://feeds.content.dowjones.io/public/rss/socialeconomyfeed"
 
 [[feeds]]
-id = "arts"
+id  = "arts"
 url = "https://feeds.content.dowjones.io/public/rss/RSSArtsCulture"
 
 [[feeds]]
-id = "real-estate"
+id  = "real-estate"
 url = "https://feeds.content.dowjones.io/public/rss/latestnewsrealestate"
 
 [[feeds]]
-id = "personal-finance"
+id  = "personal-finance"
 url = "https://feeds.content.dowjones.io/public/rss/RSSPersonalFinance"
 
 [[feeds]]
-id = "health"
+id  = "health"
 url = "https://feeds.content.dowjones.io/public/rss/socialhealth"
 
 [[feeds]]
-id = "style"
+id  = "style"
 url = "https://feeds.content.dowjones.io/public/rss/RSSStyle"
 
 [[feeds]]
-id = "sports"
+id  = "sports"
 url = "https://feeds.content.dowjones.io/public/rss/rsssportsfeed"

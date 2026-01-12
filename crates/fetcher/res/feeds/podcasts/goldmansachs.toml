@@ -1,29 +1,27 @@
 # Exchanges
 
 base_poll_seconds = 1000
-id_prefix = "goldmansachs"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "goldmansachs"
+language = "en"
 provenance = "goldmansachs"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "exchanges"
+id  = "exchanges"
 url = "https://feeds.megaphone.fm/GLD9218176758"
 
 # The Markets
 
-
 [[feeds]]
-id = "the-markets"
+id  = "the-markets"
 url = "https://feeds.megaphone.fm/GLD9322922848"
 
 #  Talks at GS
 
-
 [[feeds]]
-id = "talks-at-gs"
+id  = "talks-at-gs"
 url = "https://feeds.megaphone.fm/GLD3069230077"

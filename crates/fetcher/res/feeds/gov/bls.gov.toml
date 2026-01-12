@@ -1,259 +1,259 @@
 base_poll_seconds = 800
-id_prefix = "bls"
 category = "gov"
+content_type = "xml"
+id_prefix = "bls"
+language = "en"
 provenance = "bls"
 tags = [
-    "gov",
-    "labor",
-    "economy",
+  "economy",
+  "gov",
+  "labor",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "atus"
+id  = "atus"
 url = "https://www.bls.gov/feed/atus.rss"
 
 [[feeds]]
-id = "bdm_latest"
+id  = "bdm_latest"
 url = "https://www.bls.gov/feed/bdm_latest.rss"
 
 [[feeds]]
-id = "bls_latest"
+id  = "bls_latest"
 url = "https://www.bls.gov/feed/bls_latest.rss"
 
 [[feeds]]
-id = "ces_latest"
+id  = "ces_latest"
 url = "https://www.bls.gov/feed/ces_latest.rss"
 
 [[feeds]]
-id = "cesan"
+id  = "cesan"
 url = "https://www.bls.gov/feed/cesan.rss"
 
 [[feeds]]
-id = "cesmy"
+id  = "cesmy"
 url = "https://www.bls.gov/feed/cesmy.rss"
 
 [[feeds]]
-id = "cewbd"
+id  = "cewbd"
 url = "https://www.bls.gov/feed/cewbd.rss"
 
 [[feeds]]
-id = "cewqtr"
+id  = "cewqtr"
 url = "https://www.bls.gov/feed/cewqtr.rss"
 
 [[feeds]]
-id = "cfoi"
+id  = "cfoi"
 url = "https://www.bls.gov/feed/cfoi.rss"
 
 [[feeds]]
-id = "cpi_latest"
+id  = "cpi_latest"
 url = "https://www.bls.gov/feed/cpi_latest.rss"
 
 [[feeds]]
-id = "cpi"
+id  = "cpi"
 url = "https://www.bls.gov/feed/cpi.rss"
 
 [[feeds]]
-id = "cps_latest"
+id  = "cps_latest"
 url = "https://www.bls.gov/feed/cps_latest.rss"
 
 [[feeds]]
-id = "disabl"
+id  = "disabl"
 url = "https://www.bls.gov/feed/disabl.rss"
 
 [[feeds]]
-id = "disp"
+id  = "disp"
 url = "https://www.bls.gov/feed/disp.rss"
 
 [[feeds]]
-id = "ebs2"
+id  = "ebs2"
 url = "https://www.bls.gov/feed/ebs2.rss"
 
 [[feeds]]
-id = "ecec"
+id  = "ecec"
 url = "https://www.bls.gov/feed/ecec.rss"
 
 [[feeds]]
-id = "eci_latest"
+id  = "eci_latest"
 url = "https://www.bls.gov/feed/eci_latest.rss"
 
 [[feeds]]
-id = "eci"
+id  = "eci"
 url = "https://www.bls.gov/feed/eci.rss"
 
 [[feeds]]
-id = "ecopro"
+id  = "ecopro"
 url = "https://www.bls.gov/feed/ecopro.rss"
 
 [[feeds]]
-id = "empsit"
+id  = "empsit"
 url = "https://www.bls.gov/feed/empsit.rss"
 
 [[feeds]]
-id = "famee"
+id  = "famee"
 url = "https://www.bls.gov/feed/famee.rss"
 
 [[feeds]]
-id = "forbrn"
+id  = "forbrn"
 url = "https://www.bls.gov/feed/forbrn.rss"
 
 [[feeds]]
-id = "ggsocc"
+id  = "ggsocc"
 url = "https://www.bls.gov/feed/ggsocc.rss"
 
 [[feeds]]
-id = "hsgec"
+id  = "hsgec"
 url = "https://www.bls.gov/feed/hsgec.rss"
 
 [[feeds]]
-id = "ichcc"
+id  = "ichcc"
 url = "https://www.bls.gov/feed/ichcc.rss"
 
 [[feeds]]
-id = "iif_latest"
+id  = "iif_latest"
 url = "https://www.bls.gov/feed/iif_latest.rss"
 
 [[feeds]]
-id = "jlt_latest"
+id  = "jlt_latest"
 url = "https://www.bls.gov/feed/jlt_latest.rss"
 
 [[feeds]]
-id = "jolts"
+id  = "jolts"
 url = "https://www.bls.gov/feed/jolts.rss"
 
 [[feeds]]
-id = "lau_latest"
+id  = "lau_latest"
 url = "https://www.bls.gov/feed/lau_latest.rss"
 
 [[feeds]]
-id = "laus"
+id  = "laus"
 url = "https://www.bls.gov/feed/laus.rss"
 
 [[feeds]]
-id = "leave"
+id  = "leave"
 url = "https://www.bls.gov/feed/leave.rss"
 
 [[feeds]]
-id = "lpc_latest"
+id  = "lpc_latest"
 url = "https://www.bls.gov/feed/lpc_latest.rss"
 
 [[feeds]]
-id = "metro"
+id  = "metro"
 url = "https://www.bls.gov/feed/metro.rss"
 
 [[feeds]]
-id = "mls_latest"
+id  = "mls_latest"
 url = "https://www.bls.gov/feed/mls_latest.rss"
 
 [[feeds]]
-id = "mxp_latest"
+id  = "mxp_latest"
 url = "https://www.bls.gov/feed/mxp_latest.rss"
 
 [[feeds]]
-id = "nlsoy"
+id  = "nlsoy"
 url = "https://www.bls.gov/feed/nlsoy.rss"
 
 [[feeds]]
-id = "nlsyth"
+id  = "nlsyth"
 url = "https://www.bls.gov/feed/nlsyth.rss"
 
 [[feeds]]
-id = "ocwage"
+id  = "ocwage"
 url = "https://www.bls.gov/feed/ocwage.rss"
 
 [[feeds]]
-id = "ors"
+id  = "ors"
 url = "https://www.bls.gov/feed/ors.rss"
 
 [[feeds]]
-id = "osh"
+id  = "osh"
 url = "https://www.bls.gov/feed/osh.rss"
 
 [[feeds]]
-id = "ppi_latest"
+id  = "ppi_latest"
 url = "https://www.bls.gov/feed/ppi_latest.rss"
 
 [[feeds]]
-id = "ppi"
+id  = "ppi"
 url = "https://www.bls.gov/feed/ppi.rss"
 
 [[feeds]]
-id = "prin"
+id  = "prin"
 url = "https://www.bls.gov/feed/prin.rss"
 
 [[feeds]]
-id = "prin1"
+id  = "prin1"
 url = "https://www.bls.gov/feed/prin1.rss"
 
 [[feeds]]
-id = "prin2"
+id  = "prin2"
 url = "https://www.bls.gov/feed/prin2.rss"
 
 [[feeds]]
-id = "prin3"
+id  = "prin3"
 url = "https://www.bls.gov/feed/prin3.rss"
 
 [[feeds]]
-id = "prod2"
+id  = "prod2"
 url = "https://www.bls.gov/feed/prod2.rss"
 
 [[feeds]]
-id = "prod3"
+id  = "prod3"
 url = "https://www.bls.gov/feed/prod3.rss"
 
 [[feeds]]
-id = "prod4"
+id  = "prod4"
 url = "https://www.bls.gov/feed/prod4.rss"
 
 [[feeds]]
-id = "prod5"
+id  = "prod5"
 url = "https://www.bls.gov/feed/prod5.rss"
 
 [[feeds]]
-id = "realer"
+id  = "realer"
 url = "https://www.bls.gov/feed/realer.rss"
 
 [[feeds]]
-id = "srgune"
+id  = "srgune"
 url = "https://www.bls.gov/feed/srgune.rss"
 
 [[feeds]]
-id = "tenure"
+id  = "tenure"
 url = "https://www.bls.gov/feed/tenure.rss"
 
 [[feeds]]
-id = "uisup"
+id  = "uisup"
 url = "https://www.bls.gov/feed/uisup.rss"
 
 [[feeds]]
-id = "union2"
+id  = "union2"
 url = "https://www.bls.gov/feed/union2.rss"
 
 [[feeds]]
-id = "vet"
+id  = "vet"
 url = "https://www.bls.gov/feed/vet.rss"
 
 [[feeds]]
-id = "volun"
+id  = "volun"
 url = "https://www.bls.gov/feed/volun.rss"
 
 [[feeds]]
-id = "wkstp"
+id  = "wkstp"
 url = "https://www.bls.gov/feed/wkstp.rss"
 
 [[feeds]]
-id = "wkyeng"
+id  = "wkyeng"
 url = "https://www.bls.gov/feed/wkyeng.rss"
 
 [[feeds]]
-id = "work"
+id  = "work"
 url = "https://www.bls.gov/feed/work.rss"
 
 [[feeds]]
-id = "ximpim"
+id  = "ximpim"
 url = "https://www.bls.gov/feed/ximpim.rss"
 
 [[feeds]]
-id = "youth"
+id  = "youth"
 url = "https://www.bls.gov/feed/youth.rss"

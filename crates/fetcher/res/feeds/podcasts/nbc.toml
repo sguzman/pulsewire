@@ -1,133 +1,109 @@
 base_poll_seconds = 1000
-id_prefix = "nbc"
 category = "podcasts"
+content_type = "xml"
+id_prefix = "nbc"
+language = "en"
 provenance = "nbc"
 tags = [
-    "podcasts",
+  "podcasts",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "1464919521"
+id  = "1464919521"
 url = "https://podcastfeeds.nbcnews.com/HL4TzgYC"
 
-
 [[feeds]]
-id = "1854800589"
+id  = "1854800589"
 url = "https://feeds.simplecast.com/xZ7ozPd7"
 
-
 [[feeds]]
-id = "1721921086"
+id  = "1721921086"
 url = "https://podcastfeeds.nbcnews.com/2E7hl2MC"
 
-
 [[feeds]]
-id = "1837934108"
+id  = "1837934108"
 url = "https://feeds.simplecast.com/kDtzORa8"
 
-
 [[feeds]]
-id = "1711415265"
+id  = "1711415265"
 url = "https://podcastfeeds.nbcnews.com/jj0_J87C"
 
-
 [[feeds]]
-id = "1842552298"
+id  = "1842552298"
 url = "https://feeds.simplecast.com/NoKM4LKS"
 
-
 [[feeds]]
-id = "1794421874"
+id  = "1794421874"
 url = "https://feeds.simplecast.com/TKUQ2Pih"
 
-
 [[feeds]]
-id = "1634842284"
+id  = "1634842284"
 url = "https://podcastfeeds.nbcnews.com/lu6kQb_J"
 
-
 [[feeds]]
-id = "1781332339"
+id  = "1781332339"
 url = "https://feeds.simplecast.com/g_JdvI7_"
 
-
 [[feeds]]
-id = "1745566056"
+id  = "1745566056"
 url = "https://podcastfeeds.nbcnews.com/dateline-true-crime-weekly"
 
-
 [[feeds]]
-id = "1627526461"
+id  = "1627526461"
 url = "https://podcastfeeds.nbcnews.com/Y5c_XSlq"
 
-
 [[feeds]]
-id = "1479234915"
+id  = "1479234915"
 url = "https://podcastfeeds.nbcnews.com/jDT1YfkK"
 
-
 [[feeds]]
-id = "1707558987"
+id  = "1707558987"
 url = "https://podcastfeeds.nbcnews.com/RPWEjhKq"
 
-
 [[feeds]]
-id = "1652973017"
+id  = "1652973017"
 url = "https://podcastfeeds.nbcnews.com/iY08mEr1"
 
-
 [[feeds]]
-id = "1510365500"
+id  = "1510365500"
 url = "https://podcastfeeds.nbcnews.com/q4pgd8dd"
 
-
 [[feeds]]
-id = "1736208092"
+id  = "1736208092"
 url = "https://podcastfeeds.nbcnews.com/Cg8nW0Tu"
 
-
 [[feeds]]
-id = "1642995848"
+id  = "1642995848"
 url = "https://podcastfeeds.nbcnews.com/0rrAyZ2Q"
 
-
 [[feeds]]
-id = "1675387068"
+id  = "1675387068"
 url = "https://podcastfeeds.nbcnews.com/yiuok6R9"
 
-
 [[feeds]]
-id = "1772312070"
+id  = "1772312070"
 url = "https://podcastfeeds.nbcnews.com/fPAuP5ub"
 
-
 [[feeds]]
-id = "1593884827"
+id  = "1593884827"
 url = "https://podcastfeeds.nbcnews.com/SoH6_G_Z"
 
-
 [[feeds]]
-id = "1561388976"
+id  = "1561388976"
 url = "https://podcastfeeds.nbcnews.com/h98PMwLp"
 
-
 [[feeds]]
-id = "1540849480"
+id  = "1540849480"
 url = "https://podcastfeeds.nbcnews.com/x7rChckj"
 
-
 [[feeds]]
-id = "1718562878"
+id  = "1718562878"
 url = "https://podcastfeeds.nbcnews.com/hBRFjlqK"
 
-
 [[feeds]]
-id = "1463081342"
+id  = "1463081342"
 url = "https://podcastfeeds.nbcnews.com/1GllG_AQ"
 
-
 [[feeds]]
-id = "1826129003"
+id  = "1826129003"
 url = "https://feeds.simplecast.com/A1AJEBrE"

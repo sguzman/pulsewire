@@ -17,16 +17,11 @@
     "app": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "mode"
-      ],
+      "required": ["mode"],
       "properties": {
         "mode": {
           "type": "string",
-          "enum": [
-            "dev",
-            "prod"
-          ]
+          "enum": ["dev", "prod"]
         },
         "timezone": {
           "type": "string"
@@ -36,10 +31,7 @@
     "http": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "host",
-        "port"
-      ],
+      "required": ["host", "port"],
       "properties": {
         "host": {
           "type": "string"
@@ -54,25 +46,18 @@
     "database": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "dialect"
-      ],
+      "required": ["dialect"],
       "properties": {
         "dialect": {
           "type": "string",
-          "enum": [
-            "sqlite",
-            "postgres"
-          ]
+          "enum": ["sqlite", "postgres"]
         }
       }
     },
     "sqlite": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "path"
-      ],
+      "required": ["path"],
       "properties": {
         "path": {
           "type": "string"
@@ -124,9 +109,7 @@
     "logging": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "level"
-      ],
+      "required": ["level"],
       "properties": {
         "level": {
           "type": "string"
@@ -136,9 +119,7 @@
     "auth": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "token_ttl_seconds"
-      ],
+      "required": ["token_ttl_seconds"],
       "properties": {
         "token_ttl_seconds": {
           "type": "integer",
@@ -149,9 +130,7 @@
     "dev": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "reset_on_start"
-      ],
+      "required": ["reset_on_start"],
       "properties": {
         "reset_on_start": {
           "type": "boolean"

@@ -1,15 +1,15 @@
 # CNN RSS feeds (from https://rss.cnn.com/rss/)
 
 base_poll_seconds = 100
-id_prefix = "cnn"
 category = "news"
+content_type = "xml"
+id_prefix = "cnn"
+language = "en"
 provenance = "cnn"
 tags = [
-    "news",
+  "news",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "feeds"
+id  = "feeds"
 url = "https://edition.cnn.com/?no_redirect=true&format=rss"

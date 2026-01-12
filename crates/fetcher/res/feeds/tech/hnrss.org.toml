@@ -1,13 +1,13 @@
 base_poll_seconds = 120
-id_prefix = "hn"
 category = "tech"
+content_type = "xml"
+id_prefix = "hn"
+language = "en"
 provenance = "hn"
 tags = [
-    "tech",
+  "tech",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "frontpage"
+id  = "frontpage"
 url = "https://hnrss.org/frontpage"

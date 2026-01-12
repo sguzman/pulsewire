@@ -1,13 +1,13 @@
 base_poll_seconds = 600
-id_prefix = "bloomberg"
 category = "finance"
+content_type = "xml"
+id_prefix = "bloomberg"
+language = "en"
 provenance = "bloomberg"
 tags = [
-    "finance",
+  "finance",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "markets"
+id  = "markets"
 url = "https://feeds.bloomberg.com/markets/news.rss"

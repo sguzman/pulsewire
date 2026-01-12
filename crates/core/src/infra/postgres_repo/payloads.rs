@@ -1,27 +1,46 @@
-//! Inserts feed payload metadata and associated feed items in a single transaction (Postgres).
+//! Inserts feed payload metadata and
+//! associated feed items in a single
+//! transaction (Postgres).
+
 use chrono_tz::Tz;
 use sqlx::PgPool;
 use tracing::debug;
 
-use super::util::{ts_from_ms, ts_from_ms_opt};
+use super::util::{
+  ts_from_ms,
+  ts_from_ms_opt
+};
 use crate::feed::parser::ParsedFeed;
 
 pub async fn insert_payload_with_items(
-    pool: &PgPool,
-    feed_id: &str,
-    fetched_at_ms: i64,
-    etag: Option<&str>,
-    last_modified_ms: Option<i64>,
-    content_hash: Option<&str>,
-    parsed: &ParsedFeed,
-    zone: &Tz,
+  pool: &PgPool,
+  feed_id: &str,
+  fetched_at_ms: i64,
+  etag: Option<&str>,
+  last_modified_ms: Option<i64>,
+  content_hash: Option<&str>,
+  parsed: &ParsedFeed,
+  zone: &Tz
 ) -> Result<(), String> {
-    let mut tx = pool.begin().await.map_err(|e| format!("tx begin: {e}"))?;
-    let fetched_at = ts_from_ms(fetched_at_ms, zone);
-    let last_modified_at = ts_from_ms_opt(last_modified_ms, zone);
-    let updated_at = ts_from_ms_opt(parsed.metadata.updated_at_ms, zone);
+  let mut tx =
+    pool.begin().await.map_err(
+      |e| format!("tx begin: {e}")
+    )?;
 
-    let payload_id: i64 = sqlx::query_scalar(
+  let fetched_at =
+    ts_from_ms(fetched_at_ms, zone);
+
+  let last_modified_at = ts_from_ms_opt(
+    last_modified_ms,
+    zone
+  );
+
+  let updated_at = ts_from_ms_opt(
+    parsed.metadata.updated_at_ms,
+    zone
+  );
+
+  let payload_id: i64 = sqlx::query_scalar(
         r#"
       INSERT INTO feed_payloads(
         feed_id, fetched_at, etag,
@@ -51,8 +70,8 @@ pub async fn insert_payload_with_items(
     .await
     .map_err(|e| format!("insert payload: {e}"))?;
 
-    for it in &parsed.items {
-        sqlx::query(
+  for it in &parsed.items {
+    sqlx::query(
             r#"
         INSERT INTO feed_items(
           payload_id, feed_id, title, link, guid,
@@ -77,9 +96,17 @@ pub async fn insert_payload_with_items(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert item: {e}"))?;
-    }
+  }
 
-    tx.commit().await.map_err(|e| format!("tx commit: {e}"))?;
-    debug!(feed_id, payload_id, "Inserted payload + items");
-    Ok(())
+  tx.commit().await.map_err(|e| {
+    format!("tx commit: {e}")
+  })?;
+
+  debug!(
+    feed_id,
+    payload_id,
+    "Inserted payload + items"
+  );
+
+  Ok(())
 }

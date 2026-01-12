@@ -1,14 +1,14 @@
 base_poll_seconds = 600
-id_prefix = "coindesk"
 category = "finance"
+content_type = "xml"
+id_prefix = "coindesk"
+language = "en"
 provenance = "coindesk"
 tags = [
-    "finance",
-    "crypto",
+  "crypto",
+  "finance",
 ]
-language = "en"
-content_type = "xml"
 
 [[feeds]]
-id = "main"
+id  = "main"
 url = "https://www.coindesk.com/arc/outboundfeeds/rss"

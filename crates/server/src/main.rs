@@ -11,50 +11,103 @@ mod schema;
 use std::net::SocketAddr;
 use std::path::Path;
 
-use config::{AppMode, ConfigError, ServerConfig};
+use config::{
+  AppMode,
+  ConfigError,
+  ServerConfig
+};
 
 #[tokio::main]
-async fn main() -> Result<(), ConfigError> {
-    let config_path = std::env::var("SERVER_CONFIG_PATH")
-        .unwrap_or_else(|_| "crates/server/res/config.toml".to_string());
+async fn main()
+-> Result<(), ConfigError> {
+  let config_path =
+    std::env::var("SERVER_CONFIG_PATH")
+      .unwrap_or_else(|_| {
+        "crates/server/res/config.toml"
+          .to_string()
+      });
 
-    let config = ServerConfig::load(Path::new(&config_path)).await?;
-    logging::init_tracing(&config)?;
-    if let Some(tz) = config.app.timezone.as_deref() {
-        tracing::info!(timezone = tz, "server timezone configured");
-    }
+  let config = ServerConfig::load(
+    Path::new(&config_path)
+  )
+  .await?;
 
-    tracing::info!(mode = ?config.app.mode, "server mode configured");
-    tracing::info!(host = %config.http.host, port = config.http.port, "server http bind");
-    tracing::info!("server docs available at /docs and /openapi.json");
+  logging::init_tracing(&config)?;
 
-    let state = db::connect_db(&config, Path::new(&config_path)).await?;
-    schema::apply_server_schema(&config, &state, Path::new(&config_path)).await?;
+  if let Some(tz) =
+    config.app.timezone.as_deref()
+  {
+    tracing::info!(
+      timezone = tz,
+      "server timezone configured"
+    );
+  }
 
-    if config.app.mode == AppMode::Dev && config.dev.reset_on_start {
-        db::reset_server_data(&config, &state).await?;
-    }
+  tracing::info!(mode = ?config.app.mode, "server mode configured");
 
-    if config.app.mode == AppMode::Dev {
-        db::ensure_default_user(
-            &config,
-            &state,
-            &config.seed.username,
-            &config.seed.password,
-        )
-        .await?;
-    }
+  tracing::info!(host = %config.http.host, port = config.http.port, "server http bind");
 
-    let addr: SocketAddr = format!("{}:{}", config.http.host, config.http.port)
-        .parse()
-        .map_err(|e| ConfigError::Invalid(format!("invalid http bind: {e}")))?;
+  tracing::info!(
+    "server docs available at /docs \
+     and /openapi.json"
+  );
 
-    let app = handlers::router(state);
+  let state = db::connect_db(
+    &config,
+    Path::new(&config_path)
+  )
+  .await?;
 
-    let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app)
-        .await
-        .map_err(|e| ConfigError::Invalid(format!("http server error: {e}")))?;
+  schema::apply_server_schema(
+    &config,
+    &state,
+    Path::new(&config_path)
+  )
+  .await?;
 
-    Ok(())
+  if config.app.mode == AppMode::Dev
+    && config.dev.reset_on_start
+  {
+    db::reset_server_data(
+      &config, &state
+    )
+    .await?;
+  }
+
+  if config.app.mode == AppMode::Dev {
+    db::ensure_default_user(
+      &config,
+      &state,
+      &config.seed.username,
+      &config.seed.password
+    )
+    .await?;
+  }
+
+  let addr: SocketAddr = format!(
+    "{}:{}",
+    config.http.host, config.http.port
+  )
+  .parse()
+  .map_err(|e| {
+    ConfigError::Invalid(format!(
+      "invalid http bind: {e}"
+    ))
+  })?;
+
+  let app = handlers::router(state);
+
+  let listener =
+    tokio::net::TcpListener::bind(addr)
+      .await?;
+
+  axum::serve(listener, app)
+    .await
+    .map_err(|e| {
+      ConfigError::Invalid(format!(
+        "http server error: {e}"
+      ))
+    })?;
+
+  Ok(())
 }
