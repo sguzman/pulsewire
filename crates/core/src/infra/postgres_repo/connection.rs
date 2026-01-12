@@ -11,7 +11,7 @@ pub async fn create_pool(cfg: &PostgresConfig, timezone: &Tz) -> Result<PgPool, 
     let opts = connect_options(cfg, Some(&cfg.database));
     let pool = PgPoolOptions::new()
         .max_connections(10)
-        .after_connect(set_session_defaults(cfg, timezone))
+        .after_connect(set_session_defaults(cfg.schema.clone(), timezone.name().to_string()))
         .connect_with(opts.clone())
         .await;
 
@@ -21,7 +21,7 @@ pub async fn create_pool(cfg: &PostgresConfig, timezone: &Tz) -> Result<PgPool, 
             ensure_database_exists(cfg).await?;
             PgPoolOptions::new()
                 .max_connections(10)
-                .after_connect(set_session_defaults(cfg, timezone))
+                .after_connect(set_session_defaults(cfg.schema.clone(), timezone.name().to_string()))
                 .connect_with(opts)
                 .await
                 .map_err(|e| format!("postgres connect error after create: {e}"))
@@ -46,15 +46,15 @@ pub async fn wipe_database(cfg: &PostgresConfig, timezone: &Tz) -> Result<(), St
 }
 
 fn set_session_defaults(
-    cfg: &PostgresConfig,
-    timezone: &Tz,
+    schema: String,
+    tz_name: String,
 ) -> impl Fn(
     &mut sqlx::PgConnection,
     sqlx::pool::PoolConnectionMetadata,
 )
     -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), sqlx::Error>> + Send + '_>> {
-    let tz_name = timezone.name().to_string();
-    let schema = cfg.schema.clone();
+    let tz_name = tz_name;
+    let schema = schema;
     move |conn, _meta| {
         let tz = tz_name.clone();
         let schema_name = schema.clone();

@@ -37,7 +37,7 @@ pub async fn connect_db(config: &ServerConfig, config_path: &Path) -> Result<App
             );
             let pool = PgPoolOptions::new()
                 .max_connections(10)
-                .after_connect(set_search_path(&schema))
+                .after_connect(set_search_path(schema.clone()))
                 .connect(&url)
                 .await
                 .map_err(|e| ConfigError::Invalid(format!("postgres connect failed: {e}")))?;
@@ -108,12 +108,12 @@ pub async fn reset_server_data(config: &ServerConfig, state: &AppState) -> Resul
 }
 
 pub fn set_search_path(
-    schema: &str,
+    schema: String,
 ) -> impl Fn(
     &mut sqlx::PgConnection,
     sqlx::pool::PoolConnectionMetadata,
 ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), sqlx::Error>> + Send + '_>> {
-    let schema_name = schema.to_string();
+    let schema_name = schema;
     move |conn, _meta| {
         let schema_copy = schema_name.clone();
         Box::pin(async move {
