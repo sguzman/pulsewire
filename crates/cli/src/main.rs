@@ -83,6 +83,7 @@ fn pick_config_path(arg: Option<PathBuf>) -> PathBuf {
         return p;
     }
 
+    // CLI flags win; fall back to CONFIG_PATH, then repo-local defaults.
     if let Ok(p) = std::env::var("CONFIG_PATH") {
         if !p.trim().is_empty() {
             return PathBuf::from(p);
