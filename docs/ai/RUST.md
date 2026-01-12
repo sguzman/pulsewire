@@ -20,6 +20,12 @@ If your change could affect behavior (most code changes do), run tests:
 
 If tests are not runnable in the current environment (missing deps, platform limits, etc.), clearly state what was attempted and what blocked it.
 
+#### 2a) Format Rust code (required)
+
+After tests (or after determining tests cannot be run), format Rust code:
+
+- Run: `cargo fmt`
+
 ### 3) Configuration must be valid (required)
 
 If you edit TOML (Cargo.toml, workspace config, tool configs, etc.), validate it:
@@ -27,6 +33,12 @@ If you edit TOML (Cargo.toml, workspace config, tool configs, etc.), validate it
 - Run: `taplo validate`
 
 If additional validators are requested later (formatters, linters, schema checks, nix checks, etc.), treat them as required for the relevant files and run them before committing.
+
+#### 3a) Format TOML (required)
+
+After TOML validation (or after determining validation cannot be run), format TOML:
+
+- Run: `taplo fmt`
 
 ### 4) Update docs related to changes (required)
 
