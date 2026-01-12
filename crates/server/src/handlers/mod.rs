@@ -1,6 +1,7 @@
 mod auth;
 mod entries;
 mod feeds;
+mod favorites;
 mod folders;
 mod health;
 mod subscriptions;
@@ -17,6 +18,9 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health::health))
         .route("/v1/feeds", get(feeds::list_feeds))
+        .route("/v1/favorites", get(favorites::list_favorites))
+        .route("/v1/favorites", post(favorites::create_favorite))
+        .route("/v1/favorites/:item_id", delete(favorites::delete_favorite))
         .route("/v1/folders", get(folders::list_folders))
         .route("/v1/folders", post(folders::create_folder))
         .route("/v1/folders/:folder_id", patch(folders::update_folder))

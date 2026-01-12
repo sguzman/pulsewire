@@ -120,6 +120,18 @@ pub struct UserResponse {
     pub username: String,
 }
 
+
+#[derive(Debug, Deserialize)]
+pub struct FavoriteRequest {
+    pub item_id: i64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FavoriteListQuery {
+    pub limit: Option<u32>,
+    pub offset: Option<u32>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct TokenResponse {
     pub token: String,
