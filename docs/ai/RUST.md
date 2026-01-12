@@ -40,6 +40,14 @@ After TOML validation (or after determining validation cannot be run), format TO
 
 - Run: `taplo fmt`
 
+#### 3b) Format JSON (Biome) (required)
+
+If you edit JSON (or JSONC), format it with Biome:
+
+- Run: `biome format --write <files-or-directories>`
+  - Example: `biome format --write path/to/file.json`
+  - Example: `biome format --write .` (formats supported files under the directory, including JSON) :contentReference[oaicite:0]{index=0}
+
 ### 4) Update docs related to changes (required)
 
 Before committing, update any documentation impacted by the change:
@@ -58,7 +66,7 @@ After completing a coherent, working change:
 
 ### 6) Refactor oversized Rust files into modules (required)
 
-If any Rust source file grows beyond 500 lines, refactor it into modules.
+If any Rust source file grows beyond 600 lines, refactor it into modules.
 
 - Convert the file into a directory module:
   - Example: `handler.rs` becomes `handler/`
