@@ -1,0 +1,16 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "files": {
+    "ignore": [
+      "target"
+    ]
+  },
+  "formatter": {
+    "enabled": true
+  },
+  "json": {
+    "formatter": {
+      "enabled": true
+    }
+  }
+}
