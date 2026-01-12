@@ -43,3 +43,18 @@ After completing a coherent, working change:
 - Generate an appropriate commit message
 - Commit the changes
 - Push to the configured remote
+
+### 6) Refactor oversized Rust files into modules (required)
+
+If any Rust source file grows beyond 500 lines, refactor it into modules.
+
+- Convert the file into a directory module:
+  - Example: `handler.rs` becomes `handler/`
+- Split the code into multiple files inside the new directory, organized by clear functional/domain boundaries.
+  - Prefer cohesive modules with single responsibilities (e.g., parsing, validation, IO, DB, HTTP, types, errors, helpers).
+- Add `handler/mod.rs` that re-exports and wires the modules so other code can keep importing through the parent module.
+  - Keep public surface area intentional: export only what needs to be used externally.
+- Preserve behavior and public API where possible:
+  - Avoid churn in call sites unless there is a strong reason.
+  - If imports/paths must change, update them consistently across the repo.
+- After refactoring, re-run steps 1-3 (build/tests/taplo) to ensure everything still compiles and behaves correctly.
