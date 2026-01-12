@@ -23,6 +23,7 @@ schema = { path = "crates/fetcher/res/schemas/global.schema.json" }
 
 [[rule]]
 include = ["crates/fetcher/res/feeds/**/*.toml"]
+exclude = ["crates/fetcher/res/feeds/**/global.toml"]
 schema = { path = "crates/fetcher/res/schemas/feeds.schema.json" }
 
 [[rule]]

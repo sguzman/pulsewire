@@ -19,6 +19,7 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health::health))
         .route("/openapi.json", get(docs::openapi))
+        .route("/docs", get(docs::openapi_html))
         .route("/v1/feeds", get(feeds::list_feeds))
         .route("/v1/favorites", get(favorites::list_favorites))
         .route("/v1/favorites", post(favorites::create_favorite))

@@ -1,93 +1,90 @@
 # feedrv3
 
-Rust async worker that polls a set of RSS/Atom feeds, tracks HTTP state with adaptive backoff, and stores feed payloads plus items in SQLite. Configuration is file based (TOML) and a tiny scheduler drives concurrent HEAD/GET requests with per-domain limits.
+Rust async worker that polls a set of RSS/Atom feeds, tracks HTTP state with adaptive backoff, and stores feed payloads plus items in SQLite or Postgres. Configuration is file based (TOML) and a scheduler drives concurrent HEAD/GET requests with per-domain limits. The repo also ships a companion HTTP server for feed reader clients.
 
 ## Overview
-- Loads app/domain/feed config from a TOML bundle, migrates/creates a SQL database (SQLite by default) and bulk-ingests feed definitions.
+- Fetcher loads app/domain/feed config from a TOML bundle, migrates/creates a SQL database (SQLite or Postgres) and bulk-ingests feed definitions.
 - Scheduler ticks every 5s, finds due feeds, and processes them with bounded parallelism. Per-domain semaphores prevent hammering the same host; optional global cap controls total concurrency.
 - Each feed alternates HEAD/GET based on last state. HEAD decides whether content changed; GET parses the body (via `feed-rs`), hashes it, and stores payload + items. Errors trigger exponential backoff with jitter and persisted state.
-- Minimal traits (`Repo`, `Http`, `Clock`, `RandomSource`) keep the core logic isolated; `SqliteRepo`, `ReqwestHttp`, `SystemClock`, and `MutexRng` are the shipped impls.
-- Logging uses `tracing` with env-filter override support. Dev mode wipes the DB on startup for a clean slate.
+- Server provides auth, subscriptions, read/unread state, folders, favorites, and search APIs for clients. It reads from the fetcher database schema and maintains its own state in a separate schema.
 
 ## Code Layout
 - `crates/core/src/` – shared runtime logic (config, scheduler, infra, ports, domain, feed parsing).
-- `crates/core/tests/` – shared property-style tests.
-- `crates/fetcher/src/main.rs` – entrypoint; argument parsing, config loading, repo init/migrations, optional ingest benchmark, then scheduler loop.
-- `crates/fetcher/res/` – example config bundle (`config.toml`, `domains.toml`, `feeds/*.toml`) and a sample SQLite DB snapshot.
+- `crates/fetcher/src/main.rs` – fetcher entrypoint; config loading, repo init/migrations, optional ingest benchmark, then scheduler loop.
+- `crates/server/src/main.rs` – server entrypoint; config loading, schema apply, and HTTP routes.
 - `crates/cli/src/main.rs` – ops CLI for validation/cleanup commands.
+- `crates/fetcher/res/` – example config bundle (`config.toml`, `domains.toml`, `feeds/*.toml`).
+- `crates/server/res/` – server config and OpenAPI docs (`config.toml`, `openapi.json`, `openapi.html`).
 
 ## Configuration
-Config is resolved from:
+Fetcher config resolution order:
 1) CLI argument path (if provided), else
 2) `CONFIG_PATH` environment variable (if set), else
-3) `crates/fetcher/res/config.toml` when present, else
-4) `src/main/resources/config/config.toml` (legacy layout).
+3) `crates/fetcher/res/config.toml` when present.
 Feed definitions default to `feeds/` under the config directory, but can be overridden with `FEEDS_DIR`.
 
-`config.toml` (app-wide sections):
-- `[app]` – `mode` (`dev` deletes the DB on boot; `prod` leaves it intact) and `timezone` (IANA TZ for timestamps/logging).
+`config.toml` (fetcher app sections):
+- `[app]` – `mode` (`dev` deletes the DB on boot; `prod` leaves it intact) and `timezone`.
 - `[database]` – `dialect` (`sqlite` default, or `postgres`).
-- `[sqlite]` – `path` to the SQLite file (relative paths resolve from the config dir unless the path includes `resources`, in which case CWD is used).
-- `[postgres]` – connection params: `user`, `password`, `host`, `port`, `db` (defaults: admin/admin/localhost/5432/data).
-- `[polling]` – `default_seconds`, `max_seconds`, and `jitter_fraction` controlling poll cadence and jitter.
-- `[backoff]` – `error_base_seconds` and `max_error_seconds` bounding exponential backoff after errors.
-- `[requests]` – `global_max_concurrent_requests` optional cap on in-flight HTTP requests (defaults to 64 when unset) and `user_agent` string.
-- `[state_history]` – `sample_rate` between 0–1 for persisting historical state rows (current state is always stored).
-- `[logging]` – `level` base log level (can be overridden by `RUST_LOG`).
-- `[logging]` – `file_enabled` toggles file logging (defaults to false), `file_level`/`file_directory`/`file_rotation` configure file output when enabled.
-- `[metrics]` – `enabled` toggles the Prometheus endpoint (defaults to false), `bind` sets the listen address (default `0.0.0.0:9898`).
+- `[sqlite]` – `path` to the SQLite file.
+- `[postgres]` – connection params: `user`, `password`, `host`, `port`, `database`, `ssl_mode`, `schema` (fetcher schema).
+- `[polling]` – `default_seconds`, `max_seconds`, `jitter_fraction`.
+- `[backoff]` – `error_base_seconds`, `max_error_seconds`.
+- `[requests]` – `global_max_concurrent_requests` and `user_agent`.
+- `[state_history]` – `sample_rate` between 0–1 for historical state rows.
+- `[logging]` – `level`; `file_enabled`, `file_level`, `file_directory`, `file_rotation`.
+- `[metrics]` – `enabled` toggles the Prometheus endpoint; `bind` sets the listen address.
 
-Metrics exported at `/metrics` when enabled:
-- `feedrv3_up`, `feedrv3_start_time_seconds`
-- `feedrv3_scheduler_ticks_total{category=...}`, `feedrv3_due_feeds{category=...}`, `feedrv3_due_feeds_total{category=...}`
-- `feedrv3_inflight_actions`
-- `feedrv3_feed_actions_total{action=...,outcome=...}`
-- `feedrv3_http_status_total{action=...,status=...}`
-- `feedrv3_http_latency_ms{action=...,domain=...}` (histogram)
-- `feedrv3_db_query_ms{query=...}` (histogram)
+`domains.toml`: list of `{ name, max_concurrent_requests }` entries limiting concurrent requests per host.
 
-`domains.toml`: list of `{ name, max_concurrent_requests }` entries limiting concurrent requests per host. Domains not listed default to a limit of 1.
+`feeds/*.toml`: one or more files shaped as `[[feeds]] { id, url, base_poll_seconds?, category?, provenance?, tags?, language?, content_type?, id_prefix? }`.
+File-level defaults can be set at top-level (`base_poll_seconds`, `id_prefix`, `category`, `provenance`, `tags`, `language`, `content_type`) and are inherited by feeds that omit them.
 
-`feeds/*.toml`: one or more files shaped as `[[feeds]] { id, url, base_poll_seconds?, category?, provenance?, tags?, language?, content_type?, id_prefix? }`. File-level defaults can be set at top-level (`base_poll_seconds`, `id_prefix`, `category`, `provenance`, `tags`, `language`, `content_type`) and are inherited by feeds that omit them.
+Server config (`crates/server/res/config.toml`):
+- `[app]` – `mode` and `timezone`.
+- `[http]` – `host`, `port`.
+- `[database]` – `dialect`.
+- `[sqlite]` – `path`.
+- `[postgres]` – connection params plus `schema` (server schema) and `fetcher_schema`.
+- `[logging]` – `level`.
+- `[auth]` – `token_ttl_seconds`.
+- `[dev]` – `reset_on_start` (clears server-only tables).
 
-## Runtime & Orchestration
-- DB migrations run on startup (tables for feeds, current+historical state, fetch events, payloads, and items). WAL is enabled.
-- Scheduler:
-  - Tick interval: 5s.
-  - Due query: up to 1000 feeds whose `next_action_at_ms` has passed or are new.
-  - Parallelism: `global_max_concurrent_requests` or default 64, with per-domain semaphores.
-  - Actions: decide `SleepUntil`, `DoHead`, or `DoGet` from the persisted `LinkState`.
-  - Backoff: exponential with jitter; errors increase backoff, unchanged HEADs move to sleep, body changes reset backoff.
-- Events: every HEAD/GET is recorded in `fetch_events`; state snapshots go to `feed_state_current` (and optionally `feed_state_history`); payloads plus items are stored when GET bodies parse successfully.
+## HTTP Server API (high level)
+- Auth: login/logout, list/revoke tokens.
+- Users: create user, change password.
+- Feeds: list feeds, list feed entries.
+- Entries: list, detail, read/unread, batch read/unread, unread counts, search.
+- Subscriptions: list/create/delete.
+- Folders: CRUD, assign/remove feeds, unread counts per folder.
+- Favorites: list/add/remove.
+
+OpenAPI docs:
+- Spec: `GET /openapi.json`
+- UI: `GET /docs`
 
 ## CLI Usage
-- Run scheduler (using default config resolution):  
+- Run fetcher scheduler (default config resolution):
   `cargo run -p fetcher --release`
-- Run scheduler with explicit config:  
+- Run fetcher with explicit config:
   `cargo run -p fetcher --release -- /path/to/config.toml`
-- Ingest benchmark only (no scheduler):  
-  `cargo run -p fetcher --release -- --ingest-benchmark 50000`  
-  Inserts synthetic feeds into the DB in bulk and exits. Requires a feed count > 0.
-- Validate config + semantic checks:  
+- Ingest benchmark only (no scheduler):
+  `cargo run -p fetcher --release -- --ingest-benchmark 50000`
+- Validate config + semantic checks:
   `cargo run -p feedrv3-cli -- validate /path/to/config.toml`
-- Clean local SQLite + logs (requires flag):  
+- Clean local SQLite + logs (requires flag):
   `cargo run -p feedrv3-cli -- clean /path/to/config.toml --confirm`
+- Run server (default config):
+  `cargo run -p feedrv3-server --release`
+- Run server with explicit config:
+  `SERVER_CONFIG_PATH=/path/to/config.toml cargo run -p feedrv3-server --release`
 
 ## Data & Schema Notes
-- SQLite path comes from `[sqlite].path`; WAL mode and `synchronous` toggling are used to speed bulk upserts.
-- Creation DDLs live in `crates/core/res/sql/sqlite/schema.sql` and `crates/core/res/sql/postgres/schema.sql` and are applied at startup; non-schema migrations remain in code.
-- Postgres stores timestamps as `timestamptz`, using the timezone from config when converting epoch milliseconds to database values.
-- Key tables: `feeds` (definitions), `feed_state_current` + `feed_state_history`, `fetch_events`, `feed_payloads`, `feed_items`.
-- A prebuilt DB snapshot is checked in under `crates/fetcher/res/` for quick inspection; dev mode will delete it on boot.
+- Fetcher DDL lives in `crates/core/res/sql/{sqlite,postgres}/schema.sql`.
+- Server DDL lives in `crates/server/res/sql/{sqlite,postgres}/schema.sql`.
+- Postgres uses separate schemas: `fetcher` for fetcher tables, `server` for server state.
 
 ## Development
-- Build/test: `cargo test -p feedrv3-core` (no extra setup needed; uses the traits to avoid network access in tests).
-- Logs: configure via `logging.level` or `RUST_LOG`; log output includes targets and thread info.
-- HTTP client: reqwest with rustls, 30s timeout, gzip/brotli/deflate enabled.
-
-## Docker
-- Dockerfile now lives under `crates/fetcher/Dockerfile`.
-- Image expects a full config bundle (config/domains/categories/feeds) to be present on disk.
-- Default path inside the container is `/app/res/config.toml`; override with `CONFIG_PATH`.
-- Feed definitions default to `/app/res/feeds`; override with `FEEDS_DIR`.
-- For environment-specific settings, mount a config directory and point `CONFIG_PATH` at it.
+- Build: `cargo build`
+- Tests: `cargo test`
+- TOML validation: `taplo validate`
