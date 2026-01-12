@@ -1,12 +1,13 @@
 mod auth;
 mod entries;
 mod feeds;
+mod folders;
 mod health;
 mod subscriptions;
 mod users;
 
 use axum::{
-    routing::{delete, get, post},
+    routing::{delete, get, patch, post},
     Router,
 };
 
@@ -16,6 +17,14 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health::health))
         .route("/v1/feeds", get(feeds::list_feeds))
+        .route("/v1/folders", get(folders::list_folders))
+        .route("/v1/folders", post(folders::create_folder))
+        .route("/v1/folders/:folder_id", patch(folders::update_folder))
+        .route("/v1/folders/:folder_id", delete(folders::delete_folder))
+        .route("/v1/folders/:folder_id/feeds", get(folders::list_folder_feeds))
+        .route("/v1/folders/:folder_id/feeds", post(folders::add_folder_feed))
+        .route("/v1/folders/:folder_id/feeds/:feed_id", delete(folders::delete_folder_feed))
+        .route("/v1/folders/unread/counts", get(folders::folder_unread_counts))
         .route("/v1/users", post(users::create_user))
         .route("/v1/auth/login", post(auth::login))
         .route("/v1/auth/logout", post(auth::logout))

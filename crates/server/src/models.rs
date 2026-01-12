@@ -81,6 +81,39 @@ pub struct UnreadCountResponse {
     pub count: i64,
 }
 
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct FolderRow {
+    pub id: i64,
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FolderCreateRequest {
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FolderUpdateRequest {
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct FolderFeedRow {
+    pub feed_id: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FolderFeedRequest {
+    pub feed_id: String,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct FolderUnreadCount {
+    pub folder_id: i64,
+    pub unread_count: i64,
+}
+
 #[derive(Debug, Serialize)]
 pub struct UserResponse {
     pub id: i64,
