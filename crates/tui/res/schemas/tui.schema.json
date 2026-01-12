@@ -3,7 +3,12 @@
   "title": "feedrv3 tui config",
   "type": "object",
   "additionalProperties": false,
-  "required": ["server", "auth", "ui", "keybindings"],
+  "required": [
+    "server",
+    "auth",
+    "ui",
+    "keybindings"
+  ],
   "properties": {
     "server": {
       "type": "object",
@@ -11,26 +16,47 @@
       "required": ["url", "timeout_ms"],
       "properties": {
         "url": { "type": "string" },
-        "timeout_ms": { "type": "integer", "minimum": 100 }
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 100
+        }
       }
     },
     "auth": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["auto_login", "username", "password"],
+      "required": [
+        "auto_login",
+        "username",
+        "password"
+      ],
       "properties": {
-        "auto_login": { "type": "boolean" },
-        "username": { "type": "string" },
+        "auto_login": {
+          "type": "boolean"
+        },
+        "username": {
+          "type": "string"
+        },
         "password": { "type": "string" }
       }
     },
     "ui": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["page_size", "refresh_interval_ms"],
+      "required": [
+        "page_size",
+        "refresh_interval_ms"
+      ],
       "properties": {
-        "page_size": { "type": "integer", "minimum": 1, "maximum": 200 },
-        "refresh_interval_ms": { "type": "integer", "minimum": 50 }
+        "page_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "refresh_interval_ms": {
+          "type": "integer",
+          "minimum": 50
+        }
       }
     },
     "keybindings": {
@@ -49,24 +75,50 @@
         "move_up",
         "open_entries",
         "toggle_read",
+        "toggle_subscribe",
         "entries_next",
         "entries_prev"
       ],
       "properties": {
         "quit": { "type": "string" },
         "refresh": { "type": "string" },
-        "next_tab": { "type": "string" },
-        "prev_tab": { "type": "string" },
-        "tab_feeds": { "type": "string" },
-        "tab_entries": { "type": "string" },
-        "tab_favorites": { "type": "string" },
-        "tab_folders": { "type": "string" },
-        "move_down": { "type": "string" },
+        "next_tab": {
+          "type": "string"
+        },
+        "prev_tab": {
+          "type": "string"
+        },
+        "tab_feeds": {
+          "type": "string"
+        },
+        "tab_entries": {
+          "type": "string"
+        },
+        "tab_favorites": {
+          "type": "string"
+        },
+        "tab_folders": {
+          "type": "string"
+        },
+        "move_down": {
+          "type": "string"
+        },
         "move_up": { "type": "string" },
-        "open_entries": { "type": "string" },
-        "toggle_read": { "type": "string" },
-        "entries_next": { "type": "string" },
-        "entries_prev": { "type": "string" }
+        "open_entries": {
+          "type": "string"
+        },
+        "toggle_read": {
+          "type": "string"
+        },
+        "toggle_subscribe": {
+          "type": "string"
+        },
+        "entries_next": {
+          "type": "string"
+        },
+        "entries_prev": {
+          "type": "string"
+        }
       }
     }
   }

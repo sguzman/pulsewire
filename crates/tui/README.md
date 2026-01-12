@@ -6,6 +6,7 @@ Interactive terminal UI for the feedrv3 server API.
 - Login with username/password.
 - Browse feeds, entries, favorites, and folders.
 - Toggle entry read/unread.
+- Subscribe/unsubscribe feeds.
 - Refresh data on demand.
 - Configurable keybindings and server settings.
 
@@ -20,6 +21,7 @@ Controls (defaults, configurable in `config.toml`):
 - Navigation: Up/Down or `j`/`k`.
 - Open entries for selected feed: `e`.
 - Toggle read/unread on selected entry: `m`.
+- Toggle subscribe on selected feed: `s`.
 - Entries paging: `n`/`p`.
 - Refresh: `r`.
 - Quit: `q`.

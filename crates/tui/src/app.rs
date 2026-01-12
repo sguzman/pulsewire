@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use anyhow::{
   Context,
   Result
@@ -19,6 +21,7 @@ use crate::models::{
   EntrySummary,
   FeedSummary,
   FolderRow,
+  SubscriptionRow,
   TokenResponse
 };
 
@@ -47,6 +50,8 @@ pub(crate) struct App {
   pub(crate) favorites:
     Vec<FeedSummary>,
   pub(crate) folders: Vec<FolderRow>,
+  pub(crate) subscriptions:
+    HashSet<String>,
   pub(crate) entries: Vec<EntrySummary>,
   pub(crate) tab: usize,
   pub(crate) selected_feed: usize,
@@ -92,6 +97,7 @@ impl App {
       feeds: Vec::new(),
       favorites: Vec::new(),
       folders: Vec::new(),
+      subscriptions: HashSet::new(),
       entries: Vec::new(),
       tab: 0,
       selected_feed: 0,
@@ -299,6 +305,14 @@ impl App {
     }
 
     if self.key_matches(
+      &self.keys.toggle_subscribe,
+      key
+    ) {
+      self.toggle_subscribe()?;
+      return Ok(false);
+    }
+
+    if self.key_matches(
       &self.keys.entries_next,
       key
     ) {
@@ -371,6 +385,7 @@ impl App {
     &mut self
   ) -> Result<()> {
     self.refresh_feeds()?;
+    self.refresh_subscriptions()?;
     self.refresh_favorites()?;
     self.refresh_folders()?;
 
@@ -385,7 +400,10 @@ impl App {
     &mut self
   ) -> Result<()> {
     match self.tab {
-      | 0 => self.refresh_feeds(),
+      | 0 => {
+        self.refresh_feeds()?;
+        self.refresh_subscriptions()
+      }
       | 1 => self.refresh_entries(),
       | 2 => self.refresh_favorites(),
       | _ => self.refresh_folders()
@@ -537,6 +555,52 @@ impl App {
       "Loaded {} folders",
       self.folders.len()
     );
+
+    Ok(())
+  }
+
+  fn refresh_subscriptions(
+    &mut self
+  ) -> Result<()> {
+    let token = self
+      .token
+      .as_deref()
+      .unwrap_or_default();
+
+    let url = format!(
+      "{}/v1/subscriptions",
+      self.base_url
+    );
+
+    let resp = self
+      .client
+      .get(url)
+      .bearer_auth(token)
+      .send()
+      .context(
+        "subscriptions request failed"
+      )?;
+
+    if !resp.status().is_success() {
+      self.status = format!(
+        "Failed to load subscriptions \
+         ({})",
+        resp.status()
+      );
+
+      return Ok(());
+    }
+
+    let rows = resp
+      .json::<Vec<SubscriptionRow>>()
+      .context(
+        "failed to parse subscriptions"
+      )?;
+
+    self.subscriptions = rows
+      .into_iter()
+      .map(|row| row.feed_id)
+      .collect();
 
     Ok(())
   }
@@ -722,6 +786,90 @@ impl App {
       .get_mut(self.selected_entry)
     {
       row.is_read = !entry.is_read;
+    }
+
+    Ok(())
+  }
+
+  fn toggle_subscribe(
+    &mut self
+  ) -> Result<()> {
+    if self.tab != 0 {
+      return Ok(());
+    }
+
+    let feed = match self
+      .feeds
+      .get(self.selected_feed)
+    {
+      | Some(feed) => feed.clone(),
+      | None => return Ok(())
+    };
+
+    let token = self
+      .token
+      .as_deref()
+      .unwrap_or_default();
+
+    let subscribed = self
+      .subscriptions
+      .contains(&feed.id);
+
+    let resp = if subscribed {
+      let url = format!(
+        "{}/v1/subscriptions/{}",
+        self.base_url, feed.id
+      );
+      self
+        .client
+        .delete(url)
+        .bearer_auth(token)
+        .send()
+        .context(
+          "unsubscribe request failed"
+        )?
+    } else {
+      let url = format!(
+        "{}/v1/subscriptions",
+        self.base_url
+      );
+      let body = serde_json::json!({
+        "feed_id": feed.id,
+      });
+      self
+        .client
+        .post(url)
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .context(
+          "subscribe request failed"
+        )?
+    };
+
+    if !resp.status().is_success() {
+      self.status = format!(
+        "Failed to update \
+         subscription ({})",
+        resp.status()
+      );
+      return Ok(());
+    }
+
+    if subscribed {
+      self
+        .subscriptions
+        .remove(&feed.id);
+      self.status = format!(
+        "Unsubscribed from {}",
+        feed.id
+      );
+    } else {
+      self
+        .subscriptions
+        .insert(feed.id);
+      self.status =
+        "Subscribed".to_string();
     }
 
     Ok(())

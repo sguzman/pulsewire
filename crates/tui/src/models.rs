@@ -39,3 +39,8 @@ pub(crate) struct EntryListResponse {
 pub(crate) struct TokenResponse {
   pub(crate) token: String
 }
+
+#[derive(Debug, Deserialize, Clone)]
+pub(crate) struct SubscriptionRow {
+  pub(crate) feed_id: String
+}

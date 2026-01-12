@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use ratatui::Frame;
 use ratatui::layout::{
   Constraint,
@@ -171,6 +173,7 @@ pub(crate) fn draw_main(
         frame,
         content[0],
         &app.feeds,
+        Some(&app.subscriptions),
         app.selected_feed,
         "Feeds"
       );
@@ -203,6 +206,7 @@ pub(crate) fn draw_main(
         frame,
         content[0],
         &app.favorites,
+        None,
         app.selected_favorite,
         "Favorites"
       );
@@ -391,15 +395,29 @@ fn draw_feed_list(
   frame: &mut Frame,
   area: Rect,
   feeds: &[FeedSummary],
+  subscriptions: Option<
+    &HashSet<String>
+  >,
   selected: usize,
   title: &str
 ) {
   let items = feeds
     .iter()
     .map(|feed| {
+      let subscribed = subscriptions
+        .as_ref()
+        .map(|subs| {
+          subs.contains(&feed.id)
+        })
+        .unwrap_or(false);
+      let marker = if subscribed {
+        "*"
+      } else {
+        " "
+      };
       let label = format!(
-        "{} [{}]",
-        feed.id, feed.domain
+        "{} {} [{}]",
+        marker, feed.id, feed.domain
       );
       ListItem::new(label)
     })

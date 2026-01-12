@@ -38,20 +38,21 @@ pub(crate) struct UiConfig {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Keybindings {
-  pub(crate) quit:          String,
-  pub(crate) refresh:       String,
-  pub(crate) next_tab:      String,
-  pub(crate) prev_tab:      String,
-  pub(crate) tab_feeds:     String,
-  pub(crate) tab_entries:   String,
-  pub(crate) tab_favorites: String,
-  pub(crate) tab_folders:   String,
-  pub(crate) move_down:     String,
-  pub(crate) move_up:       String,
-  pub(crate) open_entries:  String,
-  pub(crate) toggle_read:   String,
-  pub(crate) entries_next:  String,
-  pub(crate) entries_prev:  String
+  pub(crate) quit:             String,
+  pub(crate) refresh:          String,
+  pub(crate) next_tab:         String,
+  pub(crate) prev_tab:         String,
+  pub(crate) tab_feeds:        String,
+  pub(crate) tab_entries:      String,
+  pub(crate) tab_favorites:    String,
+  pub(crate) tab_folders:      String,
+  pub(crate) move_down:        String,
+  pub(crate) move_up:          String,
+  pub(crate) open_entries:     String,
+  pub(crate) toggle_read:      String,
+  pub(crate) toggle_subscribe: String,
+  pub(crate) entries_next:     String,
+  pub(crate) entries_prev:     String
 }
 
 #[derive(Debug, Clone)]
@@ -61,20 +62,22 @@ pub(crate) struct KeyBinding {
 }
 
 pub(crate) struct ResolvedKeybindings {
-  pub(crate) quit:          KeyBinding,
-  pub(crate) refresh:       KeyBinding,
-  pub(crate) next_tab:      KeyBinding,
-  pub(crate) prev_tab:      KeyBinding,
-  pub(crate) tab_feeds:     KeyBinding,
-  pub(crate) tab_entries:   KeyBinding,
+  pub(crate) quit: KeyBinding,
+  pub(crate) refresh: KeyBinding,
+  pub(crate) next_tab: KeyBinding,
+  pub(crate) prev_tab: KeyBinding,
+  pub(crate) tab_feeds: KeyBinding,
+  pub(crate) tab_entries: KeyBinding,
   pub(crate) tab_favorites: KeyBinding,
-  pub(crate) tab_folders:   KeyBinding,
-  pub(crate) move_down:     KeyBinding,
-  pub(crate) move_up:       KeyBinding,
-  pub(crate) open_entries:  KeyBinding,
-  pub(crate) toggle_read:   KeyBinding,
-  pub(crate) entries_next:  KeyBinding,
-  pub(crate) entries_prev:  KeyBinding
+  pub(crate) tab_folders: KeyBinding,
+  pub(crate) move_down: KeyBinding,
+  pub(crate) move_up: KeyBinding,
+  pub(crate) open_entries: KeyBinding,
+  pub(crate) toggle_read: KeyBinding,
+  pub(crate) toggle_subscribe:
+    KeyBinding,
+  pub(crate) entries_next: KeyBinding,
+  pub(crate) entries_prev: KeyBinding
 }
 
 #[derive(Debug)]
@@ -153,46 +156,51 @@ impl TuiConfig {
     ConfigError
   > {
     Ok(ResolvedKeybindings {
-      quit:          parse_key(
+      quit:             parse_key(
         &self.keybindings.quit
       )?,
-      refresh:       parse_key(
+      refresh:          parse_key(
         &self.keybindings.refresh
       )?,
-      next_tab:      parse_key(
+      next_tab:         parse_key(
         &self.keybindings.next_tab
       )?,
-      prev_tab:      parse_key(
+      prev_tab:         parse_key(
         &self.keybindings.prev_tab
       )?,
-      tab_feeds:     parse_key(
+      tab_feeds:        parse_key(
         &self.keybindings.tab_feeds
       )?,
-      tab_entries:   parse_key(
+      tab_entries:      parse_key(
         &self.keybindings.tab_entries
       )?,
-      tab_favorites: parse_key(
+      tab_favorites:    parse_key(
         &self.keybindings.tab_favorites
       )?,
-      tab_folders:   parse_key(
+      tab_folders:      parse_key(
         &self.keybindings.tab_folders
       )?,
-      move_down:     parse_key(
+      move_down:        parse_key(
         &self.keybindings.move_down
       )?,
-      move_up:       parse_key(
+      move_up:          parse_key(
         &self.keybindings.move_up
       )?,
-      open_entries:  parse_key(
+      open_entries:     parse_key(
         &self.keybindings.open_entries
       )?,
-      toggle_read:   parse_key(
+      toggle_read:      parse_key(
         &self.keybindings.toggle_read
       )?,
-      entries_next:  parse_key(
+      toggle_subscribe: parse_key(
+        &self
+          .keybindings
+          .toggle_subscribe
+      )?,
+      entries_next:     parse_key(
         &self.keybindings.entries_next
       )?,
-      entries_prev:  parse_key(
+      entries_prev:     parse_key(
         &self.keybindings.entries_prev
       )?
     })
