@@ -38,6 +38,7 @@ pub struct EntryListQuery {
     pub limit: Option<u32>,
     pub offset: Option<u32>,
     pub feed_id: Option<String>,
+    pub since: Option<i64>,
 }
 
 #[derive(Debug, Deserialize)]

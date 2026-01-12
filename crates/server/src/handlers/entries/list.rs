@@ -21,6 +21,7 @@ pub async fn list_entries(
     let offset = query.offset.unwrap_or(0) as i64;
     let read_filter = query.read.as_deref();
     let feed_filter = query.feed_id.as_deref();
+    let since = query.since;
 
     if let Some(pool) = &state.postgres {
         let schema = state.fetcher_schema.as_deref().unwrap_or("fetcher");
@@ -56,6 +57,11 @@ pub async fn list_entries(
         if let Some(feed_id) = feed_filter {
             builder.push(" AND fi.feed_id = ");
             builder.push_bind(feed_id);
+        }
+
+        if let Some(since_id) = since {
+            builder.push(" AND fi.id > ");
+            builder.push_bind(since_id);
         }
 
         builder.push(" ORDER BY fi.id DESC LIMIT ");
@@ -106,6 +112,11 @@ pub async fn list_entries(
     if let Some(feed_id) = feed_filter {
         builder.push(" AND fi.feed_id = ");
         builder.push_bind(feed_id);
+    }
+
+    if let Some(since_id) = since {
+        builder.push(" AND fi.id > ");
+        builder.push_bind(since_id);
     }
 
     builder.push(" ORDER BY fi.id DESC LIMIT ");
