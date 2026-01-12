@@ -1,4 +1,7 @@
-use std::collections::HashSet;
+use std::collections::{
+  HashMap,
+  HashSet
+};
 
 use ratatui::Frame;
 use ratatui::layout::{
@@ -29,6 +32,7 @@ use crate::app::{
 };
 use crate::models::{
   EntrySummary,
+  FeedEntryCounts,
   FeedSummary,
   FolderRow
 };
@@ -133,7 +137,8 @@ pub(crate) fn draw_main(
     "Feeds (1)",
     "Entries (2)",
     "Favorites (3)",
-    "Folders (4)"
+    "Folders (4)",
+    "Subscriptions (5)"
   ]
   .iter()
   .map(|t| {
@@ -169,20 +174,27 @@ pub(crate) fn draw_main(
 
   match app.tab {
     | 0 => {
-      draw_feed_list(
+      draw_feed_view_list(
         frame,
         content[0],
         &app.feeds,
-        Some(&app.subscriptions),
+        &app.feeds_view,
+        app.feeds_offset,
+        app.page_size as usize,
         app.selected_feed,
+        Some(&app.subscriptions),
+        Some(&app.feed_counts),
         "Feeds"
       );
       draw_feed_detail(
         frame,
         content[1],
         app
-          .feeds
-          .get(app.selected_feed),
+          .feeds_view
+          .get(app.selected_feed)
+          .and_then(|idx| {
+            app.feeds.get(*idx)
+          }),
         "Feed Details"
       );
     }
@@ -206,8 +218,10 @@ pub(crate) fn draw_main(
         frame,
         content[0],
         &app.favorites,
-        None,
+        app.favorites_offset,
+        app.page_size as usize,
         app.selected_favorite,
+        Some(&app.feed_counts),
         "Favorites"
       );
       draw_feed_detail(
@@ -219,12 +233,14 @@ pub(crate) fn draw_main(
         "Favorite Details"
       );
     }
-    | _ => {
+    | 3 => {
       draw_folder_list(
         frame,
         content[0],
         &app.folders,
-        app.selected_folder
+        app.selected_folder,
+        app.folders_offset,
+        app.page_size as usize
       );
       draw_folder_detail(
         frame,
@@ -232,6 +248,33 @@ pub(crate) fn draw_main(
         app
           .folders
           .get(app.selected_folder)
+      );
+    }
+    | _ => {
+      draw_feed_view_list(
+        frame,
+        content[0],
+        &app.feeds,
+        &app.subscriptions_view,
+        app.subscriptions_offset,
+        app.page_size as usize,
+        app.selected_subscription,
+        Some(&app.subscriptions),
+        Some(&app.feed_counts),
+        "Subscriptions"
+      );
+      draw_feed_detail(
+        frame,
+        content[1],
+        app
+          .subscriptions_view
+          .get(
+            app.selected_subscription
+          )
+          .and_then(|idx| {
+            app.feeds.get(*idx)
+          }),
+        "Feed Details"
       );
     }
   }
@@ -278,6 +321,16 @@ fn draw_feed_detail(
       Line::from(format!(
         "base_poll_seconds: {}",
         feed.base_poll_seconds
+      )),
+      Line::from(format!(
+        "tags: {}",
+        feed
+          .tags
+          .as_ref()
+          .map(|tags| tags.join(", "))
+          .unwrap_or_else(|| {
+            "-".to_string()
+          })
       )),
     ]
   } else {
@@ -395,29 +448,42 @@ fn draw_feed_list(
   frame: &mut Frame,
   area: Rect,
   feeds: &[FeedSummary],
-  subscriptions: Option<
-    &HashSet<String>
-  >,
+  offset: usize,
+  page_size: usize,
   selected: usize,
+  counts: Option<
+    &HashMap<String, FeedEntryCounts>
+  >,
   title: &str
 ) {
-  let items = feeds
+  let (start, end) = page_bounds(
+    feeds.len(),
+    offset,
+    page_size
+  );
+
+  let items = feeds[start..end]
     .iter()
     .map(|feed| {
-      let subscribed = subscriptions
-        .as_ref()
-        .map(|subs| {
-          subs.contains(&feed.id)
+      let count = counts
+        .and_then(|map| {
+          map.get(&feed.id)
         })
-        .unwrap_or(false);
-      let marker = if subscribed {
-        "*"
-      } else {
-        " "
-      };
+        .map(|row| {
+          format!(
+            "{}/{}/{}",
+            row.read_count,
+            row.unread_count,
+            row.total_count
+          )
+        })
+        .unwrap_or_else(|| {
+          "-/-".to_string()
+        });
+
       let label = format!(
-        "{} {} [{}]",
-        marker, feed.id, feed.domain
+        "{} [{}] ({})",
+        feed.id, feed.domain, count
       );
       ListItem::new(label)
     })
@@ -436,8 +502,98 @@ fn draw_feed_list(
     )
     .highlight_symbol("> ");
 
-  let mut state =
-    list_state(selected, feeds.len());
+  let mut state = list_state(
+    selected.saturating_sub(start),
+    end - start
+  );
+
+  frame.render_stateful_widget(
+    list, area, &mut state
+  );
+}
+
+fn draw_feed_view_list(
+  frame: &mut Frame,
+  area: Rect,
+  feeds: &[FeedSummary],
+  view: &[usize],
+  offset: usize,
+  page_size: usize,
+  selected: usize,
+  subscriptions: Option<
+    &HashSet<String>
+  >,
+  counts: Option<
+    &HashMap<String, FeedEntryCounts>
+  >,
+  title: &str
+) {
+  let (start, end) = page_bounds(
+    view.len(),
+    offset,
+    page_size
+  );
+
+  let items = view[start..end]
+    .iter()
+    .map(|idx| {
+      let feed = &feeds[*idx];
+      let subscribed = subscriptions
+        .as_ref()
+        .map(|subs| {
+          subs.contains(&feed.id)
+        })
+        .unwrap_or(false);
+      let marker = if subscribed {
+        "*"
+      } else {
+        " "
+      };
+
+      let count = counts
+        .and_then(|map| {
+          map.get(&feed.id)
+        })
+        .map(|row| {
+          format!(
+            "{}/{}/{}",
+            row.read_count,
+            row.unread_count,
+            row.total_count
+          )
+        })
+        .unwrap_or_else(|| {
+          "-/-".to_string()
+        });
+
+      let label = format!(
+        "{} {} [{}] ({})",
+        marker,
+        feed.id,
+        feed.domain,
+        count
+      );
+      ListItem::new(label)
+    })
+    .collect::<Vec<_>>();
+
+  let list = List::new(items)
+    .block(
+      Block::default()
+        .borders(Borders::ALL)
+        .title(title)
+    )
+    .highlight_style(
+      Style::default()
+        .fg(Color::Yellow)
+        .add_modifier(Modifier::BOLD)
+    )
+    .highlight_symbol("> ");
+
+  let mut state = list_state(
+    selected.saturating_sub(start),
+    end - start
+  );
 
   frame.render_stateful_widget(
     list, area, &mut state
@@ -493,9 +649,17 @@ fn draw_folder_list(
   frame: &mut Frame,
   area: Rect,
   folders: &[FolderRow],
-  selected: usize
+  selected: usize,
+  offset: usize,
+  page_size: usize
 ) {
-  let items = folders
+  let (start, end) = page_bounds(
+    folders.len(),
+    offset,
+    page_size
+  );
+
+  let items = folders[start..end]
     .iter()
     .map(|folder| {
       ListItem::new(format!(
@@ -518,8 +682,10 @@ fn draw_folder_list(
     )
     .highlight_symbol("> ");
 
-  let mut state =
-    list_state(selected, folders.len());
+  let mut state = list_state(
+    selected.saturating_sub(start),
+    end - start
+  );
 
   frame.render_stateful_widget(
     list, area, &mut state
@@ -541,4 +707,20 @@ fn list_state(
   }
 
   state
+}
+
+fn page_bounds(
+  len: usize,
+  offset: usize,
+  page_size: usize
+) -> (usize, usize) {
+  if len == 0 {
+    return (0, 0);
+  }
+
+  let start = offset.min(len - 1);
+  let end =
+    (start + page_size.max(1)).min(len);
+
+  (start, end)
 }

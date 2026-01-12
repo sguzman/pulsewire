@@ -199,6 +199,46 @@ pub async fn ensure_feed_state_error_count_column(
   Ok(())
 }
 
+pub async fn ensure_feed_tags_column(
+  pool: &SqlitePool
+) -> Result<(), String> {
+  let has_table: Option<i64> = sqlx::query_scalar(
+        r#"SELECT 1 FROM sqlite_master WHERE type='table' AND name='feeds' LIMIT 1"#,
+    )
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| format!("introspect sqlite_master: {e}"))?;
+
+  if has_table.is_none() {
+    return Ok(());
+  }
+
+  let has_column: Option<i64> = sqlx::query_scalar(
+        r#"SELECT 1 FROM pragma_table_info('feeds') WHERE name = 'tags' LIMIT 1"#,
+    )
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| format!("introspect feeds table: {e}"))?;
+
+  if has_column.is_some() {
+    return Ok(());
+  }
+
+  sqlx::query(
+    "ALTER TABLE feeds ADD COLUMN \
+     tags TEXT NULL"
+  )
+  .execute(pool)
+  .await
+  .map_err(|e| {
+    format!("add tags column: {e}")
+  })?;
+
+  info!("Added tags column to feeds");
+
+  Ok(())
+}
+
 pub async fn ensure_feed_category_column(
   pool: &SqlitePool
 ) -> Result<(), String> {

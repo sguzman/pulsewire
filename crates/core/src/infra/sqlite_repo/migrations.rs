@@ -10,7 +10,8 @@ use super::connection::{
   ensure_feed_base_poll_column,
   ensure_feed_category_column,
   ensure_feed_state_error_count_column,
-  ensure_feed_state_note_column
+  ensure_feed_state_note_column,
+  ensure_feed_tags_column
 };
 
 const SQLITE_SCHEMA: &str =
@@ -42,6 +43,8 @@ pub async fn migrate(
   // DBs.
   ensure_feed_category_column(pool)
     .await?;
+
+  ensure_feed_tags_column(pool).await?;
 
   for ddl in schema_statements() {
     sqlx::query(ddl)

@@ -94,15 +94,23 @@ async fn upsert_chunk(
   let now_ms = now_epoch_ms();
 
   for f in feeds {
+    let tags_json = f
+      .tags
+      .as_ref()
+      .and_then(|tags| {
+        serde_json::to_string(tags).ok()
+      });
+
     sqlx::query(
             r#"
-        INSERT INTO feeds(id, url, domain, category, base_poll_seconds, created_at_ms)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+        INSERT INTO feeds(id, url, domain, category, base_poll_seconds, tags, created_at_ms)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
         ON CONFLICT(id) DO UPDATE SET
           url = excluded.url,
           domain = excluded.domain,
           category = excluded.category,
-          base_poll_seconds = excluded.base_poll_seconds
+          base_poll_seconds = excluded.base_poll_seconds,
+          tags = excluded.tags
         "#,
         )
         .bind(&f.id)
@@ -110,6 +118,7 @@ async fn upsert_chunk(
         .bind(&f.domain)
         .bind(&f.category)
         .bind(f.base_poll_seconds as i64)
+        .bind(tags_json)
         .bind(now_ms)
         .execute(&mut *tx)
         .await

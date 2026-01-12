@@ -57,6 +57,7 @@ pub fn router(
         .route("/v1/entries/:item_id", get(entries::entry_detail))
         .route("/v1/entries/unread/count", get(entries::unread_count))
         .route("/v1/feeds/unread/counts", get(entries::feed_unread_counts))
+        .route("/v1/feeds/counts", get(entries::feed_entry_counts))
         .route("/v1/feeds/:feed_id/entries", get(entries::list_feed_entries))
         .route("/v1/entries/read", post(entries::mark_entries_read))
         .route("/v1/entries/read", delete(entries::mark_entries_unread))

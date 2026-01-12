@@ -10,6 +10,7 @@ pub use batch::{
   mark_entries_unread
 };
 pub use counts::{
+  feed_entry_counts,
   feed_unread_counts,
   unread_count
 };

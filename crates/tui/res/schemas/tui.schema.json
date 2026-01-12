@@ -15,7 +15,9 @@
       "additionalProperties": false,
       "required": ["url", "timeout_ms"],
       "properties": {
-        "url": { "type": "string" },
+        "url": {
+          "type": "string"
+        },
         "timeout_ms": {
           "type": "integer",
           "minimum": 100
@@ -37,7 +39,9 @@
         "username": {
           "type": "string"
         },
-        "password": { "type": "string" }
+        "password": {
+          "type": "string"
+        }
       }
     },
     "ui": {
@@ -77,11 +81,21 @@
         "toggle_read",
         "toggle_subscribe",
         "entries_next",
-        "entries_prev"
+        "entries_prev",
+        "tab_subscriptions",
+        "filter_category_next",
+        "filter_category_prev",
+        "filter_tag_next",
+        "filter_tag_prev",
+        "clear_filters"
       ],
       "properties": {
-        "quit": { "type": "string" },
-        "refresh": { "type": "string" },
+        "quit": {
+          "type": "string"
+        },
+        "refresh": {
+          "type": "string"
+        },
         "next_tab": {
           "type": "string"
         },
@@ -103,7 +117,9 @@
         "move_down": {
           "type": "string"
         },
-        "move_up": { "type": "string" },
+        "move_up": {
+          "type": "string"
+        },
         "open_entries": {
           "type": "string"
         },
@@ -117,6 +133,24 @@
           "type": "string"
         },
         "entries_prev": {
+          "type": "string"
+        },
+        "tab_subscriptions": {
+          "type": "string"
+        },
+        "filter_category_next": {
+          "type": "string"
+        },
+        "filter_category_prev": {
+          "type": "string"
+        },
+        "filter_tag_next": {
+          "type": "string"
+        },
+        "filter_tag_prev": {
+          "type": "string"
+        },
+        "clear_filters": {
           "type": "string"
         }
       }

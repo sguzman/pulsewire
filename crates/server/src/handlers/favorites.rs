@@ -24,6 +24,30 @@ use crate::models::{
   UnreadCountResponse
 };
 
+#[derive(Debug, sqlx::FromRow)]
+struct FeedSummaryRow {
+  id:                String,
+  url:               String,
+  domain:            String,
+  category:          String,
+  base_poll_seconds: i64,
+  tags:              Option<String>
+}
+
+fn parse_tags(
+  raw: Option<String>
+) -> Option<Vec<String>> {
+  let raw = raw?;
+  if raw.trim().is_empty() {
+    return None;
+  }
+
+  serde_json::from_str::<Vec<String>>(
+    &raw
+  )
+  .ok()
+}
+
 pub async fn favorites_unread_count(
   State(state): State<AppState>,
   headers: HeaderMap
@@ -207,12 +231,12 @@ pub async fn list_favorites(
     let query = format!(
       "SELECT f.id, f.url, f.domain, \
        f.category, \
-       f.base_poll_seconds FROM \
-       favorites fav JOIN {}.feeds f \
-       ON f.id = fav.feed_id WHERE \
-       fav.user_id = $1 ORDER BY \
-       fav.created_at DESC LIMIT $2 \
-       OFFSET $3",
+       f.base_poll_seconds, f.tags \
+       FROM favorites fav JOIN \
+       {}.feeds f ON f.id = \
+       fav.feed_id WHERE fav.user_id \
+       = $1 ORDER BY fav.created_at \
+       DESC LIMIT $2 OFFSET $3",
       quote_ident(schema)
     );
 
@@ -232,30 +256,48 @@ pub async fn list_favorites(
         .as_ref()
         .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
 
-  let rows =
-    sqlx::query_as::<_, FeedSummary>(
-      "SELECT f.id, f.url, f.domain, \
-       f.category, \
-       f.base_poll_seconds FROM \
-       favorites fav JOIN feeds f ON \
-       f.id = fav.feed_id WHERE \
-       fav.user_id = ?1 ORDER BY \
-       fav.created_at DESC LIMIT ?2 \
-       OFFSET ?3"
-    )
-    .bind(user_id)
-    .bind(limit)
-    .bind(offset)
-    .fetch_all(pool)
-    .await
-    .map_err(|e| {
-      ServerError::new(
+  let rows = sqlx::query_as::<
+    _,
+    FeedSummaryRow
+  >(
+    "SELECT f.id, f.url, f.domain, \
+     f.category, f.base_poll_seconds, \
+     f.tags FROM favorites fav JOIN \
+     feeds f ON f.id = fav.feed_id \
+     WHERE fav.user_id = ?1 ORDER BY \
+     fav.created_at DESC LIMIT ?2 \
+     OFFSET ?3"
+  )
+  .bind(user_id)
+  .bind(limit)
+  .bind(offset)
+  .fetch_all(pool)
+  .await
+  .map_err(|e| {
+    ServerError::new(
       StatusCode::INTERNAL_SERVER_ERROR,
-      e.to_string(),
+      e.to_string()
     )
-    })?;
+  })?;
 
-  Ok(Json(rows))
+  let feeds = rows
+    .into_iter()
+    .map(|row| {
+      FeedSummary {
+        id:                row.id,
+        url:               row.url,
+        domain:            row.domain,
+        category:          row.category,
+        base_poll_seconds: row
+          .base_poll_seconds,
+        tags:              parse_tags(
+          row.tags
+        )
+      }
+    })
+    .collect::<Vec<_>>();
+
+  Ok(Json(feeds))
 }
 
 pub async fn create_favorite(

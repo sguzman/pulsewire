@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS feeds(
   domain TEXT NOT NULL,
   category TEXT NOT NULL REFERENCES categories(name),
   base_poll_seconds INTEGER NOT NULL,
+  tags TEXT NULL,
   created_at_ms INTEGER NOT NULL
 );
 

@@ -9,10 +9,12 @@ CREATE TABLE IF NOT EXISTS feeds(
   domain TEXT NOT NULL,
   category TEXT NOT NULL REFERENCES categories(name),
   base_poll_seconds BIGINT NOT NULL,
+  tags TEXT[] NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
 ALTER TABLE feeds ADD COLUMN IF NOT EXISTS category TEXT;
+ALTER TABLE feeds ADD COLUMN IF NOT EXISTS tags TEXT[];
 
 CREATE TABLE IF NOT EXISTS feed_state_history(
   id BIGSERIAL PRIMARY KEY,

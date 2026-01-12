@@ -13,6 +13,41 @@ use crate::models::{
   FeedSummary
 };
 
+#[derive(Debug, sqlx::FromRow)]
+struct FeedSummaryRow {
+  id:                String,
+  url:               String,
+  domain:            String,
+  category:          String,
+  base_poll_seconds: i64,
+  tags:              Option<String>
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct FeedDetailRow {
+  id:                String,
+  url:               String,
+  domain:            String,
+  category:          String,
+  base_poll_seconds: i64,
+  tags:              Option<String>,
+  created_at_ms:     Option<i64>
+}
+
+fn parse_tags(
+  raw: Option<String>
+) -> Option<Vec<String>> {
+  let raw = raw?;
+  if raw.trim().is_empty() {
+    return None;
+  }
+
+  serde_json::from_str::<Vec<String>>(
+    &raw
+  )
+  .ok()
+}
+
 pub async fn feed_detail(
   State(state): State<AppState>,
   AxumPath(feed_id): AxumPath<String>
@@ -25,9 +60,15 @@ pub async fn feed_detail(
       .unwrap_or("fetcher");
 
     let query = format!(
-            "SELECT id, url, domain, category, base_poll_seconds,             CAST(EXTRACT(EPOCH FROM created_at) * 1000 AS BIGINT) AS created_at_ms             FROM {}.feeds WHERE id = $1",
-            quote_ident(schema)
-        );
+      "SELECT id, url, domain, \
+       category, base_poll_seconds, \
+       tags,             \
+       CAST(EXTRACT(EPOCH FROM \
+       created_at) * 1000 AS BIGINT) \
+       AS created_at_ms             \
+       FROM {}.feeds WHERE id = $1",
+      quote_ident(schema)
+    );
 
     let row = sqlx::query_as::<_, FeedDetail>(&query)
             .bind(&feed_id)
@@ -45,11 +86,11 @@ pub async fn feed_detail(
         .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
 
   let row =
-    sqlx::query_as::<_, FeedDetail>(
+    sqlx::query_as::<_, FeedDetailRow>(
       "SELECT id, url, domain, \
        category, base_poll_seconds, \
-       created_at_ms FROM feeds WHERE \
-       id = ?1"
+       tags, created_at_ms FROM feeds \
+       WHERE id = ?1"
     )
     .bind(&feed_id)
     .fetch_optional(pool)
@@ -67,7 +108,19 @@ pub async fn feed_detail(
       )
     })?;
 
-  Ok(Json(row))
+  Ok(Json(FeedDetail {
+    id:                row.id,
+    url:               row.url,
+    domain:            row.domain,
+    category:          row.category,
+    base_poll_seconds: row
+      .base_poll_seconds,
+    tags:              parse_tags(
+      row.tags
+    ),
+    created_at_ms:     row
+      .created_at_ms
+  }))
 }
 
 pub async fn list_feeds(
@@ -84,8 +137,8 @@ pub async fn list_feeds(
 
     let query = format!(
       "SELECT id, url, domain, \
-       category, base_poll_seconds \
-       FROM {}.feeds ORDER BY id",
+       category, base_poll_seconds, \
+       tags FROM {}.feeds ORDER BY id",
       quote_ident(schema)
     );
 
@@ -107,22 +160,41 @@ pub async fn list_feeds(
         .as_ref()
         .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
 
-  let rows =
-    sqlx::query_as::<_, FeedSummary>(
-      "SELECT id, url, domain, \
-       category, base_poll_seconds \
-       FROM feeds ORDER BY id"
-    )
-    .fetch_all(pool)
-    .await
-    .map_err(|e| {
-      ServerError::new(
+  let rows = sqlx::query_as::<
+    _,
+    FeedSummaryRow
+  >(
+    "SELECT id, url, domain, \
+     category, base_poll_seconds, \
+     tags FROM feeds ORDER BY id"
+  )
+  .fetch_all(pool)
+  .await
+  .map_err(|e| {
+    ServerError::new(
       StatusCode::INTERNAL_SERVER_ERROR,
       format!(
         "feeds query failed: {e}"
-      ),
+      )
     )
-    })?;
+  })?;
 
-  Ok(Json(rows))
+  let feeds = rows
+    .into_iter()
+    .map(|row| {
+      FeedSummary {
+        id:                row.id,
+        url:               row.url,
+        domain:            row.domain,
+        category:          row.category,
+        base_poll_seconds: row
+          .base_poll_seconds,
+        tags:              parse_tags(
+          row.tags
+        )
+      }
+    })
+    .collect::<Vec<_>>();
+
+  Ok(Json(feeds))
 }

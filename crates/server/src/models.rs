@@ -12,7 +12,8 @@ pub struct FeedSummary {
   pub url:               String,
   pub domain:            String,
   pub category:          String,
-  pub base_poll_seconds: i64
+  pub base_poll_seconds: i64,
+  pub tags: Option<Vec<String>>
 }
 
 #[derive(Debug, Deserialize)]
@@ -87,6 +88,7 @@ pub struct FeedDetail {
   pub domain:            String,
   pub category:          String,
   pub base_poll_seconds: i64,
+  pub tags: Option<Vec<String>>,
   pub created_at_ms:     Option<i64>
 }
 
@@ -152,6 +154,15 @@ pub struct EntryDetail {
 pub struct FeedUnreadCount {
   pub feed_id:      String,
   pub unread_count: i64
+}
+
+#[derive(Debug, Serialize)]
+
+pub struct FeedEntryCounts {
+  pub feed_id:      String,
+  pub total_count:  i64,
+  pub unread_count: i64,
+  pub read_count:   i64
 }
 
 #[derive(Debug, Serialize)]

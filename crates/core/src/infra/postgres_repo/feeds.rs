@@ -96,13 +96,14 @@ async fn upsert_chunk(
   for f in feeds {
     sqlx::query(
             r#"
-        INSERT INTO feeds(id, url, domain, category, base_poll_seconds, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO feeds(id, url, domain, category, base_poll_seconds, tags, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         ON CONFLICT (id) DO UPDATE SET
           url = EXCLUDED.url,
           domain = EXCLUDED.domain,
           category = EXCLUDED.category,
-          base_poll_seconds = EXCLUDED.base_poll_seconds
+          base_poll_seconds = EXCLUDED.base_poll_seconds,
+          tags = EXCLUDED.tags
         "#,
         )
         .bind(&f.id)
@@ -110,6 +111,7 @@ async fn upsert_chunk(
         .bind(&f.domain)
         .bind(&f.category)
         .bind(f.base_poll_seconds as i64)
+        .bind(f.tags.clone())
         .bind(now_ts)
         .execute(&mut *tx)
         .await
