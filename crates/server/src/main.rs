@@ -26,6 +26,7 @@ async fn main() -> Result<(), ConfigError> {
 
     tracing::info!(mode = ?config.app.mode, "server mode configured");
     tracing::info!(host = %config.http.host, port = config.http.port, "server http bind");
+    tracing::info!("server docs available at /docs and /openapi.json");
 
     let state = db::connect_db(&config, Path::new(&config_path)).await?;
     schema::apply_server_schema(&config, &state, Path::new(&config_path)).await?;

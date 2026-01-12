@@ -2,7 +2,14 @@
   "openapi": "3.0.3",
   "info": {
     "title": "feedrv3-server",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "contact": {
+      "name": "feedrv3",
+      "url": "https://github.com/sguzman/feederv3"
+    },
+    "license": {
+      "name": "MIT"
+    }
   },
   "paths": {
     "/health": {
