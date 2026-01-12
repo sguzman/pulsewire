@@ -4,6 +4,7 @@
     "includes": [
       "crates/fetcher/res/schemas/*.schema.json",
       "crates/server/res/schemas/*.schema.json",
+      "crates/tui/res/schemas/*.schema.json",
       "crates/server/res/openapi.json"
     ]
   },
