@@ -1,0 +1,28 @@
+[auth]
+auto_login = true
+password   = "admin"
+username   = "admin"
+
+[keybindings]
+entries_next  = "n"
+entries_prev  = "p"
+move_down     = "j"
+move_up       = "k"
+next_tab      = "right"
+open_entries  = "e"
+prev_tab      = "left"
+quit          = "q"
+refresh       = "r"
+tab_entries   = "2"
+tab_favorites = "3"
+tab_feeds     = "1"
+tab_folders   = "4"
+toggle_read   = "m"
+
+[server]
+timeout_ms = 5000
+url        = "http://localhost:8091"
+
+[ui]
+page_size           = 50
+refresh_interval_ms = 200

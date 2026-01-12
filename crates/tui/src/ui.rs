@@ -26,6 +26,7 @@ use crate::app::{
   LoginField
 };
 use crate::models::{
+  EntrySummary,
   FeedSummary,
   FolderRow
 };
@@ -128,8 +129,9 @@ pub(crate) fn draw_main(
 
   let titles = [
     "Feeds (1)",
-    "Favorites (2)",
-    "Folders (3)"
+    "Entries (2)",
+    "Favorites (3)",
+    "Folders (4)"
   ]
   .iter()
   .map(|t| {
@@ -182,6 +184,21 @@ pub(crate) fn draw_main(
       );
     }
     | 1 => {
+      draw_entries_list(
+        frame,
+        content[0],
+        &app.entries,
+        app.selected_entry
+      );
+      draw_entry_detail(
+        frame,
+        content[1],
+        app
+          .entries
+          .get(app.selected_entry)
+      );
+    }
+    | 2 => {
       draw_feed_list(
         frame,
         content[0],
@@ -276,6 +293,66 @@ fn draw_feed_detail(
   frame.render_widget(widget, area);
 }
 
+fn draw_entry_detail(
+  frame: &mut Frame,
+  area: Rect,
+  entry: Option<&EntrySummary>
+) {
+  let lines = if let Some(entry) = entry
+  {
+    vec![
+      Line::from(format!(
+        "id: {}",
+        entry.id
+      )),
+      Line::from(format!(
+        "feed: {}",
+        entry.feed_id
+      )),
+      Line::from(format!(
+        "read: {}",
+        if entry.is_read {
+          "yes"
+        } else {
+          "no"
+        }
+      )),
+      Line::from(format!(
+        "published: {:?}",
+        entry.published_at_ms
+      )),
+      Line::from(format!(
+        "title: {}",
+        entry
+          .title
+          .as_deref()
+          .unwrap_or("(untitled)")
+      )),
+      Line::from(format!(
+        "link: {}",
+        entry
+          .link
+          .as_deref()
+          .unwrap_or("-")
+      )),
+    ]
+  } else {
+    vec![Line::from("No selection")]
+  };
+
+  let widget = Paragraph::new(lines)
+    .block(
+      Block::default()
+        .borders(Borders::ALL)
+        .title("Entry Details")
+    )
+    .wrap(Wrap {
+      trim: true
+    });
+
+  frame.render_widget(widget, area);
+}
+
 fn draw_folder_detail(
   frame: &mut Frame,
   area: Rect,
@@ -343,6 +420,51 @@ fn draw_feed_list(
 
   let mut state =
     list_state(selected, feeds.len());
+
+  frame.render_stateful_widget(
+    list, area, &mut state
+  );
+}
+
+fn draw_entries_list(
+  frame: &mut Frame,
+  area: Rect,
+  entries: &[EntrySummary],
+  selected: usize
+) {
+  let items = entries
+    .iter()
+    .map(|entry| {
+      let title = entry
+        .title
+        .as_deref()
+        .unwrap_or("(untitled)");
+      let read = if entry.is_read {
+        "✓"
+      } else {
+        "·"
+      };
+      let label =
+        format!("{read} {title}");
+      ListItem::new(label)
+    })
+    .collect::<Vec<_>>();
+
+  let list = List::new(items)
+    .block(
+      Block::default()
+        .borders(Borders::ALL)
+        .title("Entries")
+    )
+    .highlight_style(
+      Style::default()
+        .fg(Color::Yellow)
+        .add_modifier(Modifier::BOLD)
+    )
+    .highlight_symbol("> ");
+
+  let mut state =
+    list_state(selected, entries.len());
 
   frame.render_stateful_widget(
     list, area, &mut state

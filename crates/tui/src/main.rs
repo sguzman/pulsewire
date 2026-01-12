@@ -1,4 +1,5 @@
 mod app;
+mod config;
 mod models;
 mod ui;
 
@@ -6,12 +7,16 @@ use std::io::{
   self,
   Stdout
 };
+use std::path::PathBuf;
 use std::time::{
   Duration,
   Instant
 };
 
-use anyhow::Result;
+use anyhow::{
+  Context,
+  Result
+};
 use crossterm::event::{
   self,
   Event
@@ -30,18 +35,31 @@ use crate::app::{
   App,
   Screen
 };
+use crate::config::{
+  TuiConfig,
+  default_config_path
+};
 use crate::ui::{
   draw_login,
   draw_main
 };
 
 fn main() -> Result<()> {
-  let base_url =
-    std::env::var("FEEDRV3_SERVER_URL")
-      .unwrap_or_else(|_| {
-        "http://localhost:8091"
-          .to_string()
-      });
+  let config_path =
+    resolve_config_path();
+  let config =
+    TuiConfig::load(&config_path)
+      .with_context(|| {
+        format!(
+          "load config: {}",
+          config_path.display()
+        )
+      })?;
+  let keys = config
+    .resolved_keybindings()
+    .with_context(|| {
+      "resolve keybindings"
+    })?;
 
   enable_raw_mode()?;
 
@@ -58,21 +76,25 @@ fn main() -> Result<()> {
   let mut terminal =
     Terminal::new(backend)?;
 
-  let mut app = App::new(base_url)?;
+  let mut app =
+    App::new(&config, keys)?;
 
-  app.status = "Attempting auto-login \
-                as admin..."
-    .to_string();
+  if config.auth.auto_login {
+    app.status = "Attempting \
+                  auto-login..."
+      .to_string();
 
-  if let Err(err) = app.login() {
-    app.status = format!(
-      "Auto-login failed: {err}"
-    );
-    app.screen = Screen::Login;
+    if let Err(err) = app.login() {
+      app.status = format!(
+        "Auto-login failed: {err}"
+      );
+      app.screen = Screen::Login;
+    }
   }
 
-  let tick_rate =
-    Duration::from_millis(200);
+  let tick_rate = Duration::from_millis(
+    config.ui.refresh_interval_ms
+  );
 
   let mut last_tick = Instant::now();
 
@@ -93,6 +115,22 @@ fn main() -> Result<()> {
   terminal.show_cursor()?;
 
   res
+}
+
+fn resolve_config_path() -> PathBuf {
+  if let Some(path) =
+    std::env::args().nth(1)
+  {
+    return PathBuf::from(path);
+  }
+
+  if let Ok(path) =
+    std::env::var("FEEDRV3_TUI_CONFIG")
+  {
+    return PathBuf::from(path);
+  }
+
+  default_config_path()
 }
 
 fn run_app(

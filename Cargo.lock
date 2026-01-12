@@ -900,10 +900,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "crossterm",
+ "jsonschema",
  "ratatui",
  "reqwest 0.12.26",
  "serde",
  "serde_json",
+ "toml",
 ]
 
 [[package]]
