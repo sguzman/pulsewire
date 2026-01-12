@@ -66,6 +66,48 @@ pub struct EntryBatchRequest {
 }
 
 
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct FeedDetail {
+    pub id: String,
+    pub url: String,
+    pub domain: String,
+    pub category: String,
+    pub base_poll_seconds: i64,
+    pub created_at_ms: Option<i64>,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct FavoriteUnreadCount {
+    pub feed_id: String,
+    pub unread_count: i64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FolderEntriesQuery {
+    pub read: Option<String>,
+    pub limit: Option<u32>,
+    pub offset: Option<u32>,
+    pub since: Option<i64>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PasswordResetRequest {
+    pub username: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PasswordResetConfirm {
+    pub token: String,
+    pub new_password: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PasswordResetResponse {
+    pub reset_token: String,
+    pub expires_in: u64,
+}
+
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct EntryDetail {
     pub id: i64,
@@ -116,6 +158,13 @@ pub struct FolderFeedRow {
 #[derive(Debug, Deserialize)]
 pub struct FolderFeedRequest {
     pub feed_id: String,
+}
+
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct FolderFeedUnreadCount {
+    pub feed_id: String,
+    pub unread_count: i64,
 }
 
 #[derive(Debug, Serialize, sqlx::FromRow)]

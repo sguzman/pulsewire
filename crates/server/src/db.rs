@@ -53,6 +53,7 @@ pub async fn connect_db(config: &ServerConfig, config_path: &Path) -> Result<App
 pub async fn reset_server_data(config: &ServerConfig, state: &AppState) -> Result<(), ConfigError> {
     let tables = [
         "user_tokens",
+        "user_password_resets",
         "favorites",
         "entry_states",
         "folder_feeds",

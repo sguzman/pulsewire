@@ -30,6 +30,15 @@
         }
       }
     },
+    "/docs": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Docs UI"
+          }
+        }
+      }
+    },
     "/v1/auth/login": {
       "post": {
         "requestBody": {
@@ -66,6 +75,27 @@
         "responses": {
           "204": {
             "description": "logged out"
+          }
+        }
+      }
+    },
+    "/v1/auth/rotate": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -145,6 +175,20 @@
         }
       }
     },
+    "/v1/users/me": {
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "deleted"
+          }
+        }
+      }
+    },
     "/v1/users/password": {
       "post": {
         "security": [
@@ -158,6 +202,51 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PasswordChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "updated"
+          }
+        }
+      }
+    },
+    "/v1/users/password-reset/request": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "reset token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/password-reset/confirm": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetConfirm"
               }
             }
           }
@@ -186,6 +275,37 @@
                   "items": {
                     "$ref": "#/components/schemas/FeedSummary"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/feeds/{feed_id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "feed_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedDetail"
                 }
               }
             }
@@ -740,6 +860,51 @@
         }
       }
     },
+    "/v1/favorites/unread/count": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnreadCountResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/favorites/unread/counts": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "counts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FavoriteUnreadCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/folders": {
       "get": {
         "security": [
@@ -952,6 +1117,71 @@
         }
       }
     },
+    "/v1/folders/{folder_id}/entries": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "folder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "read",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/folders/unread/counts": {
       "get": {
         "security": [
@@ -968,6 +1198,41 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/FolderUnreadCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/folders/{folder_id}/unread/counts": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "folder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "counts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FolderFeedUnreadCount"
                   }
                 }
               }
@@ -1004,6 +1269,39 @@
           "base_poll_seconds": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "FeedDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "domain",
+          "category",
+          "base_poll_seconds"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "base_poll_seconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "created_at_ms": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
           }
         }
       },
@@ -1161,6 +1459,22 @@
           }
         }
       },
+      "FavoriteUnreadCount": {
+        "type": "object",
+        "required": [
+          "feed_id",
+          "unread_count"
+        ],
+        "properties": {
+          "feed_id": {
+            "type": "string"
+          },
+          "unread_count": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "FolderRow": {
         "type": "object",
         "required": [
@@ -1231,6 +1545,22 @@
           "folder_id": {
             "type": "integer",
             "format": "int64"
+          },
+          "unread_count": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "FolderFeedUnreadCount": {
+        "type": "object",
+        "required": [
+          "feed_id",
+          "unread_count"
+        ],
+        "properties": {
+          "feed_id": {
+            "type": "string"
           },
           "unread_count": {
             "type": "integer",
@@ -1321,6 +1651,48 @@
           }
         }
       },
+      "PasswordResetRequest": {
+        "type": "object",
+        "required": [
+          "username"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "PasswordResetConfirm": {
+        "type": "object",
+        "required": [
+          "token",
+          "new_password"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "new_password": {
+            "type": "string"
+          }
+        }
+      },
+      "PasswordResetResponse": {
+        "type": "object",
+        "required": [
+          "reset_token",
+          "expires_in"
+        ],
+        "properties": {
+          "reset_token": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "SubscriptionRequest": {
         "type": "object",
         "required": [
@@ -1370,6 +1742,29 @@
           },
           "password": {
             "type": "string"
+          }
+        }
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
           }
         }
       }

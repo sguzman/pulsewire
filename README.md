@@ -52,13 +52,13 @@ Server config (`crates/server/res/config.toml`):
 - `[dev]` – `reset_on_start` (clears server-only tables).
 
 ## HTTP Server API (high level)
-- Auth: login/logout, list/revoke tokens.
-- Users: create user, change password.
-- Feeds: list feeds, list feed entries.
+- Auth: login/logout, rotate token, list/revoke tokens.
+- Users: create user, change password, delete account, password reset flow.
+- Feeds: list feeds, feed detail, list feed entries.
 - Entries: list, detail, read/unread, batch read/unread, unread counts, search.
 - Subscriptions: list/create/delete.
-- Folders: CRUD, assign/remove feeds, unread counts per folder.
-- Favorites: list/add/remove.
+- Folders: CRUD, assign/remove feeds, list folder entries, unread counts (folder + per-feed).
+- Favorites: list/add/remove, unread counts.
 
 OpenAPI docs:
 - Spec: `GET /openapi.json`

@@ -8,7 +8,89 @@ use crate::app_state::AppState;
 use crate::auth::auth_user_id;
 use crate::db::quote_ident;
 use crate::errors::{map_db_error, ServerError};
-use crate::models::{EntrySummary, FavoriteListQuery, FavoriteRequest};
+use crate::models::{EntrySummary, FavoriteListQuery, FavoriteRequest, FavoriteUnreadCount, UnreadCountResponse};
+
+
+pub async fn favorites_unread_count(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Json<UnreadCountResponse>, ServerError> {
+    let user_id = auth_user_id(&state, &headers).await?;
+
+    if let Some(pool) = &state.postgres {
+        let count = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*)::BIGINT FROM favorites f 
+             LEFT JOIN entry_states es ON es.item_id = f.item_id AND es.user_id = $1 
+             WHERE f.user_id = $1 AND es.read_at IS NULL",
+        )
+        .bind(user_id)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        return Ok(Json(UnreadCountResponse { count }));
+    }
+
+    let pool = state
+        .sqlite
+        .as_ref()
+        .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
+    let count = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM favorites f 
+         LEFT JOIN entry_states es ON es.item_id = f.item_id AND es.user_id = ?1 
+         WHERE f.user_id = ?1 AND es.read_at IS NULL",
+    )
+    .bind(user_id)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    Ok(Json(UnreadCountResponse { count }))
+}
+
+pub async fn favorites_unread_counts(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Json<Vec<FavoriteUnreadCount>>, ServerError> {
+    let user_id = auth_user_id(&state, &headers).await?;
+
+    if let Some(pool) = &state.postgres {
+        let schema = state.fetcher_schema.as_deref().unwrap_or("fetcher");
+        let query = format!(
+            "SELECT fi.feed_id, COUNT(*)::BIGINT AS unread_count 
+             FROM favorites f 
+             JOIN {}.feed_items fi ON fi.id = f.item_id 
+             LEFT JOIN entry_states es ON es.item_id = fi.id AND es.user_id = $1 
+             WHERE f.user_id = $1 AND es.read_at IS NULL 
+             GROUP BY fi.feed_id 
+             ORDER BY fi.feed_id",
+            quote_ident(schema)
+        );
+        let rows = sqlx::query_as::<_, FavoriteUnreadCount>(&query)
+        .bind(user_id)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        return Ok(Json(rows));
+    }
+
+    let pool = state
+        .sqlite
+        .as_ref()
+        .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
+    let rows = sqlx::query_as::<_, FavoriteUnreadCount>(
+        "SELECT fi.feed_id, COUNT(*) AS unread_count 
+         FROM favorites f 
+         JOIN feed_items fi ON fi.id = f.item_id 
+         LEFT JOIN entry_states es ON es.item_id = fi.id AND es.user_id = ?1 
+         WHERE f.user_id = ?1 AND es.read_at IS NULL 
+         GROUP BY fi.feed_id 
+         ORDER BY fi.feed_id",
+    )
+    .bind(user_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    Ok(Json(rows))
+}
 
 pub async fn list_favorites(
     State(state): State<AppState>,
