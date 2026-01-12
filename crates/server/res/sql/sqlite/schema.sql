@@ -41,13 +41,14 @@ CREATE TABLE IF NOT EXISTS entry_states(
   FOREIGN KEY (item_id) REFERENCES feed_items(id) ON DELETE CASCADE
 );
 
+
 CREATE TABLE IF NOT EXISTS favorites(
   user_id INTEGER NOT NULL,
-  item_id INTEGER NOT NULL,
+  feed_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  PRIMARY KEY (user_id, item_id),
+  PRIMARY KEY (user_id, feed_id),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (item_id) REFERENCES feed_items(id) ON DELETE CASCADE
+  FOREIGN KEY (feed_id) REFERENCES feeds(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS folders(

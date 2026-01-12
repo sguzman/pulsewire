@@ -804,7 +804,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EntrySummary"
+                    "$ref": "#/components/schemas/FeedSummary"
                   }
                 }
               }
@@ -831,31 +831,6 @@
         "responses": {
           "201": {
             "description": "created"
-          }
-        }
-      }
-    },
-    "/v1/favorites/{item_id}": {
-      "delete": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "item_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "deleted"
           }
         }
       }
@@ -1240,6 +1215,30 @@
           }
         }
       }
+    },
+    "/v1/favorites/{feed_id}": {
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "feed_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "deleted"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1571,12 +1570,11 @@
       "FavoriteRequest": {
         "type": "object",
         "required": [
-          "item_id"
+          "feed_id"
         ],
         "properties": {
-          "item_id": {
-            "type": "integer",
-            "format": "int64"
+          "feed_id": {
+            "type": "string"
           }
         }
       },

@@ -58,7 +58,7 @@ Server config (`crates/server/res/config.toml`):
 - Entries: list, detail, read/unread, batch read/unread, unread counts, search.
 - Subscriptions: list/create/delete.
 - Folders: CRUD, assign/remove feeds, list folder entries, unread counts (folder + per-feed).
-- Favorites: list/add/remove, unread counts.
+- Favorites: list/add/remove feeds, unread counts.
 
 OpenAPI docs:
 - Spec: `GET /openapi.json`

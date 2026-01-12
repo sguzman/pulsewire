@@ -182,7 +182,7 @@ pub struct UserResponse {
 
 #[derive(Debug, Deserialize)]
 pub struct FavoriteRequest {
-    pub item_id: i64,
+    pub feed_id: String,
 }
 
 #[derive(Debug, Deserialize)]

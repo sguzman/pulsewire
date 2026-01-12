@@ -26,7 +26,7 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/favorites/unread/count", get(favorites::favorites_unread_count))
         .route("/v1/favorites/unread/counts", get(favorites::favorites_unread_counts))
         .route("/v1/favorites", post(favorites::create_favorite))
-        .route("/v1/favorites/:item_id", delete(favorites::delete_favorite))
+        .route("/v1/favorites/:feed_id", delete(favorites::delete_favorite))
         .route("/v1/folders", get(folders::list_folders))
         .route("/v1/folders", post(folders::create_folder))
         .route("/v1/folders/:folder_id", patch(folders::update_folder))

@@ -35,11 +35,12 @@ CREATE TABLE IF NOT EXISTS entry_states(
   PRIMARY KEY (user_id, item_id)
 );
 
+
 CREATE TABLE IF NOT EXISTS favorites(
   user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  item_id BIGINT NOT NULL REFERENCES feed_items(id) ON DELETE CASCADE,
+  feed_id TEXT NOT NULL REFERENCES feeds(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL,
-  PRIMARY KEY (user_id, item_id)
+  PRIMARY KEY (user_id, feed_id)
 );
 
 CREATE TABLE IF NOT EXISTS folders(
