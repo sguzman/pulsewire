@@ -21,6 +21,29 @@ pub struct LoginRequest {
     pub password: String,
 }
 
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct EntrySummary {
+    pub id: i64,
+    pub feed_id: String,
+    pub title: Option<String>,
+    pub link: Option<String>,
+    pub published_at_ms: Option<i64>,
+    pub is_read: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EntryListQuery {
+    pub read: Option<String>,
+    pub limit: Option<u32>,
+    pub offset: Option<u32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EntryBatchRequest {
+    pub item_ids: Vec<i64>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct UserResponse {
     pub id: i64,
