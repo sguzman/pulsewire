@@ -37,11 +37,38 @@ pub struct EntryListQuery {
     pub read: Option<String>,
     pub limit: Option<u32>,
     pub offset: Option<u32>,
+    pub feed_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct EntryBatchRequest {
     pub item_ids: Vec<i64>,
+}
+
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct EntryDetail {
+    pub id: i64,
+    pub feed_id: String,
+    pub title: Option<String>,
+    pub link: Option<String>,
+    pub guid: Option<String>,
+    pub published_at_ms: Option<i64>,
+    pub category: Option<String>,
+    pub description: Option<String>,
+    pub summary: Option<String>,
+    pub is_read: bool,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct FeedUnreadCount {
+    pub feed_id: String,
+    pub unread_count: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct UnreadCountResponse {
+    pub count: i64,
 }
 
 #[derive(Debug, Serialize)]
