@@ -2,6 +2,9 @@
 array_auto_collapse  = false
 array_auto_expand    = true
 array_trailing_comma = true
+exclude = [
+  "crates/fetcher/res/feeds/youtube.com/**/*.toml",
+]
 
 align_comments = true
 align_entries  = true
@@ -55,6 +58,7 @@ schema = { path = "crates/fetcher/res/schemas/global.schema.json" }
 [[rule]]
 exclude = [
   "crates/fetcher/res/feeds/**/global.toml",
+  "crates/fetcher/res/feeds/youtube.com/**/*.toml",
 ]
 include = [
   "crates/fetcher/res/feeds/**/*.toml",
