@@ -1,5 +1,8 @@
 # Pulsewire
 
+![Pulsewire banner](branding/pulsewire-banner.png)
+
+
 Pulsewire is a time-aware ingestion engine for the open web: RSS/Atom feeds today, release calendars and structured datasets next. It polls with adaptive backoff, respects per-domain limits, stores payloads + items in SQLite/Postgres, and ships a companion HTTP server for reader clients.
 
 ## Overview
@@ -17,6 +20,7 @@ Pulsewire is a time-aware ingestion engine for the open web: RSS/Atom feeds toda
 - `crates/*/README.md` – crate-specific docs (core/fetcher/cli).
 - `crates/fetcher/res/` – example config bundle (`config.toml`, `domains.toml`, `feeds/*.toml`).
 - `crates/server/res/` – server config and OpenAPI docs (`config.toml`, `openapi.json`, `openapi.html`).
+- `branding/` – logo/banner/icon assets.
 
 ## Configuration
 Fetcher config resolution order:

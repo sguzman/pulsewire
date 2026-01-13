@@ -2,3 +2,4 @@
 
 - Rust repo rules: docs/ai/RUST.md
 - Project overview and API docs: README.md (Pulsewire)
+- Branding assets: branding/
