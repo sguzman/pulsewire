@@ -44,21 +44,21 @@ commit_parsers = [
   # Security (case-insensitive body match)
   { body = "(?i)security", group = "🔒 Security" },
 
-  { message = "^build", group = "🏗️ Build System" },
-  { message = "^chore", group = "⚙️ Miscellaneous" },
-  { message = "^ci", group = "🤖 CI" },
-  { message = "^deps", group = "📦 Dependencies" },
-  { message = "^docs", group = "� Documentation" },
-  { message = "^feat", group = "� Features" },
-  { message = "^fix", group = "� Bug Fixes" },
-  { message = "^perf", group = "⚡ Performance" },
-  { message = "^refactor", group = "🚜 Refactor" },
-  { message = "^revert", group = "◀️ Revert" },
-  { message = "^style", group = "🎨 Styling" },
-  { message = "^test", group = "🧪 Testing" },
+  { group = "◀️ Revert", message = "^revert" },
+  { group = "⚙️ Miscellaneous", message = "^chore" },
+  { group = "⚡ Performance", message = "^perf" },
+  { group = "� Bug Fixes", message = "^fix" },
+  { group = "� Documentation", message = "^docs" },
+  { group = "� Features", message = "^feat" },
+  { group = "🎨 Styling", message = "^style" },
+  { group = "🏗️ Build System", message = "^build" },
+  { group = "📦 Dependencies", message = "^deps" },
+  { group = "🚜 Refactor", message = "^refactor" },
+  { group = "🤖 CI", message = "^ci" },
+  { group = "🧪 Testing", message = "^test" },
 
   # Catch-all MUST be last or it eats everything
-  { message = ".*", group = "⚙️ Miscellaneous" },
+  { group = "⚙️ Miscellaneous", message = ".*" },
 ]
 
 commit_preprocessors = [
