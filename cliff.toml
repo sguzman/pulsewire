@@ -38,32 +38,42 @@ trim = true
 
 [git]
 commit_parsers = [
-  { body = ".*security", group = "🔒 Security" },
-  { group = "◀️ Revert", message = "^revert" },
-  { group = "⚙️ Miscellaneous", message = ".*" },
-  { group = "⚙️ Miscellaneous", message = "^chore" },
-  { group = "⚡ Performance", message = "^perf" },
-  { group = "🎨 Styling", message = "^style" },
-  { group = "🏗️ Build System", message = "^build" },
-  { group = "🐛 Bug Fixes", message = "^fix" },
-  { group = "📚 Documentation", message = "^docs" },
-  { group = "📦 Dependencies", message = "^deps" },
-  { group = "🚀 Features", message = "^feat" },
-  { group = "🚜 Refactor", message = "^refactor" },
-  { group = "🤖 CI", message = "^ci" },
-  { group = "🧪 Testing", message = "^test" },
+  # Skip release prep commits first
   { message = "^chore\\(release\\): prepare for", skip = true },
+
+  # Security (case-insensitive body match)
+  { body = "(?i)security", group = "🔒 Security" },
+
+  { message = "^build", group = "🏗️ Build System" },
+  { message = "^chore", group = "⚙️ Miscellaneous" },
+  { message = "^ci", group = "🤖 CI" },
+  { message = "^deps", group = "📦 Dependencies" },
+  { message = "^docs", group = "� Documentation" },
+  { message = "^feat", group = "� Features" },
+  { message = "^fix", group = "� Bug Fixes" },
+  { message = "^perf", group = "⚡ Performance" },
+  { message = "^refactor", group = "🚜 Refactor" },
+  { message = "^revert", group = "◀️ Revert" },
+  { message = "^style", group = "🎨 Styling" },
+  { message = "^test", group = "🧪 Testing" },
+
+  # Catch-all MUST be last or it eats everything
+  { message = ".*", group = "⚙️ Miscellaneous" },
 ]
+
 commit_preprocessors = [
-  { pattern = '\\((\\w+\\s)?#([0-9]+)\\)', replace = "([#${2}](https://github.com/sguzman/pulsewire/issues/${2}))" },
-  { pattern = '^\\s*\\n', replace = "" },
+  { pattern = "\\((\\w+\\s)?#([0-9]+)\\)", replace = "([#${2}](https://github.com/sguzman/pulsewire/issues/${2}))" },
+  { pattern = "^\\s*\\n", replace = "" },
 ]
-conventional_commits = false
-filter_commits = false
+
+# Key change: parse conventional commits (new ones), but keep old ones too
+conventional_commits  = true
 filter_unconventional = false
-ignore_tags = "v0.1.4"
+
+filter_commits           = false
+ignore_tags              = "v0.1.4"
 protect_breaking_commits = false
-sort_commits = "oldest"
-split_commits = false
-tag_pattern = "v[0-9].*"
-topo_order = false
+sort_commits             = "oldest"
+split_commits            = false
+tag_pattern              = "v[0-9].*"
+topo_order               = false
