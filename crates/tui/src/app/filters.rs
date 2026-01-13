@@ -104,6 +104,8 @@ impl App {
           as usize,
         self.subscriptions_view.len()
       );
+
+    self.rebuild_folder_feeds();
   }
 
   pub(super) fn matches_filters(

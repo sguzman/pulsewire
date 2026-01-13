@@ -116,6 +116,10 @@ pub(crate) struct App {
   pub(crate) favorite_ids:
     HashSet<String>,
   pub(crate) folders: Vec<FolderRow>,
+  pub(crate) folder_feed_ids:
+    Vec<String>,
+  pub(crate) folder_feeds:
+    Vec<FeedSummary>,
   pub(crate) subscriptions:
     HashSet<String>,
   pub(crate) feed_counts:
@@ -155,6 +159,7 @@ pub(crate) struct App {
   pub(crate) subscriptions_page_size:
     u32,
   pub(crate) feeds_offset: usize,
+  pub(crate) folder_feeds_offset: usize,
   pub(crate) favorites_offset: usize,
   pub(crate) folders_offset: usize,
   pub(crate) subscriptions_offset:
@@ -203,6 +208,8 @@ impl App {
       favorites: Vec::new(),
       favorite_ids: HashSet::new(),
       folders: Vec::new(),
+      folder_feed_ids: Vec::new(),
+      folder_feeds: Vec::new(),
       subscriptions: HashSet::new(),
       feed_counts: HashMap::new(),
       feed_details: HashMap::new(),
@@ -248,6 +255,7 @@ impl App {
         .ui
         .subscriptions_page_size,
       feeds_offset: 0,
+      folder_feeds_offset: 0,
       favorites_offset: 0,
       folders_offset: 0,
       subscriptions_offset: 0,

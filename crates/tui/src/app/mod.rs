@@ -3,6 +3,7 @@ mod background;
 mod details;
 mod entries;
 mod filters;
+mod folders;
 mod input;
 mod modal;
 mod pagination;

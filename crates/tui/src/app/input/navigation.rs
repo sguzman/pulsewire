@@ -50,6 +50,8 @@ impl App {
       }
       | 3 => {
         let len = self.folders.len();
+        let before =
+          self.selected_folder;
         self.selected_folder =
           move_index(
             self.selected_folder,
@@ -57,6 +59,11 @@ impl App {
             delta
           );
         self.ensure_visible_for_tab();
+        if before
+          != self.selected_folder
+        {
+          self.request_folder_feeds();
+        }
       }
       | _ => {
         let len =
@@ -90,6 +97,7 @@ impl App {
       | 3 => {
         self.selected_folder = 0;
         self.ensure_visible_for_tab();
+        self.request_folder_feeds();
       }
       | _ => {
         self.selected_subscription = 0;
@@ -127,6 +135,7 @@ impl App {
           self.selected_folder =
             self.folders.len() / 2;
           self.ensure_visible_for_tab();
+          self.request_folder_feeds();
         }
       }
       | _ => {
@@ -174,6 +183,7 @@ impl App {
           self.selected_folder =
             self.folders.len() - 1;
           self.ensure_visible_for_tab();
+          self.request_folder_feeds();
         }
       }
       | _ => {

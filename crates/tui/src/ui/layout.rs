@@ -20,13 +20,13 @@ use ratatui::widgets::{
 
 use super::detail::{
   draw_entry_detail,
-  draw_feed_detail,
-  draw_folder_detail
+  draw_feed_detail
 };
 use super::lists::{
   draw_entries_list,
   draw_feed_list,
   draw_feed_view_list,
+  draw_folder_feed_list,
   draw_folder_list
 };
 use super::modal::{
@@ -349,12 +349,14 @@ pub(crate) fn draw_main(
         app.folders_offset,
         app.folders_page_size as usize
       );
-      draw_folder_detail(
+      draw_folder_feed_list(
         frame,
         content[1],
-        app
-          .folders
-          .get(app.selected_folder)
+        &app.folder_feeds,
+        app.folder_feeds_offset,
+        app.feeds_page_size as usize,
+        Some(&app.feed_counts),
+        "Folder Feeds"
       );
     }
     | _ => {

@@ -62,6 +62,7 @@ impl App {
       key
     ) {
       self.tab = 3;
+      self.request_folder_feeds();
       return Ok(false);
     }
 
@@ -82,6 +83,9 @@ impl App {
       } else {
         self.tab - 1
       };
+      if self.tab == 3 {
+        self.request_folder_feeds();
+      }
       return Ok(false);
     }
 
@@ -90,6 +94,9 @@ impl App {
       key
     ) {
       self.tab = (self.tab + 1) % 5;
+      if self.tab == 3 {
+        self.request_folder_feeds();
+      }
       return Ok(false);
     }
 

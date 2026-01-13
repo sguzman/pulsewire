@@ -7,7 +7,7 @@ Interactive terminal UI for the feedrv3 server API.
 - Browse feeds, entries, favorites, folders, and subscriptions.
 - Toggle entry read/unread and feed subscriptions.
 - Favorite/unfavorite feeds.
-- Folder create/rename/delete and feed assignment.
+- Folder create/rename/delete, feed assignment, and folder feed list.
 - Folder entries, global entries, and search.
 - Configurable keybindings and server settings.
 

@@ -198,6 +198,59 @@ pub(crate) fn draw_feed_view_list(
   );
 }
 
+pub(crate) fn draw_folder_feed_list(
+  frame: &mut Frame,
+  area: Rect,
+  feeds: &[FeedSummary],
+  offset: usize,
+  page_size: usize,
+  counts: Option<
+    &HashMap<String, FeedEntryCounts>
+  >,
+  title: &str
+) {
+  let (start, end) = page_bounds(
+    feeds.len(),
+    offset,
+    page_size
+  );
+
+  let items = feeds[start..end]
+    .iter()
+    .map(|feed| {
+      let count = counts
+        .and_then(|map| {
+          map.get(&feed.id)
+        })
+        .map(|row| {
+          format!(
+            "{}/{}/{}",
+            row.read_count,
+            row.unread_count,
+            row.total_count
+          )
+        })
+        .unwrap_or_else(|| {
+          "0/0/0".to_string()
+        });
+
+      let label = format!(
+        "{} [{}] ({})",
+        feed.id, feed.domain, count
+      );
+      ListItem::new(label)
+    })
+    .collect::<Vec<_>>();
+
+  let list = List::new(items).block(
+    Block::default()
+      .borders(Borders::ALL)
+      .title(title)
+  );
+
+  frame.render_widget(list, area);
+}
+
 pub(crate) fn draw_entries_list(
   frame: &mut Frame,
   area: Rect,

@@ -16,6 +16,7 @@ use crate::models::{
   FeedDetail,
   FeedEntryCounts,
   FeedSummary,
+  FolderFeedRow,
   FolderRow,
   SubscriptionRow
 };
@@ -73,6 +74,10 @@ pub(crate) enum AppEvent {
     assigned:  bool,
     ok:        bool,
     message:   Option<String>
+  },
+  FolderFeeds {
+    folder_id: i64,
+    feed_ids:  Vec<String>
   },
   Error {
     message: String
@@ -170,6 +175,7 @@ impl App {
           self.feeds_view.len()
         );
         self.prefetch_selection_details();
+        self.request_folder_feeds();
       }
       | AppEvent::RefreshFolders {
         folders,
@@ -188,6 +194,7 @@ impl App {
           .saturating_sub(1);
         self.error = None;
         self.status = message;
+        self.request_folder_feeds();
       }
       | AppEvent::RefreshFavorites {
         favorites,
@@ -422,6 +429,22 @@ impl App {
                   .to_string()
               }
             )
+          );
+        }
+      }
+      | AppEvent::FolderFeeds {
+        folder_id,
+        feed_ids
+      } => {
+        let selected = self
+          .folders
+          .get(self.selected_folder)
+          .map(|folder| folder.id);
+        if selected == Some(folder_id) {
+          self.update_folder_feeds(feed_ids);
+          self.status = format!(
+            "Loaded {} feeds for folder #{folder_id}",
+            self.folder_feeds.len()
           );
         }
       }
@@ -1365,6 +1388,66 @@ impl App {
           );
         }
       }
+    });
+  }
+
+  pub(crate) fn queue_folder_feeds(
+    &mut self,
+    folder_id: i64
+  ) {
+    let Some(sender) =
+      self.event_tx.clone()
+    else {
+      return;
+    };
+
+    let Some(token) =
+      self.token.clone()
+    else {
+      return;
+    };
+
+    let base_url =
+      self.base_url.clone();
+
+    self.pending_requests += 1;
+    self.loading = true;
+
+    thread::spawn(move || {
+      let client =
+        reqwest::blocking::Client::new(
+        );
+      let url = format!(
+        "{base_url}/v1/folders/\
+         {folder_id}/feeds"
+      );
+
+      let feeds: Vec<FolderFeedRow> =
+        match get_json(
+          &client, &url, &token
+        ) {
+          | Ok(data) => data,
+          | Err(err) => {
+            let _ = sender.send(
+              AppEvent::Error {
+                message: err
+              }
+            );
+            return;
+          }
+        };
+
+      let feed_ids = feeds
+        .into_iter()
+        .map(|row| row.feed_id)
+        .collect();
+
+      let _ = sender.send(
+        AppEvent::FolderFeeds {
+          folder_id,
+          feed_ids
+        }
+      );
     });
   }
 
