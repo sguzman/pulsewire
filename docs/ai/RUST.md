@@ -12,18 +12,26 @@ After making changes, ensure the repo builds:
 
 If the build fails, fix the issues until it compiles.
 
-### 2) Provide a commit message only (required)
+### 2) SemVer discipline (required)
+
+Changes must respect the release policy in `docs/RELEASE.md`.
+
+- Use Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `perf:`, `test:`, `chore:`, `build:`, `ci:`).
+- Mark breaking changes with `!` (e.g., `feat!: ...`) and describe the break in the body.
+- If behavior, config schemas, or API contracts change, call it out explicitly in the final response.
+
+### 3) Provide a commit message only (required)
 
 After completing a coherent, working change:
 
-- Generate an appropriate commit message
-- Do not run git commands (add/commit/push); the user will do that manually
+- Generate an appropriate commit message (Conventional Commit format).
+- Do not run git commands (add/commit/push); the user will do that manually.
 
-### 3) Post-change checks are manual (required)
+### 4) Post-change checks are manual (required)
 
 See `docs/ai/POST-CHANGES.md` for the manual checklist and script.
 
-### 4) Refactor oversized Rust files into modules (required)
+### 5) Refactor oversized Rust files into modules (required)
 
 If any Rust source file grows beyond 600 lines, refactor it into modules.
 
