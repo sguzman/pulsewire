@@ -1,4 +1,4 @@
-# feedrv3-cli
+# Pulsewire CLI (feedrv3-cli)
 
 Operations CLI for the fetcher config bundle. It validates schema + semantic rules and can clean local dev artifacts with a safety flag.
 

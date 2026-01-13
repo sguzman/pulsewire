@@ -1,6 +1,6 @@
-# feedrv3-core
+# Pulsewire Core (feedrv3-core)
 
-Shared runtime library for the feed fetcher and server. This crate owns the domain model, scheduler logic, and infrastructure adapters (DB, HTTP, clock, RNG).
+Shared runtime library for the fetcher and server. This crate owns the domain model, scheduler logic, and infrastructure adapters (DB, HTTP, clock, RNG).
 
 ## What it does
 - Parses and validates the TOML config bundle (app/domains/categories/feeds).

@@ -1,6 +1,6 @@
-# feedrv3-tui
+# Pulsewire TUI (feedrv3-tui)
 
-Interactive terminal UI for the feedrv3 server API.
+Interactive terminal UI for the Pulsewire server API.
 
 ## Features
 - Login with username/password.

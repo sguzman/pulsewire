@@ -1,6 +1,8 @@
-# feedrv3
+# Pulsewire (formerly feedrv3)
 
-Rust async worker that polls a set of RSS/Atom feeds, tracks HTTP state with adaptive backoff, and stores feed payloads plus items in SQLite or Postgres. Configuration is file based (TOML) and a scheduler drives concurrent HEAD/GET requests with per-domain limits. The repo also ships a companion HTTP server for feed reader clients.
+Pulsewire is a time-aware ingestion engine for the open web: RSS/Atom feeds today, release calendars and structured datasets next. It polls with adaptive backoff, respects per-domain limits, stores payloads + items in SQLite/Postgres, and ships a companion HTTP server for reader clients.
+
+Note: crate and binary names still use the `feedrv3-*` prefix while the rename finishes.
 
 ## Overview
 - Fetcher loads app/domain/feed config from a TOML bundle, migrates/creates a SQL database (SQLite or Postgres) and bulk-ingests feed definitions.
@@ -67,6 +69,8 @@ OpenAPI docs:
 - UI: `GET /docs`
 
 ## CLI Usage
+
+Binary and env var names currently remain `feedrv3-*` and `FEEDRV3_*`.
 - Run fetcher scheduler (default config resolution):
   `cargo run -p fetcher --release`
 - Run fetcher with explicit config:
@@ -93,3 +97,6 @@ OpenAPI docs:
 - Build: `cargo build`
 - Tests: `cargo test`
 - TOML validation: `taplo validate`
+
+## License
+MIT.
