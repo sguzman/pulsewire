@@ -3,6 +3,7 @@ shared-version = true
 tag-name = "v{{version}}"
 tag-prefix = "v"
 pre-release-commit-message = "chore(release): prepare {{version}}"
+publish = false
 
 [workspace]
 allow-branch = ["main"]

@@ -34,13 +34,16 @@ git cliff --config cliff.toml --output CHANGELOG.md
 
 1) Update version with cargo-release (workspace)
 2) Generate changelog
-3) Tag and publish
+3) Tag the release (no publish)
 
 Example:
 
 ```
 cargo release patch --workspace
 ```
+
+Notes:
+- `publish = false` in `release.toml` so crates are not published.
 
 ## Files
 
