@@ -1,8 +1,8 @@
 [package]
 edition = "2024"
+license = "MIT"
 name    = "pulsewire-core"
 version = { workspace = true }
-license = "MIT"
 
 [dependencies]
 futures = "0.3.31"

@@ -1,8 +1,8 @@
 [package]
 edition = "2024"
+license = "MIT"
 name    = "pulsewire-server"
 version = { workspace = true }
-license = "MIT"
 
 [dependencies]
 argon2 = "0.5.3"

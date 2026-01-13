@@ -1,8 +1,8 @@
 [package]
 edition = "2024"
+license = "MIT"
 name    = "pulsewire-fetcher"
 version = { workspace = true }
-license = "MIT"
 
 [[bin]]
 name = "pulsewire"

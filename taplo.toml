@@ -1,5 +1,5 @@
 exclude = [
-  "crates/fetcher/res/feeds/youtube.com/**/*.toml",
+  "crates/fetcher/res/feeds/**/**/*.toml",
 ]
 
 [formatting]

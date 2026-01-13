@@ -1,8 +1,8 @@
 [package]
 edition = "2024"
+license = "MIT"
 name    = "pulsewire-tui"
 version = { workspace = true }
-license = "MIT"
 
 [dependencies]
 anyhow = "1.0"
