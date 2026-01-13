@@ -10,61 +10,21 @@ After making changes, ensure the repo builds:
 
 - Run: `cargo build`
 
-Do not leave the repo in a state where it no longer compiles.
+If the build fails, fix the issues until it compiles.
 
-### 2) Tests must pass when relevant (required)
-
-If your change could affect behavior (most code changes do), run tests:
-
-- Run: `cargo test`
-
-If tests are not runnable in the current environment (missing deps, platform limits, etc.), clearly state what was attempted and what blocked it.
-
-#### 2a) Format Rust code (required)
-
-After tests (or after determining tests cannot be run), format Rust code:
-
-- Run: `cargo fmt`
-
-### 3) Configuration must be valid (required)
-
-If you edit TOML (Cargo.toml, workspace config, tool configs, etc.), validate it:
-
-- Run: `taplo validate`
-
-If additional validators are requested later (formatters, linters, schema checks, nix checks, etc.), treat them as required for the relevant files and run them before committing.
-
-#### 3a) Format TOML (required)
-
-After TOML validation (or after determining validation cannot be run), format TOML:
-
-- Run: `taplo fmt`
-
-#### 3b) Format JSON (Biome) (required)
-
-If you edit JSON (or JSONC), format it with Biome:
-
-- Run: `biome format --write <files-or-directories>`
-  - Example: `biome format --write path/to/file.json`
-  - Example: `biome format --write .` (formats supported files under the directory, including JSON) :contentReference[oaicite:0]{index=0}
-
-### 4) Update docs related to changes (required)
-
-Before committing, update any documentation impacted by the change:
-
-- Update relevant docs (README, docs/, inline module docs, examples, CHANGELOG notes if present, etc.)
-- Ensure docs match the actual behavior, CLI flags/config keys, APIs, and file paths introduced/changed
-- If no doc updates are needed, explicitly state: "Docs: no changes needed"
-
-### 5) Commit and push after a working modification (required)
+### 2) Provide a commit message only (required)
 
 After completing a coherent, working change:
 
 - Generate an appropriate commit message
-- Commit the changes
-- Push to the configured remote
+- Do not run git commands (add/commit/push); the user will do that manually
 
-### 6) Refactor oversized Rust files into modules (required)
+### 3) Post-change checks are manual (required)
+
+All formatting, linting, validation, and test commands are run manually by the user.
+See `docs/ai/POST-CHANGES.md` for the full checklist.
+
+### 4) Refactor oversized Rust files into modules (required)
 
 If any Rust source file grows beyond 600 lines, refactor it into modules.
 
@@ -77,4 +37,4 @@ If any Rust source file grows beyond 600 lines, refactor it into modules.
 - Preserve behavior and public API where possible:
   - Avoid churn in call sites unless there is a strong reason.
   - If imports/paths must change, update them consistently across the repo.
-- After refactoring, re-run steps 1-3 (build/tests/taplo) to ensure everything still compiles and behaves correctly.
+- After refactoring, re-run step 1 (build) to ensure everything still compiles.
