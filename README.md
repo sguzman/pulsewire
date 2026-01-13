@@ -116,6 +116,7 @@ OpenAPI docs:
 - Build: `cargo build`
 - Tests: `cargo test`
 - TOML validation: `taplo validate`
+- JSON formatting: `biome format --write .`
 
 ## License
 MIT.
