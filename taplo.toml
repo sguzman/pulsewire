@@ -1,6 +1,7 @@
 exclude = [
   "crates/fetcher/res/feeds/**/**/*.toml",
   "release.toml",
+  "cliff.toml"
 ]
 
 [formatting]
