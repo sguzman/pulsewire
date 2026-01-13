@@ -1,6 +1,9 @@
 # Post-Change Checklist (Manual)
 
 Run these commands after a change is completed and confirmed to compile.
+Run from the repo root.
+
+Prereqs: `taplo` and `biome` must be installed.
 
 ## Script
 
