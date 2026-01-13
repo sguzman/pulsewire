@@ -6,9 +6,11 @@ include = [ ".*\\.md$" ]
 # Cache results to avoid re-checking known links too often.
 cache = true
 
-# Don't fail on mailto links or localhost URLs.
+# Don't fail on mailto links, localhost, shields, or commit permalinks.
 exclude = [
   "^http://127.0.0.1",
   "^http://localhost",
+  "^https://github.com/sguzman/pulsewire/commit/",
+  "^https://img.shields.io/",
   "^mailto:",
 ]
