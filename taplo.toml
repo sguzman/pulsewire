@@ -1,10 +1,11 @@
+exclude = [
+  "crates/fetcher/res/feeds/youtube.com/**/*.toml",
+]
+
 [formatting]
 array_auto_collapse  = false
 array_auto_expand    = true
 array_trailing_comma = true
-exclude = [
-  "crates/fetcher/res/feeds/youtube.com/**/*.toml",
-]
 
 align_comments = true
 align_entries  = true
