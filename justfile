@@ -14,6 +14,8 @@ fmt:
 	biome format --write .
 
 # Validate
+links:
+	lychee --config lychee.toml .
 validate:
 	taplo validate
 

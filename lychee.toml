@@ -1,0 +1,14 @@
+# lychee link checker configuration
+
+# Check links in these file types by default.
+include = ["*.md"]
+
+# Cache results to avoid re-checking known links too often.
+cache = true
+
+# Don't fail on mailto links or localhost URLs.
+exclude = [
+  "^mailto:",
+  "^http://localhost",
+  "^http://127.0.0.1",
+]

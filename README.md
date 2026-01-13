@@ -112,7 +112,7 @@ OpenAPI docs:
 - Postgres uses separate schemas: `fetcher` for fetcher tables, `server` for server state.
 
 ## Development
-- Tooling: cargo-release, git-cliff, just, biome, taplo, rustfmt
+- Tooling: cargo-release, git-cliff, just, biome, taplo, rustfmt, lychee
 - Justfile: `just build`, `just fmt`, `just validate`, `just test`, `just post-change`, `just all`
 - Release policy: `docs/RELEASE.md`
 - Roadmap: `docs/ROADMAP.md`
@@ -122,6 +122,7 @@ OpenAPI docs:
 - Build: `cargo build`
 - Tests: `cargo test`
 - TOML validation: `taplo validate`
+- Link validation: `lychee --config lychee.toml .`
 - JSON formatting: `biome format --write .`
 
 ## License
