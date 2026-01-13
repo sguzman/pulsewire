@@ -10,14 +10,14 @@ COPY crates/core/src crates/core/src
 COPY crates/core/res/sql crates/core/res/sql
 COPY crates/fetcher/Cargo.toml crates/fetcher/Cargo.toml
 COPY crates/fetcher/src crates/fetcher/src
-RUN cargo build -p fetcher --release --target ${TARGET}
-RUN strip /app/target/${TARGET}/release/feedrv3
+RUN cargo build -p pulsewire-fetcher --release --target ${TARGET}
+RUN strip /app/target/${TARGET}/release/pulsewire
 
 FROM scratch
 ARG TARGET=x86_64-unknown-linux-musl
 WORKDIR /app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=builder /app/target/${TARGET}/release/feedrv3 /usr/local/bin/feedrv3
+COPY --from=builder /app/target/${TARGET}/release/pulsewire /usr/local/bin/pulsewire
 COPY crates/fetcher/res/config.toml crates/fetcher/res/docker.toml crates/fetcher/res/domains.toml crates/fetcher/res/categories.toml /app/res/
 COPY crates/fetcher/res/schemas /app/res/schemas
 COPY crates/fetcher/res/feeds /app/res/feeds
@@ -26,4 +26,4 @@ ENV CONFIG_PATH=/app/res/docker.toml
 ENV FEEDS_DIR=/app/res/feeds
 VOLUME ["/app/res/feeds"]
 USER 65532:65532
-ENTRYPOINT ["feedrv3"]
+ENTRYPOINT ["pulsewire"]

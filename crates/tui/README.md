@@ -1,4 +1,4 @@
-# Pulsewire TUI (feedrv3-tui)
+# Pulsewire TUI (pulsewire-tui)
 
 Interactive terminal UI for the Pulsewire server API.
 
@@ -13,7 +13,7 @@ Interactive terminal UI for the Pulsewire server API.
 
 ## Usage
 ```
-FEEDRV3_TUI_CONFIG=crates/tui/res/config.toml cargo run -p feedrv3-tui
+PULSEWIRE_TUI_CONFIG=crates/tui/res/config.toml cargo run -p pulsewire-tui
 ```
 
 Controls (defaults, configurable in `config.toml`):

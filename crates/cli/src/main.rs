@@ -4,7 +4,7 @@ use clap::{
   Parser,
   Subcommand
 };
-use feedrv3_core::infra::config::{
+use pulsewire_core::infra::config::{
   ConfigLoader,
   LoadedConfig
 };
@@ -13,7 +13,7 @@ use feedrv3_core::infra::config::{
 #[command(
   author,
   version,
-  about = "feedrv3 ops CLI"
+  about = "pulsewire ops CLI"
 )]
 
 struct Args {
@@ -68,7 +68,7 @@ async fn main() -> Result<(), String> {
         .await
         .map_err(|e| e.to_string())?;
 
-      feedrv3_core::infra::config::validate_semantic(&app, &categories)
+      pulsewire_core::infra::config::validate_semantic(&app, &categories)
                 .map_err(|e| e.to_string())?;
 
       println!(
@@ -97,7 +97,7 @@ async fn main() -> Result<(), String> {
         .await
         .map_err(|e| e.to_string())?;
 
-      if matches!(app.db_dialect, feedrv3_core::domain::model::SqlDialect::Sqlite) {
+      if matches!(app.db_dialect, pulsewire_core::domain::model::SqlDialect::Sqlite) {
                 if let Err(e) = std::fs::remove_file(&app.sqlite_path) {
                     if e.kind() != std::io::ErrorKind::NotFound {
                         return Err(format!("failed to remove sqlite db: {e}"));

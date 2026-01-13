@@ -14,26 +14,26 @@ pub(super) fn render(
   let mut out = String::new();
 
   out.push_str(
-    "# HELP feedrv3_up Service is \
+    "# HELP pulsewire_up Service is \
      running.\n"
   );
 
   out.push_str(
-    "# TYPE feedrv3_up gauge\n"
+    "# TYPE pulsewire_up gauge\n"
   );
 
-  out.push_str("feedrv3_up 1\n");
+  out.push_str("pulsewire_up 1\n");
 
   out.push_str(
-    "# HELP feedrv3_start_time_seconds Start time in unix seconds.\n",
+    "# HELP pulsewire_start_time_seconds Start time in unix seconds.\n",
   );
 
   out.push_str(
-    "# TYPE feedrv3_start_time_seconds gauge\n",
+    "# TYPE pulsewire_start_time_seconds gauge\n",
   );
 
   out.push_str(&format!(
-    "feedrv3_start_time_seconds {}\n",
+    "pulsewire_start_time_seconds {}\n",
     metrics.start_time_seconds
   ));
 
@@ -43,18 +43,18 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP feedrv3_scheduler_ticks_total Scheduler ticks per category.\n",
+    "# HELP pulsewire_scheduler_ticks_total Scheduler ticks per category.\n",
   );
 
   out.push_str(
-    "# TYPE feedrv3_scheduler_ticks_total counter\n",
+    "# TYPE pulsewire_scheduler_ticks_total counter\n",
   );
 
   for (category, count) in
     sorted_map(&ticks)
   {
     out.push_str(&format!(
-      "feedrv3_scheduler_ticks_total{{category=\"{}\"}} {}\n",
+      "pulsewire_scheduler_ticks_total{{category=\"{}\"}} {}\n",
       escape_label(&category),
       count
     ));
@@ -66,13 +66,13 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP feedrv3_due_feeds_total \
+    "# HELP pulsewire_due_feeds_total \
      \\\n     Due feeds seen per \
      category.\n"
   );
 
   out.push_str(
-    "# TYPE feedrv3_due_feeds_total \\
+    "# TYPE pulsewire_due_feeds_total \\
      counter\n"
   );
 
@@ -80,7 +80,7 @@ pub(super) fn render(
     sorted_map(&due)
   {
     out.push_str(&format!(
-      r#"feedrv3_due_feeds_total{{category=\"{}\"}} {}\n"#,
+      r#"pulsewire_due_feeds_total{{category=\"{}\"}} {}\n"#,
       escape_label(&category),
       count
     ));
@@ -92,12 +92,12 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP feedrv3_due_feeds \\\n     Current due feeds per \\
+    "# HELP pulsewire_due_feeds \\\n     Current due feeds per \\
      category.\n",
   );
 
   out.push_str(
-    "# TYPE feedrv3_due_feeds \\
+    "# TYPE pulsewire_due_feeds \\
      gauge\n"
   );
 
@@ -105,54 +105,54 @@ pub(super) fn render(
     sorted_map(&due_current)
   {
     out.push_str(&format!(
-      r#"feedrv3_due_feeds{{category=\"{}\"}} {}\n"#,
+      r#"pulsewire_due_feeds{{category=\"{}\"}} {}\n"#,
       escape_label(&category),
       count
     ));
   }
 
   out.push_str(
-    "# HELP feedrv3_inflight_actions \
+    "# HELP pulsewire_inflight_actions \
      In-flight feed actions.\n"
   );
 
   out.push_str(
-    "# TYPE feedrv3_inflight_actions \
+    "# TYPE pulsewire_inflight_actions \
      gauge\n"
   );
 
   out.push_str(&format!(
-    "feedrv3_inflight_actions {}\n",
+    "pulsewire_inflight_actions {}\n",
     metrics
       .inflight_actions
       .load(Ordering::Relaxed)
   ));
 
   out.push_str(
-    "# HELP feedrv3_feed_actions_total Feed actions by type and outcome.\n",
+    "# HELP pulsewire_feed_actions_total Feed actions by type and outcome.\n",
   );
 
   out.push_str(
-    "# TYPE feedrv3_feed_actions_total counter\n",
+    "# TYPE pulsewire_feed_actions_total counter\n",
   );
 
   out.push_str(&format!(
-    "feedrv3_feed_actions_total{{action=\"head\",outcome=\"ok\"}} {}\n",
+    "pulsewire_feed_actions_total{{action=\"head\",outcome=\"ok\"}} {}\n",
     metrics.head_ok.load(Ordering::Relaxed)
   ));
 
   out.push_str(&format!(
-    "feedrv3_feed_actions_total{{action=\"head\",outcome=\"err\"}} {}\n",
+    "pulsewire_feed_actions_total{{action=\"head\",outcome=\"err\"}} {}\n",
     metrics.head_err.load(Ordering::Relaxed)
   ));
 
   out.push_str(&format!(
-    "feedrv3_feed_actions_total{{action=\"get\",outcome=\"ok\"}} {}\n",
+    "pulsewire_feed_actions_total{{action=\"get\",outcome=\"ok\"}} {}\n",
     metrics.get_ok.load(Ordering::Relaxed)
   ));
 
   out.push_str(&format!(
-    "feedrv3_feed_actions_total{{action=\"get\",outcome=\"err\"}} {}\n",
+    "pulsewire_feed_actions_total{{action=\"get\",outcome=\"err\"}} {}\n",
     metrics.get_err.load(Ordering::Relaxed)
   ));
 
@@ -162,12 +162,12 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP feedrv3_http_status_total \
+    "# HELP pulsewire_http_status_total \
      HTTP status counts by action.\n"
   );
 
   out.push_str(
-    "# TYPE feedrv3_http_status_total \
+    "# TYPE pulsewire_http_status_total \
      counter\n"
   );
 
@@ -175,7 +175,7 @@ pub(super) fn render(
     sorted_kv_map(&status_counts)
   {
     out.push_str(&format!(
-      "feedrv3_http_status_total{{action=\"{}\",status=\"{}\"}} {}\n",
+      "pulsewire_http_status_total{{action=\"{}\",status=\"{}\"}} {}\n",
       escape_label(&action),
       escape_label(&status),
       count
@@ -188,13 +188,13 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP feedrv3_http_latency_ms \\
+    "# HELP pulsewire_http_latency_ms \\
      HTTP latency by \\
      action/domain.\n"
   );
 
   out.push_str(
-    "# TYPE feedrv3_http_latency_ms \\
+    "# TYPE pulsewire_http_latency_ms \\
      histogram\n"
   );
 
@@ -203,7 +203,7 @@ pub(super) fn render(
   {
     emit_histogram(
       &mut out,
-      "feedrv3_http_latency_ms",
+      "pulsewire_http_latency_ms",
       &LATENCY_BUCKETS_MS,
       &hist,
       &[
@@ -219,12 +219,12 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP feedrv3_db_query_ms \\
+    "# HELP pulsewire_db_query_ms \\
      Database query timings.\n"
   );
 
   out.push_str(
-    "# TYPE feedrv3_db_query_ms \\
+    "# TYPE pulsewire_db_query_ms \\
      histogram\n"
   );
 
@@ -233,7 +233,7 @@ pub(super) fn render(
   {
     emit_histogram(
       &mut out,
-      "feedrv3_db_query_ms",
+      "pulsewire_db_query_ms",
       &DB_BUCKETS_MS,
       &hist,
       &[("query", &query)]

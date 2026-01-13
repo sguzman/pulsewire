@@ -1,14 +1,14 @@
 [package]
 edition = "2024"
-name    = "fetcher"
+name    = "pulsewire-fetcher"
 version = "0.1.0"
 
 [[bin]]
-name = "feedrv3"
+name = "pulsewire"
 path = "src/main.rs"
 
 [dependencies]
-feedrv3-core = { path = "../core" }
+pulsewire-core = { path = "../core" }
 tokio = { features = [
   "macros",
   "rt-multi-thread",

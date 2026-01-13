@@ -840,84 +840,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "feedrv3-cli"
-version = "0.1.0"
-dependencies = [
- "clap",
- "feedrv3-core",
- "tokio",
-]
-
-[[package]]
-name = "feedrv3-core"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "chrono",
- "chrono-tz",
- "feed-rs",
- "futures",
- "hex",
- "jsonschema",
- "proptest",
- "rand 0.9.2",
- "reqwest 0.13.1",
- "serde",
- "serde_json",
- "sha2",
- "sqlx",
- "thiserror 2.0.17",
- "tokio",
- "toml",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "feedrv3-server"
-version = "0.1.0"
-dependencies = [
- "argon2",
- "axum",
- "chrono",
- "hex",
- "jsonschema",
- "serde",
- "serde_json",
- "sha2",
- "sqlx",
- "thiserror 2.0.17",
- "tokio",
- "toml",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "feedrv3-tui"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossterm",
- "jsonschema",
- "ratatui",
- "reqwest 0.12.26",
- "serde",
- "serde_json",
- "toml",
-]
-
-[[package]]
-name = "fetcher"
-version = "0.1.0"
-dependencies = [
- "feedrv3-core",
- "tokio",
- "tracing",
-]
-
-[[package]]
 name = "find-msvc-tools"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2046,6 +1968,84 @@ dependencies = [
  "rusty-fork",
  "tempfile",
  "unarray",
+]
+
+[[package]]
+name = "pulsewire-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "pulsewire-core",
+ "tokio",
+]
+
+[[package]]
+name = "pulsewire-core"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "chrono-tz",
+ "feed-rs",
+ "futures",
+ "hex",
+ "jsonschema",
+ "proptest",
+ "rand 0.9.2",
+ "reqwest 0.13.1",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror 2.0.17",
+ "tokio",
+ "toml",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "pulsewire-fetcher"
+version = "0.1.0"
+dependencies = [
+ "pulsewire-core",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "pulsewire-server"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "axum",
+ "chrono",
+ "hex",
+ "jsonschema",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror 2.0.17",
+ "tokio",
+ "toml",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "pulsewire-tui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossterm",
+ "jsonschema",
+ "ratatui",
+ "reqwest 0.12.26",
+ "serde",
+ "serde_json",
+ "toml",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-# Pulsewire Core (feedrv3-core)
+# Pulsewire Core (pulsewire-core)
 
 Shared runtime library for the fetcher and server. This crate owns the domain model, scheduler logic, and infrastructure adapters (DB, HTTP, clock, RNG).
 

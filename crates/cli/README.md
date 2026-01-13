@@ -1,4 +1,4 @@
-# Pulsewire CLI (feedrv3-cli)
+# Pulsewire CLI (pulsewire-cli)
 
 Operations CLI for the fetcher config bundle. It validates schema + semantic rules and can clean local dev artifacts with a safety flag.
 
@@ -13,11 +13,11 @@ If no path is provided, the CLI uses:
 
 ## Examples
 - Validate default config:
-  `cargo run -p feedrv3-cli -- validate`
+  `cargo run -p pulsewire-cli -- validate`
 - Validate explicit config:
-  `cargo run -p feedrv3-cli -- validate /path/to/config.toml`
+  `cargo run -p pulsewire-cli -- validate /path/to/config.toml`
 - Clean dev artifacts:
-  `cargo run -p feedrv3-cli -- clean /path/to/config.toml --confirm`
+  `cargo run -p pulsewire-cli -- clean /path/to/config.toml --confirm`
 
 ## Notes
 - `clean` is destructive and requires `--confirm`.

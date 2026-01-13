@@ -10,11 +10,11 @@ Feed polling daemon that ingests RSS/Atom feeds into SQLite or Postgres. It uses
 
 ## Running
 - Default config resolution:
-  `cargo run -p fetcher --release`
+  `cargo run -p pulsewire-fetcher --release`
 - Explicit config:
-  `cargo run -p fetcher --release -- /path/to/config.toml`
+  `cargo run -p pulsewire-fetcher --release -- /path/to/config.toml`
 - Ingest benchmark (no scheduler):
-  `cargo run -p fetcher --release -- --ingest-benchmark 50000`
+  `cargo run -p pulsewire-fetcher --release -- --ingest-benchmark 50000`
 
 ## Config files
 Located under `crates/fetcher/res/` by default:

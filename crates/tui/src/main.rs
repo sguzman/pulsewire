@@ -126,7 +126,7 @@ fn resolve_config_path() -> PathBuf {
   }
 
   if let Ok(path) =
-    std::env::var("FEEDRV3_TUI_CONFIG")
+    std::env::var("PULSEWIRE_TUI_CONFIG")
   {
     return PathBuf::from(path);
   }

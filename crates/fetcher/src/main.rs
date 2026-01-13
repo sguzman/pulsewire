@@ -1,30 +1,30 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use feedrv3_core::app::context::AppContext;
-use feedrv3_core::app::scheduler::Scheduler;
-use feedrv3_core::domain::model::{
+use pulsewire_core::app::context::AppContext;
+use pulsewire_core::app::scheduler::Scheduler;
+use pulsewire_core::domain::model::{
   AppConfig,
   AppMode,
   FeedConfig,
   SqlDialect
 };
-use feedrv3_core::infra::config::{
+use pulsewire_core::infra::config::{
   ConfigLoader,
   LoadedConfig
 };
-use feedrv3_core::infra::logging::{
+use pulsewire_core::infra::logging::{
   BootError,
   init_logging
 };
-use feedrv3_core::infra::random::MutexRng;
-use feedrv3_core::infra::reqwest_http::ReqwestHttp;
-use feedrv3_core::infra::system_clock::SystemClock;
-use feedrv3_core::infra::{
+use pulsewire_core::infra::random::MutexRng;
+use pulsewire_core::infra::reqwest_http::ReqwestHttp;
+use pulsewire_core::infra::system_clock::SystemClock;
+use pulsewire_core::infra::{
   database,
   metrics
 };
-use feedrv3_core::ports::repo::Repo;
+use pulsewire_core::ports::repo::Repo;
 use tracing::{
   error,
   info,
@@ -121,7 +121,7 @@ async fn main() -> Result<(), BootError>
             "Dev mode enabled, wiping database"
         );
 
-        feedrv3_core::infra::postgres_repo::wipe_database(
+        pulsewire_core::infra::postgres_repo::wipe_database(
                     &app_cfg.postgres,
                     &app_cfg.timezone,
                 )

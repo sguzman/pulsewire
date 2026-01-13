@@ -41,7 +41,7 @@ pub(crate) fn default_log_file_directory()
 
 pub(crate) fn default_log_file_name()
 -> String {
-  "feedrv3".to_string()
+  "pulsewire".to_string()
 }
 
 pub(crate) fn default_log_file_rotation()

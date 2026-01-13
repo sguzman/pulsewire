@@ -34,7 +34,7 @@ pub fn init_logging(cfg: &AppConfig) {
   let level = cfg.log_level.trim();
 
   let default = format!(
-    "{level},feedrv3={level},\
+    "{level},pulsewire={level},\
      sqlx=warn,reqwest=warn"
   );
 
