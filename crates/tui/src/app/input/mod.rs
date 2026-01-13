@@ -1,6 +1,7 @@
 mod login;
 mod main;
 mod navigation;
+mod text;
 
 use anyhow::Result;
 use crossterm::event::KeyEvent;

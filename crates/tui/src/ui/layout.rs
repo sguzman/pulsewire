@@ -29,7 +29,10 @@ use super::lists::{
   draw_feed_view_list,
   draw_folder_list
 };
-use super::modal::draw_modal_list;
+use super::modal::{
+  draw_input_modal,
+  draw_modal_list
+};
 use crate::app::{
   App,
   LoginField,
@@ -41,7 +44,8 @@ pub(crate) fn draw_login(
   app: &App
 ) {
   let banner = banner_text(app);
-  let chunks = if banner.is_some() {
+  let has_banner = banner.is_some();
+  let chunks = if has_banner {
     Layout::default()
       .direction(Direction::Vertical)
       .margin(2)
@@ -64,6 +68,17 @@ pub(crate) fn draw_login(
         Constraint::Length(3)
       ])
       .split(frame.area())
+  };
+
+  let (
+    username_idx,
+    password_idx,
+    help_idx,
+    status_idx
+  ) = if has_banner {
+    (1, 2, 3, 4)
+  } else {
+    (0, 1, 2, 3)
   };
 
   let username_style = if matches!(
@@ -94,74 +109,65 @@ pub(crate) fn draw_login(
   )
   .style(username_style);
 
-  let masked =
-    "*".repeat(app.password.len());
+  let password = Paragraph::new(
+    "*".repeat(app.password.len())
+  )
+  .block(
+    Block::default()
+      .borders(Borders::ALL)
+      .title("Password")
+  )
+  .style(password_style);
 
-  let password = Paragraph::new(masked)
-    .block(
-      Block::default()
-        .borders(Borders::ALL)
-        .title("Password")
-    )
-    .style(password_style);
+  frame.render_widget(
+    username,
+    chunks[username_idx]
+  );
+  frame.render_widget(
+    password,
+    chunks[password_idx]
+  );
 
-  if let Some((text, style)) = &banner {
-    let banner_widget =
-      Paragraph::new(text.as_str())
-        .block(
-          Block::default()
-            .borders(Borders::ALL)
-            .title("Status")
-        )
-        .style(*style)
-        .wrap(Wrap {
-          trim: true
-        });
+  let help = Paragraph::new(
+    "Tab switches field. Enter logs \
+     in."
+  )
+  .block(
+    Block::default()
+      .borders(Borders::ALL)
+      .title("Help")
+  );
 
-    frame.render_widget(
-      banner_widget,
-      chunks[2]
-    );
-  }
+  frame.render_widget(
+    help,
+    chunks[help_idx]
+  );
 
-  let help =
+  let status =
     Paragraph::new(app.status.as_str())
       .block(
         Block::default()
           .borders(Borders::ALL)
           .title("Status")
-      )
-      .wrap(Wrap {
-        trim: true
-      });
+      );
 
-  frame
-    .render_widget(username, chunks[0]);
-  frame
-    .render_widget(password, chunks[1]);
   frame.render_widget(
-    help,
-    chunks[if banner.is_some() {
-      3
-    } else {
-      2
-    }]
+    status,
+    chunks[status_idx]
   );
-  frame.render_widget(
-    Paragraph::new(
-      "Enter to login | Tab to switch \
-       | q to quit"
-    )
-    .block(
-      Block::default()
-        .borders(Borders::ALL)
-    ),
-    chunks[if banner.is_some() {
-      4
-    } else {
-      3
-    }]
-  );
+
+  if let Some((text, style)) = banner {
+    let banner = Paragraph::new(text)
+      .block(
+        Block::default()
+          .borders(Borders::ALL)
+          .title("Notice")
+      )
+      .style(style);
+
+    frame
+      .render_widget(banner, chunks[0]);
+  }
 }
 
 pub(crate) fn draw_main(
@@ -169,9 +175,11 @@ pub(crate) fn draw_main(
   app: &App
 ) {
   let banner = banner_text(app);
-  let chunks = if banner.is_some() {
+  let has_banner = banner.is_some();
+  let chunks = if has_banner {
     Layout::default()
       .direction(Direction::Vertical)
+      .margin(1)
       .constraints([
         Constraint::Length(3),
         Constraint::Length(3),
@@ -182,6 +190,7 @@ pub(crate) fn draw_main(
   } else {
     Layout::default()
       .direction(Direction::Vertical)
+      .margin(1)
       .constraints([
         Constraint::Length(3),
         Constraint::Min(3),
@@ -191,52 +200,49 @@ pub(crate) fn draw_main(
   };
 
   let titles = [
-    "Feeds (1)",
-    "Entries (2)",
-    "Favorites (3)",
-    "Folders (4)",
-    "Subscriptions (5)"
+    "Feeds",
+    "Entries",
+    "Favorites",
+    "Folders",
+    "Subscriptions"
   ]
   .iter()
-  .map(|t| {
-    Line::styled(
-      *t,
-      Style::default().fg(Color::White)
-    )
-  })
+  .map(|t| Line::from(*t))
   .collect::<Vec<_>>();
 
   let tabs = Tabs::new(titles)
-    .select(app.tab)
     .block(
       Block::default()
         .borders(Borders::ALL)
-        .title("feedrv3")
+        .title("Tabs")
     )
+    .select(app.tab)
     .highlight_style(
       Style::default()
         .fg(Color::Yellow)
         .add_modifier(Modifier::BOLD)
     );
 
-  frame.render_widget(tabs, chunks[0]);
+  frame.render_widget(
+    tabs,
+    chunks[if has_banner {
+      1
+    } else {
+      0
+    }]
+  );
 
-  if let Some((text, style)) = &banner {
-    let banner_widget =
-      Paragraph::new(text.as_str())
-        .block(
-          Block::default()
-            .borders(Borders::ALL)
-            .title("Status")
-        )
-        .style(*style)
-        .wrap(Wrap {
-          trim: true
-        });
-    frame.render_widget(
-      banner_widget,
-      chunks[1]
-    );
+  if let Some((text, style)) = banner {
+    let banner = Paragraph::new(text)
+      .block(
+        Block::default()
+          .borders(Borders::ALL)
+          .title("Notice")
+      )
+      .style(style);
+
+    frame
+      .render_widget(banner, chunks[0]);
   }
 
   let content = Layout::default()
@@ -246,7 +252,7 @@ pub(crate) fn draw_main(
       Constraint::Percentage(40)
     ])
     .split(
-      chunks[if banner.is_some() {
+      chunks[if has_banner {
         2
       } else {
         1
@@ -264,18 +270,25 @@ pub(crate) fn draw_main(
         app.feeds_page_size as usize,
         app.selected_feed,
         Some(&app.subscriptions),
+        Some(&app.favorite_ids),
         Some(&app.feed_counts),
         "Feeds"
       );
+      let selected = app
+        .feeds_view
+        .get(app.selected_feed)
+        .and_then(|idx| {
+          app.feeds.get(*idx)
+        });
+      let detail =
+        selected.and_then(|feed| {
+          app.feed_details.get(&feed.id)
+        });
       draw_feed_detail(
         frame,
         content[1],
-        app
-          .feeds_view
-          .get(app.selected_feed)
-          .and_then(|idx| {
-            app.feeds.get(*idx)
-          }),
+        selected,
+        detail,
         "Feed Details"
       );
     }
@@ -286,12 +299,18 @@ pub(crate) fn draw_main(
         &app.entries,
         app.selected_entry
       );
+      let selected = app
+        .entries
+        .get(app.selected_entry);
+      let detail =
+        selected.and_then(|entry| {
+          app
+            .entry_details
+            .get(&entry.id)
+        });
       draw_entry_detail(
-        frame,
-        content[1],
-        app
-          .entries
-          .get(app.selected_entry)
+        frame, content[1], selected,
+        detail
       );
     }
     | 2 => {
@@ -306,12 +325,18 @@ pub(crate) fn draw_main(
         Some(&app.feed_counts),
         "Favorites"
       );
+      let selected = app
+        .favorites
+        .get(app.selected_favorite);
+      let detail =
+        selected.and_then(|feed| {
+          app.feed_details.get(&feed.id)
+        });
       draw_feed_detail(
         frame,
         content[1],
-        app
-          .favorites
-          .get(app.selected_favorite),
+        selected,
+        detail,
         "Favorite Details"
       );
     }
@@ -343,20 +368,25 @@ pub(crate) fn draw_main(
           as usize,
         app.selected_subscription,
         Some(&app.subscriptions),
+        Some(&app.favorite_ids),
         Some(&app.feed_counts),
         "Subscriptions"
       );
+      let selected = app
+        .subscriptions_view
+        .get(app.selected_subscription)
+        .and_then(|idx| {
+          app.feeds.get(*idx)
+        });
+      let detail =
+        selected.and_then(|feed| {
+          app.feed_details.get(&feed.id)
+        });
       draw_feed_detail(
         frame,
         content[1],
-        app
-          .subscriptions_view
-          .get(
-            app.selected_subscription
-          )
-          .and_then(|idx| {
-            app.feeds.get(*idx)
-          }),
+        selected,
+        detail,
         "Feed Details"
       );
     }
@@ -375,7 +405,7 @@ pub(crate) fn draw_main(
 
   frame.render_widget(
     footer,
-    chunks[if banner.is_some() {
+    chunks[if has_banner {
       3
     } else {
       2
@@ -388,13 +418,27 @@ pub(crate) fn draw_main(
         "Select Category"
       }
       | ModalKind::Tag => "Select Tag",
-      | ModalKind::Sort => "Sort Feeds"
+      | ModalKind::Sort => "Sort Feeds",
+      | ModalKind::FolderAssign => {
+        "Assign to Folder"
+      }
+      | ModalKind::FolderUnassign => {
+        "Remove from Folder"
+      }
     };
     draw_modal_list(
       frame,
       title,
       &modal.options,
       modal.selected
+    );
+  }
+
+  if let Some(input) = &app.input {
+    draw_input_modal(
+      frame,
+      &input.title,
+      &input.value
     );
   }
 }

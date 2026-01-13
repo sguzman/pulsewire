@@ -9,7 +9,9 @@ use ratatui::widgets::{
 };
 
 use crate::models::{
+  EntryDetail,
   EntrySummary,
+  FeedDetail,
   FeedSummary,
   FolderRow
 };
@@ -18,9 +20,16 @@ pub(crate) fn draw_feed_detail(
   frame: &mut Frame,
   area: Rect,
   feed: Option<&FeedSummary>,
+  detail: Option<&FeedDetail>,
   title: &str
 ) {
   let lines = if let Some(feed) = feed {
+    let created = detail
+      .and_then(|row| row.created_at_ms)
+      .map(|ms| ms.to_string())
+      .unwrap_or_else(|| {
+        "-".to_string()
+      });
     vec![
       Line::from(format!(
         "id: {}",
@@ -41,6 +50,10 @@ pub(crate) fn draw_feed_detail(
       Line::from(format!(
         "base_poll_seconds: {}",
         feed.base_poll_seconds
+      )),
+      Line::from(format!(
+        "created_at_ms: {}",
+        created
       )),
       Line::from(format!(
         "tags: {}",
@@ -73,10 +86,41 @@ pub(crate) fn draw_feed_detail(
 pub(crate) fn draw_entry_detail(
   frame: &mut Frame,
   area: Rect,
-  entry: Option<&EntrySummary>
+  entry: Option<&EntrySummary>,
+  detail: Option<&EntryDetail>
 ) {
   let lines = if let Some(entry) = entry
   {
+    let detail_title = detail
+      .and_then(|row| {
+        row.title.as_deref()
+      })
+      .or_else(|| {
+        entry.title.as_deref()
+      })
+      .unwrap_or("(untitled)");
+    let detail_link = detail
+      .and_then(|row| {
+        row.link.as_deref()
+      })
+      .or_else(|| entry.link.as_deref())
+      .unwrap_or("-");
+    let summary = detail
+      .and_then(|row| {
+        row.summary.as_deref()
+      })
+      .unwrap_or("-");
+    let description = detail
+      .and_then(|row| {
+        row.description.as_deref()
+      })
+      .unwrap_or("-");
+    let guid = detail
+      .and_then(|row| {
+        row.guid.as_deref()
+      })
+      .unwrap_or("-");
+
     vec![
       Line::from(format!(
         "id: {}",
@@ -100,17 +144,23 @@ pub(crate) fn draw_entry_detail(
       )),
       Line::from(format!(
         "title: {}",
-        entry
-          .title
-          .as_deref()
-          .unwrap_or("(untitled)")
+        detail_title
       )),
       Line::from(format!(
         "link: {}",
-        entry
-          .link
-          .as_deref()
-          .unwrap_or("-")
+        detail_link
+      )),
+      Line::from(format!(
+        "guid: {}",
+        guid
+      )),
+      Line::from(format!(
+        "summary: {}",
+        summary
+      )),
+      Line::from(format!(
+        "description: {}",
+        description
       )),
     ]
   } else {

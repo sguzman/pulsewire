@@ -70,6 +70,8 @@ impl App {
         self.ensure_visible_for_tab();
       }
     }
+
+    self.prefetch_selection_details();
   }
 
   pub(super) fn jump_top(&mut self) {
@@ -94,6 +96,8 @@ impl App {
         self.ensure_visible_for_tab();
       }
     }
+
+    self.prefetch_selection_details();
   }
 
   pub(super) fn jump_middle(&mut self) {
@@ -139,6 +143,8 @@ impl App {
         }
       }
     }
+
+    self.prefetch_selection_details();
   }
 
   pub(super) fn jump_bottom(&mut self) {
@@ -184,5 +190,7 @@ impl App {
         }
       }
     }
+
+    self.prefetch_selection_details();
   }
 }

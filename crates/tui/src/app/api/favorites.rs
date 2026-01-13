@@ -42,6 +42,11 @@ impl App {
       resp.json().context(
         "failed to parse favorites"
       )?;
+    self.favorite_ids = self
+      .favorites
+      .iter()
+      .map(|row| row.id.clone())
+      .collect();
 
     self.sort_favorites();
 

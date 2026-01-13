@@ -10,12 +10,14 @@ use ratatui::style::{
   Modifier,
   Style
 };
+use ratatui::text::Line;
 use ratatui::widgets::{
   Block,
   Borders,
   Clear,
   List,
-  ListItem
+  ListItem,
+  Paragraph
 };
 
 use super::common::list_state;
@@ -57,6 +59,34 @@ pub(crate) fn draw_modal_list(
   frame.render_stateful_widget(
     list, area, &mut state
   );
+}
+
+pub(crate) fn draw_input_modal(
+  frame: &mut Frame,
+  title: &str,
+  value: &str
+) {
+  let area =
+    centered_rect(60, 40, frame.area());
+
+  frame.render_widget(Clear, area);
+
+  let lines = vec![
+    Line::from(value.to_string()),
+    Line::from(""),
+    Line::from(
+      "Enter to confirm, Esc to cancel"
+    ),
+  ];
+
+  let widget = Paragraph::new(lines)
+    .block(
+      Block::default()
+        .borders(Borders::ALL)
+        .title(title)
+    );
+
+  frame.render_widget(widget, area);
 }
 
 fn centered_rect(

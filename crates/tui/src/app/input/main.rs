@@ -5,7 +5,10 @@ use crossterm::event::{
   KeyModifiers
 };
 
-use super::super::App;
+use super::super::{
+  App,
+  EntriesReadFilter
+};
 
 impl App {
   pub(super) fn handle_main_key(
@@ -20,6 +23,10 @@ impl App {
           == KeyModifiers::CONTROL)
     {
       return Ok(true);
+    }
+
+    if self.input.is_some() {
+      return self.handle_input_key(key);
     }
 
     if self.modal.is_some() {
@@ -203,6 +210,49 @@ impl App {
     }
 
     if self.key_matches(
+      &self.keys.open_all_entries,
+      key
+    ) {
+      self.open_all_entries()?;
+      return Ok(false);
+    }
+
+    if self.key_matches(
+      &self.keys.open_search,
+      key
+    ) {
+      self.open_search_input();
+      return Ok(false);
+    }
+
+    if self.key_matches(
+      &self.keys.toggle_entries_filter,
+      key
+    ) {
+      self.entries_read_filter =
+        match self.entries_read_filter {
+          | EntriesReadFilter::All => {
+            EntriesReadFilter::Unread
+          }
+          | EntriesReadFilter::Unread => {
+            EntriesReadFilter::Read
+          }
+          | EntriesReadFilter::Read => {
+            EntriesReadFilter::All
+          }
+        };
+      self.entries_offset = 0;
+      if self.tab == 1 {
+        self.refresh_entries()?;
+      }
+      self.status = format!(
+        "Entries filter: {}",
+        self.entries_filter_label()
+      );
+      return Ok(false);
+    }
+
+    if self.key_matches(
       &self.keys.toggle_read,
       key
     ) {
@@ -215,6 +265,92 @@ impl App {
       key
     ) {
       self.trigger_toggle_subscribe();
+      return Ok(false);
+    }
+
+    if self.key_matches(
+      &self.keys.toggle_favorite,
+      key
+    ) {
+      self.trigger_toggle_favorite();
+      return Ok(false);
+    }
+
+    if self.key_matches(
+      &self.keys.folder_create,
+      key
+    ) {
+      if self.tab == 3 {
+        self.open_folder_create_input();
+      }
+      return Ok(false);
+    }
+
+    if self.key_matches(
+      &self.keys.folder_rename,
+      key
+    ) {
+      if self.tab == 3 {
+        self.open_folder_rename_input();
+      }
+      return Ok(false);
+    }
+
+    if self.key_matches(
+      &self.keys.folder_delete,
+      key
+    ) {
+      if self.tab == 3 {
+        if let Some(folder) = self
+          .folders
+          .get(self.selected_folder)
+          .cloned()
+        {
+          self.queue_delete_folder(
+            folder.id
+          );
+        } else {
+          self.status =
+            "No folder selected"
+              .to_string();
+        }
+      }
+      return Ok(false);
+    }
+
+    if self.key_matches(
+      &self.keys.folder_assign,
+      key
+    ) {
+      if let Some(feed) =
+        self.current_feed_context()
+      {
+        self.open_folder_menu(
+          feed.id, true
+        );
+      } else {
+        self.status =
+          "No feed selected"
+            .to_string();
+      }
+      return Ok(false);
+    }
+
+    if self.key_matches(
+      &self.keys.folder_unassign,
+      key
+    ) {
+      if let Some(feed) =
+        self.current_feed_context()
+      {
+        self.open_folder_menu(
+          feed.id, false
+        );
+      } else {
+        self.status =
+          "No feed selected"
+            .to_string();
+      }
       return Ok(false);
     }
 
@@ -287,6 +423,13 @@ impl App {
       row.is_read = !entry.is_read;
     }
 
+    if let Some(detail) = self
+      .entry_details
+      .get_mut(&entry.id)
+    {
+      detail.is_read = !entry.is_read;
+    }
+
     self.status = if entry.is_read {
       "Marked unread (pending)"
         .to_string()
@@ -304,17 +447,17 @@ impl App {
   fn trigger_toggle_subscribe(
     &mut self
   ) {
-    if self.tab != 0 {
+    if self.tab != 0
+      && self.tab != 2
+      && self.tab != 4
+    {
       return;
     }
 
     let feed = match self
-      .feeds_view
-      .get(self.selected_feed)
-      .and_then(|idx| {
-        self.feeds.get(*idx)
-      }) {
-      | Some(feed) => feed.clone(),
+      .current_feed_context()
+    {
+      | Some(feed) => feed,
       | None => return
     };
 
@@ -341,6 +484,60 @@ impl App {
 
     self.rebuild_views();
     self.queue_toggle_subscribe(
+      feed.id, desired
+    );
+  }
+
+  fn trigger_toggle_favorite(
+    &mut self
+  ) {
+    if self.tab != 0
+      && self.tab != 2
+      && self.tab != 4
+    {
+      return;
+    }
+
+    let feed = match self
+      .current_feed_context()
+    {
+      | Some(feed) => feed,
+      | None => return
+    };
+
+    let is_favorite = self
+      .favorite_ids
+      .contains(&feed.id);
+    let desired = !is_favorite;
+
+    if desired {
+      self
+        .favorite_ids
+        .insert(feed.id.clone());
+      self.favorites.push(feed.clone());
+      self.sort_favorites();
+      self.status =
+        "Favorited (pending)"
+          .to_string();
+    } else {
+      self
+        .favorite_ids
+        .remove(&feed.id);
+      self.favorites.retain(|row| {
+        row.id != feed.id
+      });
+      self.status = "Unfavorited \
+                     (pending)"
+        .to_string();
+      if self.selected_favorite
+        >= self.favorites.len()
+      {
+        self.selected_favorite = 0;
+        self.favorites_offset = 0;
+      }
+    }
+
+    self.queue_toggle_favorite(
       feed.id, desired
     );
   }

@@ -107,6 +107,7 @@ pub(crate) fn draw_feed_view_list(
   subscriptions: Option<
     &HashSet<String>
   >,
+  favorites: Option<&HashSet<String>>,
   counts: Option<
     &HashMap<String, FeedEntryCounts>
   >,
@@ -128,8 +129,20 @@ pub(crate) fn draw_feed_view_list(
           subs.contains(&feed.id)
         })
         .unwrap_or(false);
-      let marker = if subscribed {
+      let sub_marker = if subscribed {
         "*"
+      } else {
+        " "
+      };
+
+      let favorite = favorites
+        .as_ref()
+        .map(|favs| {
+          favs.contains(&feed.id)
+        })
+        .unwrap_or(false);
+      let fav_marker = if favorite {
+        "F"
       } else {
         " "
       };
@@ -151,8 +164,9 @@ pub(crate) fn draw_feed_view_list(
         });
 
       let label = format!(
-        "{} {} [{}] ({})",
-        marker,
+        "{}{} {} [{}] ({})",
+        fav_marker,
+        sub_marker,
         feed.id,
         feed.domain,
         count

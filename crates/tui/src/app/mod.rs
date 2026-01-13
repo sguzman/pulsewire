@@ -1,5 +1,7 @@
 mod api;
 mod background;
+mod details;
+mod entries;
 mod filters;
 mod input;
 mod modal;
@@ -11,6 +13,10 @@ mod util;
 pub(crate) use background::AppEvent;
 pub(crate) use state::{
   App,
+  EntriesMode,
+  EntriesReadFilter,
+  InputKind,
+  InputState,
   LoginField,
   ModalKind,
   ModalState,

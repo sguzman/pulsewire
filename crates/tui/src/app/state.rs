@@ -12,7 +12,9 @@ use crate::config::{
   TuiConfig
 };
 use crate::models::{
+  EntryDetail,
   EntrySummary,
+  FeedDetail,
   FeedEntryCounts,
   FeedSummary,
   FolderRow
@@ -36,7 +38,9 @@ pub(crate) enum LoginField {
 pub(crate) enum ModalKind {
   Category,
   Tag,
-  Sort
+  Sort,
+  FolderAssign,
+  FolderUnassign
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -49,9 +53,47 @@ pub(crate) enum SortMode {
 
 #[derive(Debug, Clone)]
 pub(crate) struct ModalState {
-  pub(crate) kind:     ModalKind,
-  pub(crate) options:  Vec<String>,
-  pub(crate) selected: usize
+  pub(crate) kind:           ModalKind,
+  pub(crate) options: Vec<String>,
+  pub(crate) selected:       usize,
+  pub(crate) folder_indices:
+    Option<Vec<usize>>,
+  pub(crate) feed_id: Option<String>
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum InputKind {
+  FolderCreate,
+  FolderRename { folder_id: i64 },
+  EntriesSearch
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct InputState {
+  pub(crate) kind:  InputKind,
+  pub(crate) title: String,
+  pub(crate) value: String
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum EntriesMode {
+  None,
+  Feed(String),
+  Folder(i64),
+  All,
+  Search {
+    query:   String,
+    feed_id: Option<String>
+  }
+}
+
+#[derive(
+  Debug, Clone, Copy, PartialEq, Eq,
+)]
+pub(crate) enum EntriesReadFilter {
+  All,
+  Read,
+  Unread
 }
 
 pub(crate) struct App {
@@ -71,11 +113,17 @@ pub(crate) struct App {
   pub(crate) feeds: Vec<FeedSummary>,
   pub(crate) favorites:
     Vec<FeedSummary>,
+  pub(crate) favorite_ids:
+    HashSet<String>,
   pub(crate) folders: Vec<FolderRow>,
   pub(crate) subscriptions:
     HashSet<String>,
   pub(crate) feed_counts:
     HashMap<String, FeedEntryCounts>,
+  pub(crate) feed_details:
+    HashMap<String, FeedDetail>,
+  pub(crate) entry_details:
+    HashMap<i64, EntryDetail>,
   pub(crate) feeds_view: Vec<usize>,
   pub(crate) subscriptions_view:
     Vec<usize>,
@@ -88,7 +136,11 @@ pub(crate) struct App {
   pub(crate) hide_read_feeds: bool,
   pub(crate) sort_mode: SortMode,
   pub(crate) modal: Option<ModalState>,
+  pub(crate) input: Option<InputState>,
   pub(crate) entries: Vec<EntrySummary>,
+  pub(crate) entries_mode: EntriesMode,
+  pub(crate) entries_read_filter:
+    EntriesReadFilter,
   pub(crate) tab: usize,
   pub(crate) selected_feed: usize,
   pub(crate) selected_entry: usize,
@@ -108,8 +160,6 @@ pub(crate) struct App {
   pub(crate) subscriptions_offset:
     usize,
   pub(crate) keys: ResolvedKeybindings,
-  pub(crate) entries_feed_id:
-    Option<String>,
   pub(crate) entries_offset: i64,
   pub(crate) entries_next_offset:
     Option<i64>,
@@ -151,9 +201,12 @@ impl App {
       event_tx: None,
       feeds: Vec::new(),
       favorites: Vec::new(),
+      favorite_ids: HashSet::new(),
       folders: Vec::new(),
       subscriptions: HashSet::new(),
       feed_counts: HashMap::new(),
+      feed_details: HashMap::new(),
+      entry_details: HashMap::new(),
       feeds_view: Vec::new(),
       subscriptions_view: Vec::new(),
       categories: Vec::new(),
@@ -168,7 +221,11 @@ impl App {
         .hide_read_feeds,
       sort_mode: SortMode::Unread,
       modal: None,
+      input: None,
       entries: Vec::new(),
+      entries_mode: EntriesMode::None,
+      entries_read_filter:
+        EntriesReadFilter::All,
       tab: 0,
       selected_feed: 0,
       selected_entry: 0,
@@ -195,7 +252,6 @@ impl App {
       folders_offset: 0,
       subscriptions_offset: 0,
       keys,
-      entries_feed_id: None,
       entries_offset: 0,
       entries_next_offset: None,
       base_url: config

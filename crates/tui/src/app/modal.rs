@@ -89,6 +89,56 @@ impl App {
             };
           self.apply_sort();
         }
+        | ModalKind::FolderAssign => {
+          if let (
+            Some(indices),
+            Some(feed_id)
+          ) = (
+            modal
+              .folder_indices
+              .as_ref(),
+            modal.feed_id.clone()
+          ) {
+            if let Some(folder_index) =
+              indices.get(selection)
+            {
+              if let Some(folder) = self
+                .folders
+                .get(*folder_index)
+              {
+                self.queue_assign_folder_feed(
+                  folder.id,
+                  feed_id
+                );
+              }
+            }
+          }
+        }
+        | ModalKind::FolderUnassign => {
+          if let (
+            Some(indices),
+            Some(feed_id)
+          ) = (
+            modal
+              .folder_indices
+              .as_ref(),
+            modal.feed_id.clone()
+          ) {
+            if let Some(folder_index) =
+              indices.get(selection)
+            {
+              if let Some(folder) = self
+                .folders
+                .get(*folder_index)
+              {
+                self.queue_unassign_folder_feed(
+                  folder.id,
+                  feed_id
+                );
+              }
+            }
+          }
+        }
       }
 
       self.modal = None;
@@ -152,7 +202,9 @@ impl App {
     self.modal = Some(ModalState {
       kind: ModalKind::Category,
       options,
-      selected
+      selected,
+      folder_indices: None,
+      feed_id: None
     });
   }
 
@@ -181,7 +233,9 @@ impl App {
     self.modal = Some(ModalState {
       kind: ModalKind::Tag,
       options,
-      selected
+      selected,
+      folder_indices: None,
+      feed_id: None
     });
   }
 
@@ -206,7 +260,46 @@ impl App {
     self.modal = Some(ModalState {
       kind: ModalKind::Sort,
       options,
-      selected
+      selected,
+      folder_indices: None,
+      feed_id: None
+    });
+  }
+
+  pub(super) fn open_folder_menu(
+    &mut self,
+    feed_id: String,
+    assign: bool
+  ) {
+    if self.folders.is_empty() {
+      self.status = "No folders \
+                     available"
+        .to_string();
+      return;
+    }
+
+    let options = self
+      .folders
+      .iter()
+      .map(|folder| folder.name.clone())
+      .collect::<Vec<_>>();
+
+    let folder_indices =
+      (0..self.folders.len())
+        .collect::<Vec<_>>();
+
+    self.modal = Some(ModalState {
+      kind: if assign {
+        ModalKind::FolderAssign
+      } else {
+        ModalKind::FolderUnassign
+      },
+      options,
+      selected: 0,
+      folder_indices: Some(
+        folder_indices
+      ),
+      feed_id: Some(feed_id)
     });
   }
 }

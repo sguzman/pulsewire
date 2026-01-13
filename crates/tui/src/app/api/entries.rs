@@ -2,21 +2,25 @@ use anyhow::{
   Context,
   Result
 };
+use reqwest::Url;
 
-use super::super::App;
+use super::super::{
+  App,
+  EntriesMode,
+  EntriesReadFilter
+};
 use crate::models::EntryListResponse;
 
 impl App {
   pub(crate) fn refresh_entries(
     &mut self
   ) -> Result<()> {
-    let Some(feed_id) =
-      self.entries_feed_id.clone()
+    let Some(url) = self.entries_url()
     else {
-      self.status = "Select a feed \
-                     and press the \
-                     entries key."
-        .to_string();
+      self.status =
+        "Select a feed, folder, or \
+         search to load entries."
+          .to_string();
       return Ok(());
     };
 
@@ -24,15 +28,6 @@ impl App {
       .token
       .as_deref()
       .unwrap_or_default();
-
-    let url = format!(
-      "{}/v1/feeds/{}/entries?\
-       limit={}&offset={}&read=all",
-      self.base_url,
-      feed_id,
-      self.entries_page_size,
-      self.entries_offset
-    );
 
     let resp = self
       .client
@@ -90,29 +85,125 @@ impl App {
   pub(crate) fn open_entries(
     &mut self
   ) -> Result<()> {
-    if self.feeds_view.is_empty() {
-      self.status =
-        "No feeds loaded".to_string();
+    match self.tab {
+      | 0 => {
+        let feed = self
+          .feeds_view
+          .get(self.selected_feed)
+          .and_then(|idx| {
+            self.feeds.get(*idx)
+          })
+          .cloned();
+
+        if let Some(feed) = feed {
+          self.entries_mode =
+            EntriesMode::Feed(feed.id);
+        } else {
+          self.status =
+            "No feed selected"
+              .to_string();
+          return Ok(());
+        }
+      }
+      | 2 => {
+        let feed = self
+          .favorites
+          .get(self.selected_favorite)
+          .cloned();
+        if let Some(feed) = feed {
+          self.entries_mode =
+            EntriesMode::Feed(feed.id);
+        } else {
+          self.status = "No favorite \
+                         selected"
+            .to_string();
+          return Ok(());
+        }
+      }
+      | 3 => {
+        let folder = self
+          .folders
+          .get(self.selected_folder)
+          .cloned();
+        if let Some(folder) = folder {
+          self.entries_mode =
+            EntriesMode::Folder(
+              folder.id
+            );
+        } else {
+          self.status =
+            "No folder selected"
+              .to_string();
+          return Ok(());
+        }
+      }
+      | 4 => {
+        let feed = self
+          .subscriptions_view
+          .get(
+            self.selected_subscription
+          )
+          .and_then(|idx| {
+            self.feeds.get(*idx)
+          })
+          .cloned();
+        if let Some(feed) = feed {
+          self.entries_mode =
+            EntriesMode::Feed(feed.id);
+        } else {
+          self.status =
+            "No subscription selected"
+              .to_string();
+          return Ok(());
+        }
+      }
+      | _ => {}
+    }
+
+    self.entries_offset = 0;
+    self.selected_entry = 0;
+    self.tab = 1;
+    self.refresh_entries()?;
+
+    Ok(())
+  }
+
+  pub(crate) fn open_all_entries(
+    &mut self
+  ) -> Result<()> {
+    self.entries_mode =
+      EntriesMode::All;
+    self.entries_offset = 0;
+    self.selected_entry = 0;
+    self.tab = 1;
+    self.refresh_entries()?;
+    Ok(())
+  }
+
+  pub(crate) fn open_search_entries(
+    &mut self,
+    query: String
+  ) -> Result<()> {
+    if query.trim().is_empty() {
+      self.status = "Search query is \
+                     empty"
+        .to_string();
       return Ok(());
     }
 
-    let feed = self
-      .feeds_view
-      .get(self.selected_feed)
-      .and_then(|idx| {
-        self.feeds.get(*idx)
-      })
-      .cloned();
+    let feed_id = self
+      .current_feed_context()
+      .map(|feed| feed.id);
 
-    if let Some(feed) = feed {
-      self.entries_feed_id =
-        Some(feed.id);
-      self.entries_offset = 0;
-      self.selected_entry = 0;
-      self.tab = 1;
-      self.refresh_entries()?;
-    }
-
+    self.entries_mode =
+      EntriesMode::Search {
+        query,
+        feed_id
+      };
+    self.entries_offset = 0;
+    self.selected_entry = 0;
+    self.tab = 1;
+    self.refresh_entries()?;
     Ok(())
   }
 
@@ -152,5 +243,160 @@ impl App {
     self.refresh_entries()?;
 
     Ok(())
+  }
+
+  pub(crate) fn entries_url(
+    &self
+  ) -> Option<String> {
+    let base_url = &self.base_url;
+    let (path, feed_id, query) =
+      match &self.entries_mode {
+        | EntriesMode::None => {
+          return None
+        }
+        | EntriesMode::Feed(
+          feed_id
+        ) => {
+          (
+            format!(
+              "{base_url}/v1/feeds/\
+               {feed_id}/entries"
+            ),
+            None,
+            None
+          )
+        }
+        | EntriesMode::Folder(
+          folder_id
+        ) => {
+          (
+            format!(
+              "{base_url}/v1/folders/\
+               {folder_id}/entries"
+            ),
+            None,
+            None
+          )
+        }
+        | EntriesMode::All => {
+          (
+            format!(
+              "{base_url}/v1/entries"
+            ),
+            None,
+            None
+          )
+        }
+        | EntriesMode::Search {
+          query,
+          feed_id
+        } => {
+          (
+            format!(
+              "{base_url}/v1/entries/\
+               search"
+            ),
+            feed_id.clone(),
+            Some(query.clone())
+          )
+        }
+      };
+
+    let mut url =
+      Url::parse(&path).ok()?;
+    {
+      let mut pairs =
+        url.query_pairs_mut();
+      pairs
+        .append_pair(
+          "limit",
+          &self
+            .entries_page_size
+            .to_string()
+        )
+        .append_pair(
+          "offset",
+          &self
+            .entries_offset
+            .to_string()
+        );
+
+      if let Some(feed_id) = feed_id {
+        pairs.append_pair(
+          "feed_id", &feed_id
+        );
+      }
+
+      if let Some(query) = query {
+        pairs.append_pair("q", &query);
+      }
+
+      match self.entries_read_filter {
+        | EntriesReadFilter::All => {}
+        | EntriesReadFilter::Read => {
+          pairs.append_pair(
+            "read", "read"
+          );
+        }
+        | EntriesReadFilter::Unread => {
+          pairs.append_pair(
+            "read", "unread"
+          );
+        }
+      }
+    }
+
+    Some(url.to_string())
+  }
+
+  pub(crate) fn current_feed_context(
+    &self
+  ) -> Option<crate::models::FeedSummary>
+  {
+    match self.tab {
+      | 0 => {
+        self
+          .feeds_view
+          .get(self.selected_feed)
+          .and_then(|idx| {
+            self.feeds.get(*idx)
+          })
+          .cloned()
+      }
+      | 2 => {
+        self
+          .favorites
+          .get(self.selected_favorite)
+          .cloned()
+      }
+      | 4 => {
+        self
+          .subscriptions_view
+          .get(
+            self.selected_subscription
+          )
+          .and_then(|idx| {
+            self.feeds.get(*idx)
+          })
+          .cloned()
+      }
+      | 1 => {
+        match &self.entries_mode {
+          | EntriesMode::Feed(
+            feed_id
+          ) => {
+            self
+              .feeds
+              .iter()
+              .find(|feed| {
+                feed.id == *feed_id
+              })
+              .cloned()
+          }
+          | _ => None
+        }
+      }
+      | _ => None
+    }
   }
 }

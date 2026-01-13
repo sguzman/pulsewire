@@ -118,14 +118,23 @@
         "open_sort_menu",
         "clear_filters",
         "open_entries",
+        "open_all_entries",
+        "open_search",
+        "toggle_entries_filter",
         "toggle_read",
         "toggle_subscribe",
+        "toggle_favorite",
         "entries_next",
         "entries_prev",
         "feeds_next",
         "feeds_prev",
         "toggle_hide_empty",
-        "toggle_hide_read"
+        "toggle_hide_read",
+        "folder_create",
+        "folder_rename",
+        "folder_delete",
+        "folder_assign",
+        "folder_unassign"
       ],
       "properties": {
         "quit": {
@@ -185,10 +194,22 @@
         "open_entries": {
           "type": "string"
         },
+        "open_all_entries": {
+          "type": "string"
+        },
+        "open_search": {
+          "type": "string"
+        },
+        "toggle_entries_filter": {
+          "type": "string"
+        },
         "toggle_read": {
           "type": "string"
         },
         "toggle_subscribe": {
+          "type": "string"
+        },
+        "toggle_favorite": {
           "type": "string"
         },
         "entries_next": {
@@ -207,6 +228,21 @@
           "type": "string"
         },
         "toggle_hide_read": {
+          "type": "string"
+        },
+        "folder_create": {
+          "type": "string"
+        },
+        "folder_rename": {
+          "type": "string"
+        },
+        "folder_delete": {
+          "type": "string"
+        },
+        "folder_assign": {
+          "type": "string"
+        },
+        "folder_unassign": {
           "type": "string"
         }
       }

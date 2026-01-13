@@ -5,9 +5,10 @@ Interactive terminal UI for the feedrv3 server API.
 ## Features
 - Login with username/password.
 - Browse feeds, entries, favorites, folders, and subscriptions.
-- Toggle entry read/unread.
-- Subscribe/unsubscribe feeds.
-- Refresh data on demand.
+- Toggle entry read/unread and feed subscriptions.
+- Favorite/unfavorite feeds.
+- Folder create/rename/delete and feed assignment.
+- Folder entries, global entries, and search.
 - Configurable keybindings and server settings.
 
 ## Usage
@@ -20,9 +21,15 @@ Controls (defaults, configurable in `config.toml`):
 - Tabs: `1` Feeds, `2` Entries, `3` Favorites, `4` Folders, `5` Subscriptions.
 - Navigation: Up/Down or `j`/`k`.
 - Top/middle/bottom: `g`/`M`/`G`.
-- Open entries for selected feed: `e`.
+- Open entries for selected item: `e` (feeds/favorites/subscriptions or folder entries in Folders).
+- Open all entries: `E`.
+- Search entries: `/` (opens search prompt).
+- Toggle read filter (all/read/unread): `w`.
 - Toggle read/unread on selected entry: `m`.
 - Toggle subscribe on selected feed: `s`.
+- Toggle favorite on selected feed: `f`.
+- Folder actions: `C` create, `R` rename, `X` delete (Folders tab).
+- Folder assign/unassign: `A` / `U` (feeds/favorites/subscriptions).
 - Filters: `c`/`t` open category/tag menus, `x` clears filters.
 - Sort: `o` opens the sort menu.
 - Entries paging: `n`/`p`.

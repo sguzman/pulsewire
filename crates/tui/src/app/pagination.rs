@@ -1,5 +1,8 @@
-use super::App;
 use super::util::ensure_offset;
+use super::{
+  App,
+  EntriesMode
+};
 
 impl App {
   pub(super) fn next_list_page(
@@ -105,7 +108,13 @@ impl App {
     &self
   ) -> Option<(usize, usize)> {
     let feed_id =
-      self.entries_feed_id.as_ref()?;
+      match &self.entries_mode {
+        | EntriesMode::Feed(
+          feed_id
+        ) => feed_id,
+        | _ => return None
+      };
+
     let total = self
       .feed_counts
       .get(feed_id)
