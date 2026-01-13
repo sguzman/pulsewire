@@ -1,10 +1,10 @@
-allow-branch = [ "main" ]
+allow-branch = ["main"]
 consolidate-commits = true
 pre-release-commit-message = "chore(release): prepare {{version}}"
 pre-release-hook = [
+  "sh",
   "-c",
   "root=$(git rev-parse --show-toplevel) && git -C \"$root\" cliff --config \"$root/cliff.toml\" --output \"$root/CHANGELOG.md\" && git -C \"$root\" add CHANGELOG.md",
-  "sh",
 ]
 publish = false
 shared-version = true
