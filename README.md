@@ -9,13 +9,13 @@
     <img src="https://img.shields.io/github/issues/sguzman/pulsewire?color=fab387&labelColor=303446&style=for-the-badge">
   </a>
   <a href="https://github.com/sguzman/pulsewire/stargazers">
-    <img src="https://img.shields.io/github/stars/sguzman/pulsewire?color=ca9ee6&labelColor=303446&style=for-the-badge">
+    <img src="https://img.shields.io/github/stars/sguzman/pulsewire?color=1f6feb&labelColor=303446&style=for-the-badge">
   </a>
   <a href="https://github.com/sguzman/pulsewire">
-    <img src="https://img.shields.io/github/repo-size/sguzman/pulsewire?color=ea999c&labelColor=303446&style=for-the-badge">
+    <img src="https://img.shields.io/github/repo-size/sguzman/pulsewire?color=ff4d4d&labelColor=303446&style=for-the-badge">
   </a>
   <a href="LICENSE">
-    <img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=MIT&logoColor=ca9ee6&colorA=313244&colorB=cba6f7"/>
+    <img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=MIT&logoColor=ffffff&colorA=313244&colorB=2ea043"/>
   </a>
 </div>
 
