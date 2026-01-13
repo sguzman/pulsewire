@@ -46,8 +46,8 @@ footer = """
 trim = true
 
 [git]
-conventional_commits = true
-filter_unconventional = true
+conventional_commits = false
+filter_unconventional = false
 split_commits = false
 commit_preprocessors = [
   { pattern = '\\((\\w+\\s)?#([0-9]+)\\)', replace = "([#${2}](https://github.com/sguzman/pulsewire/issues/${2}))"},
@@ -73,6 +73,6 @@ commit_parsers = [
 protect_breaking_commits = false
 filter_commits = false
 tag_pattern = "v[0-9].*"
-ignore_tags = "v0.1.3"
+ignore_tags = "v0.1.4"
 topo_order = false
 sort_commits = "oldest"
