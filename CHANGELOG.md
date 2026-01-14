@@ -2,6 +2,10 @@
 ## [Unreleased]
 
 ### ⚙️ Miscellaneous
+- Tech words ([74a4d7a](https://github.com/sguzman/pulsewire/commit/74a4d7a8bc0989fe29eb01c149d9f18acd1b409d))
+- Format to alpha ([3d70722](https://github.com/sguzman/pulsewire/commit/3d707226423a06a57ecbabbe9bda51522ecdd7f2))## [0.1.24] - 2026-01-14
+
+### ⚙️ Miscellaneous
 - Exclude youtube feed ids from typos ([2b1867e](https://github.com/sguzman/pulsewire/commit/2b1867eb71d7d7392fbba96f7fe5a3071f0c03e4))
 - More exclusion for typos ([2643974](https://github.com/sguzman/pulsewire/commit/2643974f16005e10610dcc5af3f1ee8e62d108d4))
 
