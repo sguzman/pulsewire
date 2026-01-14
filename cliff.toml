@@ -16,34 +16,11 @@ body = """
 {%- endif -%}
 
 {%- for group, commits in commits | group_by(attribute="group") %}
-
-{# Build scoped and unscoped lists #}
-{%- set scoped = commits | filter(attribute="scope") -%}
-{%- set unscoped = commits | reject(attribute="scope") -%}
-
-{# Count printable commits (non-empty message) #}
-{%- set scoped_printable = 0 -%}
-{%- for c in scoped -%}
-{%- if c.message and (c.message | trim) != "" -%}
-{%- set scoped_printable = scoped_printable + 1 -%}
-{%- endif -%}
-{%- endfor -%}
-
-{%- set unscoped_printable = 0 -%}
-{%- for c in unscoped -%}
-{%- if c.message and (c.message | trim) != "" -%}
-{%- set unscoped_printable = unscoped_printable + 1 -%}
-{%- endif -%}
-{%- endfor -%}
-
-{# IMPORTANT: no parentheses in Tera if expressions #}
-{%- if scoped_printable > 0 or unscoped_printable > 0 %}
-
 ### {{ group | striptags | trim | upper_first }}
 
 {# scoped commits first, sorted by scope #}
-{%- for commit in scoped | sort(attribute="scope") %}
-{%- if commit.message and (commit.message | trim) != "" %}
+{%- for commit in commits | filter(attribute="scope") | sort(attribute="scope") %}
+{%- if commit.message %}
 - **({{ commit.scope }})**: {{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end="") }}]({{ self::remote_url() }}/commit/{{ commit.id }}))
 {%- if commit.breaking and commit.breaking_description %}
   - **BREAKING**: {{ commit.breaking_description | upper_first }}
@@ -52,8 +29,8 @@ body = """
 {% endfor %}
 
 {# then unscoped commits #}
-{%- for commit in unscoped %}
-{%- if commit.message and (commit.message | trim) != "" %}
+{%- for commit in commits %}
+{%- if commit.message and (not commit.scope) %}
 - {{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end="") }}]({{ self::remote_url() }}/commit/{{ commit.id }}))
 {%- if commit.breaking and commit.breaking_description %}
   - **BREAKING**: {{ commit.breaking_description | upper_first }}
@@ -61,9 +38,7 @@ body = """
 {% endif %}
 {% endfor %}
 
-{%- endif %}
-
-{%- endfor %}
+{% endfor %}
 """
 
 footer = """
@@ -80,7 +55,7 @@ commit_parsers = [
   # Skip merge commits
   { message = "^Merge\\b", skip = true },
 
-  # Security
+  # Security (body match)
   { body = "(?i)security", group = "🔒 Security" },
 
   { message = "^revert", group = "◀️ Revert" },
