@@ -21,7 +21,7 @@ extend-exclude = [
 
 [default.extend-words]
 # domain-specific tokens, names, abbreviations, etc.
-"ratatui" = "ratatui"
 "quickwit" = "quickwit"
+"ratatui"  = "ratatui"
+"serde"    = "serde"
 "wikidata" = "wikidata"
-"serde" = "serde"
