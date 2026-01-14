@@ -2,6 +2,13 @@
 ## [Unreleased]
 
 ### ⚙️ Miscellaneous
+- Exclude youtube feed ids from typos ([2b1867e](https://github.com/sguzman/pulsewire/commit/2b1867eb71d7d7392fbba96f7fe5a3071f0c03e4))
+- More exclusion for typos ([2643974](https://github.com/sguzman/pulsewire/commit/2643974f16005e10610dcc5af3f1ee8e62d108d4))
+
+### 📚 Documentation
+- Add typos spelling check tooling ([1b90eb9](https://github.com/sguzman/pulsewire/commit/1b90eb904fd5d9e5fc2bc5aa54cddf73dc01ffc4))## [0.1.23] - 2026-01-14
+
+### ⚙️ Miscellaneous
 - Nuked whitespace - fixing ([007ddaf](https://github.com/sguzman/pulsewire/commit/007ddafee447d1b791497fa262092a1cba39d678))## [0.1.22] - 2026-01-14
 
 ### ⚙️ Miscellaneous
