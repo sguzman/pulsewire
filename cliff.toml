@@ -6,35 +6,23 @@ header = """
 # Changelog
 """
 
-body = """
-{%- macro remote_url() -%}https://github.com/sguzman/pulsewire{%- endmacro -%}
-
+body = """{%- macro remote_url() -%}https://github.com/sguzman/pulsewire{%- endmacro -%}
 {%- if version -%}
 ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
 {%- else -%}
 ## [Unreleased]
-{%- endif -%}
-
-{# Only iterate over groups that actually have commits. git-cliff can provide `commits` already filtered. #}
-{%- for group, group_commits in commits | group_by(attribute="group") %}
-
-{# If a group has no commits, don't print it. #}
-{%- if group_commits | length > 0 %}
-
+{%- endif %}
+{%- for group, group_commits in commits | group_by(attribute="group") -%}
+{%- set printable = group_commits | filter(attribute="message") -%}
+{%- if printable | length > 0 %}
 ### {{ group | striptags | trim | upper_first }}
-
-{# Print each commit exactly once. If it has a scope, show it. #}
-{%- for commit in group_commits %}
-{%- if commit.message %}
-- {%- if commit.scope %}**({{ commit.scope }})**: {%- endif -%}{{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end="") }}]({{ self::remote_url() }}/commit/{{ commit.id }}))
+{%- for commit in printable %}
+- {% if commit.scope %}**({{ commit.scope }})**: {% endif %}{{ commit.message | trim | upper_first }} ([{{ commit.id | truncate(length=7, end="") }}]({{ self::remote_url() }}/commit/{{ commit.id }}))
 {%- if commit.breaking and commit.breaking_description %}
-  - **BREAKING**: {{ commit.breaking_description | upper_first }}
+  - **BREAKING**: {{ commit.breaking_description | trim | upper_first }}
 {%- endif %}
-{% endif %}
-{% endfor %}
-
+{%- endfor %}
 {%- endif %}
-
 {%- endfor %}
 """
 
@@ -83,7 +71,6 @@ commit_preprocessors = [
   { pattern = "^\\s*\\n", replace = "" },
 ]
 
-# You use conventional commits now; keep old commits too.
 conventional_commits = true
 filter_unconventional = false
 
