@@ -4,8 +4,25 @@
 
 
 
+
+
+
+
+
+## [0.1.17] - 2026-01-13
+### ⚙️ Miscellaneous
+
+
+
+
+
+
 ## [0.1.16] - 2026-01-13
 ### ⚙️ Miscellaneous
+
+
+
+
 
 
 
@@ -14,8 +31,15 @@
 
 
 
+
+
+
 ## [0.1.13] - 2026-01-13
 ### ⚙️ Miscellaneous
+
+
+
+
 
 
 
@@ -25,7 +49,15 @@
 
 
 
+
+
+
+
+
 ### 📚 Documentation
+
+
+
 
 
 
@@ -34,8 +66,14 @@
 
 
 
+
+
+
 ## [0.1.9] - 2026-01-13
 ### ⚙️ Miscellaneous
+
+
+
 
 
 
@@ -44,8 +82,14 @@
 
 
 
+
+
+
 ## [0.1.7] - 2026-01-13
 ### ⚙️ Miscellaneous
+
+
+
 
 
 
@@ -54,8 +98,15 @@
 
 
 
+
+
+
 ## [0.1.5] - 2026-01-13
 ### ⚙️ Miscellaneous
+
+
+
+
 
 
 
@@ -64,23 +115,229 @@
 
 
 
+
+
+
 ## [0.1.2] - 2026-01-13
 ### ⚙️ Miscellaneous
+
+
+
 
 
 
 ## [0.1.1] - 2026-01-13
 ### ⚙️ Miscellaneous
 
-- **(taplo)**: Exclude youtube feed files from formatting and validation ([6661c54](https://github.com/sguzman/pulsewire/commit/6661c54454a40f411453a4ff38272c3ff11ba383))- **(tui)**: Split background queue into modules ([6e72b41](https://github.com/sguzman/pulsewire/commit/6e72b4179d561a3bac4f3fd3ce0859d6bdd3bc7f))
 
-- Split background queue into modules ([6e72b41](https://github.com/sguzman/pulsewire/commit/6e72b4179d561a3bac4f3fd3ce0859d6bdd3bc7f))- Exclude youtube feed files from formatting and validation ([6661c54](https://github.com/sguzman/pulsewire/commit/6661c54454a40f411453a4ff38272c3ff11ba383))
+- **(taplo)**: Exclude youtube feed files from formatting and validation ([6661c54](https://github.com/sguzman/pulsewire/commit/6661c54454a40f411453a4ff38272c3ff11ba383))
+
+
+- **(tui)**: Split background queue into modules ([6e72b41](https://github.com/sguzman/pulsewire/commit/6e72b4179d561a3bac4f3fd3ce0859d6bdd3bc7f))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- Split background queue into modules ([6e72b41](https://github.com/sguzman/pulsewire/commit/6e72b4179d561a3bac4f3fd3ce0859d6bdd3bc7f))
+
+
+- Exclude youtube feed files from formatting and validation ([6661c54](https://github.com/sguzman/pulsewire/commit/6661c54454a40f411453a4ff38272c3ff11ba383))
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### 🐛 Bug Fixes
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 ### 📚 Documentation
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -90,7 +347,52 @@
 
 
 
+
+
+
+
+
 ### 🚀 Features
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
