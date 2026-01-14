@@ -14,6 +14,8 @@ fmt:
 	biome format --write .
 
 # Validate
+typos:
+	typos --config typos.toml
 links:
 	lychee --config lychee.toml .
 validate:

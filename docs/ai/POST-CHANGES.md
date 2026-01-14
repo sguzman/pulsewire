@@ -31,6 +31,10 @@ Prereqs: `taplo` and `biome` must be installed.
 ## Link check (Lychee)
 
 - `lychee --config lychee.toml .`
+
+## Spelling (typos)
+
+- `typos --config typos.toml`
 ## Tests
 
 - `cargo test`

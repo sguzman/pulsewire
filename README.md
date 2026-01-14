@@ -113,7 +113,7 @@ OpenAPI docs:
 
 ## Development
 - Tooling guidance: `docs/ai/tools/ADDING.md`
-- Tooling: cargo-release, git-cliff, just, biome, taplo, rustfmt, lychee
+- Tooling: cargo-release, git-cliff, just, biome, taplo, rustfmt, lychee, typos
 - Justfile: `just build`, `just fmt`, `just validate`, `just test`, `just post-change`, `just all`
 - Release policy: `docs/RELEASE.md`
 - Roadmap: `docs/ROADMAP.md`

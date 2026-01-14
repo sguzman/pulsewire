@@ -1,0 +1,8 @@
+# typos configuration
+
+[default]
+# Use built-in dictionaries and check common text files.
+
+[files]
+# Ignore generated or vendor content if needed in future.
+# extend-exclude = ["target"]
