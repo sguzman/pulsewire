@@ -1,0 +1,18 @@
+# Politico RSS feeds (from https://www.politico.com/rss/)
+
+# POLITICO RSS feeds (extracted from "POLITICO RSS Feeds - POLITICO.mhtml")
+
+base_poll_seconds = 1000
+category = "news"
+content_type = "xml"
+id_prefix = "postmillenial"
+language = "en"
+provenance = "postmillenia"
+tags = [
+  "news",
+  "politics",
+]
+
+[[feeds]]
+id  = "main"
+url = "https://thepostmillennial.com/index.rss"
