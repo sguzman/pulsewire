@@ -1,7 +1,7 @@
 # Post-Change Checklist (Manual)
 
-Run these commands after a change is completed and confirmed to compile.
-Run from the repo root.
+Run these commands after a change is completed and confirmed to compile. Run
+from the repo root.
 
 Prereqs: `taplo` and `biome` must be installed.
 
@@ -27,17 +27,26 @@ Prereqs: `taplo` and `biome` must be installed.
   - Example: `biome format --write path/to/file.json`
   - Example: `biome format --write .`
 
+## Format Markdown (rumdl)
 
-## Link check (Lychee)
+- `rumdl fmt .`
+
+## Link Check (Lychee)
 
 - `lychee --config lychee.toml .`
 
 ## Spelling (typos)
 
 - `typos --config typos.toml`
+
 ## Tests
 
 - `cargo test`
+
+## Benchmarks (hyperfine)
+
+- `just bench-ruby-parity`
+- `just bench-rust-baseline`
 
 ## Docs
 
