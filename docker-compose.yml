@@ -5,8 +5,8 @@ services:
       dockerfile: crates/fetcher/Dockerfile
       args:
         TARGET: x86_64-unknown-linux-musl
-    image: pulsewire-fetcher:latest
-    container_name: pulsewire-fetcher
+    image: guzmansalv/pulsewire-fetcher:latest
+    container_name: guzmansalv-pulsewire-fetcher
     restart: unless-stopped
     environment:
       CONFIG_PATH: /app/res/docker.toml
