@@ -24,6 +24,7 @@ context-by-file:
 	files-to-prompt --ignore tmp --ignore target/ --ignore .git/ --markdown --line-numbers --extension yaml --extension yml . > ~/Downloads/yaml.txt
 	files-to-prompt --ignore tmp --ignore target/ --ignore .git/ --markdown --line-numbers --extension txt . > ~/Downloads/txt.txt
 	files-to-prompt --ignore tmp --ignore target/ --ignore .git/ --markdown --line-numbers --extension sh --extension bash . > ~/Downloads/sh.txt
+	files-to-prompt --ignore tmp --ignore target/ --ignore .git/ --markdown --line-numbers --extension json . > ~/Downloads/json.txt
 
 # Release
 major:
