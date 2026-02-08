@@ -28,7 +28,9 @@ where
   pub clock:         Arc<C>,
   pub rng:           Arc<G>,
   pub watches_by_id:
-    Arc<HashMap<String, WatchConfig>>
+    Arc<HashMap<String, WatchConfig>>,
+  pub cookie_header_by_id:
+    Arc<HashMap<String, String>>
 }
 
 impl<R, H, C, G> Clone
@@ -58,6 +60,9 @@ where
       ),
       watches_by_id: Arc::clone(
         &self.watches_by_id
+      ),
+      cookie_header_by_id: Arc::clone(
+        &self.cookie_header_by_id
       )
     }
   }

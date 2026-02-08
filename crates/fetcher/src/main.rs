@@ -81,6 +81,15 @@ async fn main() -> Result<(), BootError>
       .collect::<HashMap<_, _>>()
   );
 
+  let cookie_header_by_id = Arc::new(
+    load_cookie_header_by_id(
+      &all_sources,
+      &cfg_path
+    )
+    .await
+    .map_err(BootError::Fatal)?
+  );
+
   init_logging(&app_cfg);
 
   metrics::init(
@@ -111,7 +120,7 @@ async fn main() -> Result<(), BootError>
     }
   };
 
-  info!(feeds = all_sources.len(), watches = watches_by_id.len(), db = %db_desc, dialect = ?app_cfg.db_dialect, mode = ?app_cfg.mode, "Loaded config");
+  info!(feeds = all_sources.len(), watches = watches_by_id.len(), cookies = cookie_header_by_id.len(), db = %db_desc, dialect = ?app_cfg.db_dialect, mode = ?app_cfg.mode, "Loaded config");
 
   if !watches_by_id.is_empty() {
     info!(
@@ -258,7 +267,8 @@ async fn main() -> Result<(), BootError>
     http: http.clone(),
     clock: clock.clone(),
     rng: rng.clone(),
-    watches_by_id
+    watches_by_id,
+    cookie_header_by_id
   };
 
   if let Err(e) =
@@ -390,6 +400,77 @@ where
     .map_err(BootError::Fatal)
 }
 
+async fn load_cookie_header_by_id(
+  feeds: &[FeedConfig],
+  config_path: &std::path::Path
+) -> Result<
+  std::collections::HashMap<
+    String,
+    String
+  >,
+  String
+> {
+  let mut map =
+    std::collections::HashMap::new();
+
+  let base_dir = config_path
+    .parent()
+    .ok_or_else(|| {
+    "config path has no parent"
+      .to_string()
+  })?;
+
+  for feed in feeds {
+    let Some(cookie_path) =
+      feed.cookie_path.as_ref()
+    else {
+      continue;
+    };
+
+    let path = {
+      let p = std::path::Path::new(
+        cookie_path
+      );
+      if p.is_absolute() {
+        p.to_path_buf()
+      } else {
+        base_dir.join(p)
+      }
+    };
+
+    let cookie =
+      tokio::fs::read_to_string(&path)
+        .await
+        .map_err(|e| {
+          format!(
+            "failed to read cookie \
+             file for source '{}': {} \
+             ({e})",
+            feed.id,
+            path.display()
+          )
+        })?;
+
+    let cookie = cookie.trim();
+
+    if cookie.is_empty() {
+      return Err(format!(
+        "cookie file for source '{}' \
+         is empty: {}",
+        feed.id,
+        path.display()
+      ));
+    }
+
+    map.insert(
+      feed.id.clone(),
+      cookie.to_string()
+    );
+  }
+
+  Ok(map)
+}
+
 fn watches_to_feeds(
   watches: &[WatchConfig]
 ) -> Vec<FeedConfig> {
@@ -431,7 +512,10 @@ fn watches_to_feeds(
             Some(
               "text/html".to_string()
             )
-          })
+          }),
+        cookie_path:       w
+          .cookie_path
+          .clone()
       }
     })
     .collect()
@@ -464,6 +548,7 @@ fn benchmark_feed_stream(
         "application/rss+xml"
           .to_string(),
       ),
+      cookie_path: None,
     }
   })
 }

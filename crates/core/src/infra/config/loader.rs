@@ -422,7 +422,11 @@ impl ConfigLoader {
         provenance: f.provenance,
         tags: f.tags,
         language: f.language,
-        content_type: f.content_type
+        content_type: f.content_type,
+        cookie_path:
+          normalize_optional_string(
+            f.cookie_path
+          )
       });
     }
 
@@ -663,6 +667,10 @@ fn parse_watch(
     tags: w.tags,
     language: w.language,
     content_type: w.content_type,
+    cookie_path:
+      normalize_optional_string(
+        w.cookie_path
+      ),
     check_method,
     fallback_to_get: w
       .fallback_to_get
@@ -698,6 +706,19 @@ fn parse_watch(
     emit_title: w.emit_title,
     min_item_count_change: w
       .min_item_count_change
+  })
+}
+
+fn normalize_optional_string(
+  raw: Option<String>
+) -> Option<String> {
+  raw.and_then(|s| {
+    let trimmed = s.trim();
+    if trimmed.is_empty() {
+      None
+    } else {
+      Some(trimmed.to_string())
+    }
   })
 }
 

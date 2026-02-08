@@ -1,4 +1,4 @@
-watch_defaults = { base_poll_seconds = 900, category = "finance", check_method = "get", fallback_to_get = true, detectors = ["content_hash", "element_hash"], fetch_body_on_change = true, max_body_bytes = 1048576, item_identity = "href", normalize_whitespace = true, strip_query_params = true, emit_mode = "new_items_only", provenance = "morningstar" }
+watch_defaults = { base_poll_seconds = 900, category = "finance", check_method = "get", fallback_to_get = true, detectors = ["content_hash", "element_hash"], fetch_body_on_change = true, max_body_bytes = 1048576, item_identity = "href", normalize_whitespace = true, strip_query_params = true, emit_mode = "new_items_only", cookie_path = "../../../cookies/morningstar.cookie", provenance = "morningstar" }
 
 [[watch_profiles]]
 name = "morningstar-stock-articles"

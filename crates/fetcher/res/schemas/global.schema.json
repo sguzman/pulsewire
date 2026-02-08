@@ -29,6 +29,9 @@
     "content_type": {
       "type": "string"
     },
+    "cookie_path": {
+      "type": "string"
+    },
     "watch_defaults": {
       "type": "object",
       "additionalProperties": false,
@@ -58,9 +61,15 @@
         "content_type": {
           "type": "string"
         },
+        "cookie_path": {
+          "type": "string"
+        },
         "check_method": {
           "type": "string",
-          "enum": ["head", "get"]
+          "enum": [
+            "head",
+            "get"
+          ]
         },
         "fallback_to_get": {
           "type": "boolean"

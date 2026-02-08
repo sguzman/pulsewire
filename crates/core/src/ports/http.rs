@@ -7,15 +7,16 @@ use crate::domain::model::{
 };
 
 #[async_trait::async_trait]
-
 pub trait Http: Send + Sync {
   async fn head(
     &self,
-    url: &str
+    url: &str,
+    cookie_header: Option<&str>
   ) -> HeadResult;
 
   async fn get(
     &self,
-    url: &str
+    url: &str,
+    cookie_header: Option<&str>
   ) -> GetResult;
 }

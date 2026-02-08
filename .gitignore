@@ -4,3 +4,6 @@ rss.db-*
 logs
 tmp
 .lycheecache
+# local site cookies
+cookies/*
+!cookies/.gitkeep

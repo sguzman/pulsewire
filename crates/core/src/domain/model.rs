@@ -38,7 +38,8 @@ pub struct FeedConfig {
   pub provenance:        Option<String>,
   pub tags: Option<Vec<String>>,
   pub language:          Option<String>,
-  pub content_type:      Option<String>
+  pub content_type:      Option<String>,
+  pub cookie_path:       Option<String>
 }
 
 #[derive(
@@ -54,6 +55,7 @@ pub struct WatchConfig {
   pub tags: Option<Vec<String>>,
   pub language: Option<String>,
   pub content_type: Option<String>,
+  pub cookie_path: Option<String>,
   pub check_method: WatchCheckMethod,
   pub fallback_to_get:       bool,
   pub detectors: Vec<WatchDetector>,

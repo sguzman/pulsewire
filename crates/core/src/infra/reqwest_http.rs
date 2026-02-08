@@ -98,23 +98,27 @@ impl ReqwestHttp {
 }
 
 #[async_trait::async_trait]
-
 impl Http for ReqwestHttp {
   async fn head(
     &self,
-    url: &str
+    url: &str,
+    cookie_header: Option<&str>
   ) -> HeadResult {
     let start =
       tokio::time::Instant::now();
 
     debug!(url, "HTTP HEAD start");
 
-    match self
-      .client
-      .head(url)
-      .send()
-      .await
+    let mut req = self.client.head(url);
+
+    if let Some(cookie) = cookie_header
+      && !cookie.trim().is_empty()
     {
+      req = req
+        .header(header::COOKIE, cookie);
+    }
+
+    match req.send().await {
       | Ok(resp) => {
         let latency_ms =
           start.elapsed().as_millis()
@@ -168,19 +172,24 @@ impl Http for ReqwestHttp {
 
   async fn get(
     &self,
-    url: &str
+    url: &str,
+    cookie_header: Option<&str>
   ) -> GetResult {
     let start =
       tokio::time::Instant::now();
 
     debug!(url, "HTTP GET start");
 
-    match self
-      .client
-      .get(url)
-      .send()
-      .await
+    let mut req = self.client.get(url);
+
+    if let Some(cookie) = cookie_header
+      && !cookie.trim().is_empty()
     {
+      req = req
+        .header(header::COOKIE, cookie);
+    }
+
+    match req.send().await {
       | Ok(resp) => {
         let status =
           Some(resp.status().as_u16());

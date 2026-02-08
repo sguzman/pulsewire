@@ -29,6 +29,9 @@
     "content_type": {
       "type": "string"
     },
+    "cookie_path": {
+      "type": "string"
+    },
     "watch_defaults": {
       "type": "object",
       "additionalProperties": false,
@@ -58,9 +61,15 @@
         "content_type": {
           "type": "string"
         },
+        "cookie_path": {
+          "type": "string"
+        },
         "check_method": {
           "type": "string",
-          "enum": ["head", "get"]
+          "enum": [
+            "head",
+            "get"
+          ]
         },
         "fallback_to_get": {
           "type": "boolean"
@@ -155,7 +164,9 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
           "name": {
             "type": "string"
@@ -185,9 +196,15 @@
           "content_type": {
             "type": "string"
           },
+          "cookie_path": {
+            "type": "string"
+          },
           "check_method": {
             "type": "string",
-            "enum": ["head", "get"]
+            "enum": [
+              "head",
+              "get"
+            ]
           },
           "fallback_to_get": {
             "type": "boolean"
@@ -283,7 +300,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "url"],
+        "required": [
+          "id",
+          "url"
+        ],
         "properties": {
           "id": {
             "type": "string"
@@ -315,6 +335,9 @@
           },
           "content_type": {
             "type": "string"
+          },
+          "cookie_path": {
+            "type": "string"
           }
         }
       }
@@ -324,7 +347,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "url"],
+        "required": [
+          "id",
+          "url"
+        ],
         "properties": {
           "id": {
             "type": "string"
@@ -360,9 +386,15 @@
           "content_type": {
             "type": "string"
           },
+          "cookie_path": {
+            "type": "string"
+          },
           "check_method": {
             "type": "string",
-            "enum": ["head", "get"]
+            "enum": [
+              "head",
+              "get"
+            ]
           },
           "fallback_to_get": {
             "type": "boolean"
@@ -456,10 +488,14 @@
   },
   "anyOf": [
     {
-      "required": ["feeds"]
+      "required": [
+        "feeds"
+      ]
     },
     {
-      "required": ["watches"]
+      "required": [
+        "watches"
+      ]
     }
   ]
 }

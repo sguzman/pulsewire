@@ -191,6 +191,7 @@ pub(crate) struct RawFeedsFile {
   pub tags: Option<Vec<String>>,
   pub language:          Option<String>,
   pub content_type:      Option<String>,
+  pub cookie_path:       Option<String>,
   #[serde(default)]
   pub feeds:             Vec<RawFeed>,
   pub watch_defaults:
@@ -211,6 +212,7 @@ pub(crate) struct RawFeedDefaults {
   pub tags: Option<Vec<String>>,
   pub language:          Option<String>,
   pub content_type:      Option<String>,
+  pub cookie_path:       Option<String>,
   pub watch_defaults:
     Option<RawWatchDefaults>
 }
@@ -236,7 +238,8 @@ pub(crate) struct RawFeed {
   pub provenance:        Option<String>,
   pub tags: Option<Vec<String>>,
   pub language:          Option<String>,
-  pub content_type:      Option<String>
+  pub content_type:      Option<String>,
+  pub cookie_path:       Option<String>
 }
 
 #[derive(Debug, Deserialize)]
@@ -248,6 +251,7 @@ pub(crate) struct RawWatchDefaults {
   pub tags: Option<Vec<String>>,
   pub language: Option<String>,
   pub content_type: Option<String>,
+  pub cookie_path: Option<String>,
   pub check_method: Option<String>,
   pub fallback_to_get: Option<bool>,
   pub detectors: Option<Vec<String>>,
@@ -296,6 +300,7 @@ pub(crate) struct RawWatch {
   pub tags: Option<Vec<String>>,
   pub language: Option<String>,
   pub content_type: Option<String>,
+  pub cookie_path: Option<String>,
   pub check_method: Option<String>,
   pub fallback_to_get: Option<bool>,
   pub detectors: Option<Vec<String>>,

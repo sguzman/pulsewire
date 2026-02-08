@@ -176,6 +176,7 @@ pub(crate) async fn load_all_feeds(
     tags:              None,
     language:          None,
     content_type:      None,
+    cookie_path:       None,
     feeds:             all_feeds,
     watch_defaults:    None,
     watch_profiles:    Vec::new(),
@@ -315,7 +316,8 @@ struct FeedDefaults {
   provenance:        Option<String>,
   tags: Option<Vec<String>>,
   language:          Option<String>,
-  content_type:      Option<String>
+  content_type:      Option<String>,
+  cookie_path:       Option<String>
 }
 
 impl FeedDefaults {
@@ -327,7 +329,8 @@ impl FeedDefaults {
       provenance:        None,
       tags:              None,
       language:          None,
-      content_type:      None
+      content_type:      None,
+      cookie_path:       None
     }
   }
 
@@ -361,6 +364,9 @@ impl FeedDefaults {
       language: file.language.clone(),
       content_type: file
         .content_type
+        .clone(),
+      cookie_path: file
+        .cookie_path
         .clone()
     })
   }
@@ -395,6 +401,9 @@ impl FeedDefaults {
       language: file.language.clone(),
       content_type: file
         .content_type
+        .clone(),
+      cookie_path: file
+        .cookie_path
         .clone()
     })
   }
@@ -442,6 +451,12 @@ impl FeedDefaults {
         .clone()
         .or_else(|| {
           global.content_type.clone()
+        }),
+      cookie_path:       file
+        .cookie_path
+        .clone()
+        .or_else(|| {
+          global.cookie_path.clone()
         })
     }
   }
@@ -456,6 +471,7 @@ struct WatchDefaults {
   tags: Option<Vec<String>>,
   language:              Option<String>,
   content_type:          Option<String>,
+  cookie_path:           Option<String>,
   check_method:          Option<String>,
   fallback_to_get:       Option<bool>,
   detectors: Option<Vec<String>>,
@@ -490,6 +506,7 @@ impl WatchDefaults {
       tags:                  None,
       language:              None,
       content_type:          None,
+      cookie_path:           None,
       check_method:          None,
       fallback_to_get:       None,
       detectors:             None,
@@ -548,6 +565,9 @@ impl WatchDefaults {
       language: raw.language.clone(),
       content_type: raw
         .content_type
+        .clone(),
+      cookie_path: raw
+        .cookie_path
         .clone(),
       check_method: raw
         .check_method
@@ -650,6 +670,13 @@ impl WatchDefaults {
           .clone()
           .or_else(|| {
             base.content_type.clone()
+          }),
+      cookie_path:
+        override_with
+          .cookie_path
+          .clone()
+          .or_else(|| {
+            base.cookie_path.clone()
           }),
       check_method:
         override_with
@@ -828,6 +855,11 @@ fn apply_feed_defaults(
       defaults.content_type.clone();
   }
 
+  if feed.cookie_path.is_none() {
+    feed.cookie_path =
+      defaults.cookie_path.clone();
+  }
+
   let prefix = match feed
     .id_prefix
     .as_deref()
@@ -917,6 +949,11 @@ fn apply_watch_defaults(
   if watch.content_type.is_none() {
     watch.content_type =
       base.content_type.clone();
+  }
+
+  if watch.cookie_path.is_none() {
+    watch.cookie_path =
+      base.cookie_path.clone();
   }
 
   if watch.check_method.is_none() {
