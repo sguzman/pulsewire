@@ -438,7 +438,7 @@ async fn load_cookie_header_by_id(
       }
     };
 
-    let cookie =
+    let raw =
       tokio::fs::read_to_string(&path)
         .await
         .map_err(|e| {
@@ -451,26 +451,71 @@ async fn load_cookie_header_by_id(
           )
         })?;
 
-    let cookie = cookie.trim();
-
-    if cookie.is_empty() {
-      return Err(format!(
-        "cookie file for source '{}' \
-         is empty: {}",
-        feed.id,
-        path.display()
-      ));
-    }
+    let cookie_header =
+      parse_cookie_file(&raw)
+        .ok_or_else(|| {
+          format!(
+            "cookie file for source \
+             '{}' is empty or \
+             invalid: {}",
+            feed.id,
+            path.display()
+          )
+        })?;
 
     map.insert(
       feed.id.clone(),
-      cookie.to_string()
+      cookie_header
     );
   }
 
   Ok(map)
 }
 
+fn parse_cookie_file(
+  raw: &str
+) -> Option<String> {
+  let mut pairs = Vec::new();
+
+  for line in raw.lines() {
+    let trimmed = line.trim();
+
+    if trimmed.is_empty()
+      || trimmed.starts_with('#')
+    {
+      continue;
+    }
+
+    let fields: Vec<&str> =
+      trimmed.split('\t').collect();
+
+    if fields.len() >= 7 {
+      let name = fields[5].trim();
+      let value = fields[6].trim();
+
+      if !name.is_empty() {
+        pairs.push(format!(
+          "{}={}",
+          name, value
+        ));
+      }
+
+      continue;
+    }
+
+    // Fallback: treat file as
+    // raw Cookie header text.
+    if trimmed.contains('=') {
+      return Some(trimmed.to_string());
+    }
+  }
+
+  if pairs.is_empty() {
+    None
+  } else {
+    Some(pairs.join("; "))
+  }
+}
 fn watches_to_feeds(
   watches: &[WatchConfig]
 ) -> Vec<FeedConfig> {

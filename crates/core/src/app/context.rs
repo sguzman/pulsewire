@@ -22,11 +22,11 @@ where
   C: Clock,
   G: RandomSource
 {
-  pub cfg:           Arc<AppConfig>,
-  pub repo:          Arc<R>,
-  pub http:          Arc<H>,
-  pub clock:         Arc<C>,
-  pub rng:           Arc<G>,
+  pub cfg: Arc<AppConfig>,
+  pub repo:                Arc<R>,
+  pub http:                Arc<H>,
+  pub clock:               Arc<C>,
+  pub rng:                 Arc<G>,
   pub watches_by_id:
     Arc<HashMap<String, WatchConfig>>,
   pub cookie_header_by_id:
@@ -43,22 +43,22 @@ where
 {
   fn clone(&self) -> Self {
     Self {
-      cfg:           Arc::clone(
+      cfg:                 Arc::clone(
         &self.cfg
       ),
-      repo:          Arc::clone(
+      repo:                Arc::clone(
         &self.repo
       ),
-      http:          Arc::clone(
+      http:                Arc::clone(
         &self.http
       ),
-      clock:         Arc::clone(
+      clock:               Arc::clone(
         &self.clock
       ),
-      rng:           Arc::clone(
+      rng:                 Arc::clone(
         &self.rng
       ),
-      watches_by_id: Arc::clone(
+      watches_by_id:       Arc::clone(
         &self.watches_by_id
       ),
       cookie_header_by_id: Arc::clone(
