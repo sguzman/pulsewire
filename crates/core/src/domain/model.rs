@@ -14,7 +14,6 @@ use serde::{
 #[derive(
   Debug, Clone, Serialize, Deserialize,
 )]
-
 pub struct DomainConfig {
   pub max_concurrent_requests: usize
 }
@@ -22,7 +21,6 @@ pub struct DomainConfig {
 #[derive(
   Debug, Clone, Serialize, Deserialize,
 )]
-
 pub struct CategoryConfig {
   pub name:    String,
   pub domains: Vec<String>
@@ -31,7 +29,6 @@ pub struct CategoryConfig {
 #[derive(
   Debug, Clone, Serialize, Deserialize,
 )]
-
 pub struct FeedConfig {
   pub id:                String,
   pub url:               String,
@@ -45,6 +42,47 @@ pub struct FeedConfig {
 }
 
 #[derive(
+  Debug, Clone, Serialize, Deserialize,
+)]
+pub struct WatchConfig {
+  pub id:                    String,
+  pub url:                   String,
+  pub domain:                String,
+  pub category:              String,
+  pub base_poll_seconds:     u64,
+  pub provenance: Option<String>,
+  pub tags: Option<Vec<String>>,
+  pub language: Option<String>,
+  pub content_type: Option<String>,
+  pub check_method: WatchCheckMethod,
+  pub fallback_to_get:       bool,
+  pub detectors: Vec<WatchDetector>,
+  pub fetch_body_on_change:  bool,
+  pub max_body_bytes: Option<u64>,
+  pub item_selector: Option<String>,
+  pub item_identity:
+    Option<WatchItemIdentity>,
+  pub item_identity_attr:
+    Option<String>,
+  pub title_selector: Option<String>,
+  pub link_selector: Option<String>,
+  pub summary_selector: Option<String>,
+  pub published_selector:
+    Option<String>,
+  pub published_format: Option<String>,
+  pub include_selectors:
+    Option<Vec<String>>,
+  pub exclude_selectors:
+    Option<Vec<String>>,
+  pub normalize_whitespace:  bool,
+  pub strip_query_params:    bool,
+  pub emit_mode: WatchEmitMode,
+  pub emit_title: Option<String>,
+  pub min_item_count_change:
+    Option<u64>
+}
+
+#[derive(
   Debug,
   Clone,
   Copy,
@@ -53,14 +91,73 @@ pub struct FeedConfig {
   Serialize,
   Deserialize,
 )]
+pub enum WatchCheckMethod {
+  Head,
+  Get
+}
 
+#[derive(
+  Debug,
+  Clone,
+  Copy,
+  PartialEq,
+  Eq,
+  Serialize,
+  Deserialize,
+)]
+pub enum WatchDetector {
+  Etag,
+  LastModified,
+  ContentLength,
+  ContentHash,
+  ElementHash
+}
+
+#[derive(
+  Debug,
+  Clone,
+  Copy,
+  PartialEq,
+  Eq,
+  Serialize,
+  Deserialize,
+)]
+pub enum WatchItemIdentity {
+  Href,
+  Text,
+  Attr
+}
+
+#[derive(
+  Debug,
+  Clone,
+  Copy,
+  PartialEq,
+  Eq,
+  Serialize,
+  Deserialize,
+)]
+pub enum WatchEmitMode {
+  NewItemsOnly,
+  AnyChange,
+  Digest
+}
+
+#[derive(
+  Debug,
+  Clone,
+  Copy,
+  PartialEq,
+  Eq,
+  Serialize,
+  Deserialize,
+)]
 pub enum AppMode {
   Dev,
   Prod
 }
 
 #[derive(Debug, Clone)]
-
 pub struct AppConfig {
   pub db_dialect: SqlDialect,
   pub sqlite_path: PathBuf,
@@ -97,7 +194,6 @@ pub struct AppConfig {
 }
 
 #[derive(Debug, Clone)]
-
 pub struct MetricsConfig {
   pub enabled: bool,
   pub bind:    String
@@ -106,14 +202,12 @@ pub struct MetricsConfig {
 #[derive(
   Debug, Clone, Copy, PartialEq, Eq,
 )]
-
 pub enum SqlDialect {
   Sqlite,
   Postgres
 }
 
 #[derive(Debug, Clone)]
-
 pub struct PostgresConfig {
   pub user:     String,
   pub password: String,
@@ -126,7 +220,6 @@ pub struct PostgresConfig {
 #[derive(
   Debug, Clone, Copy, PartialEq, Eq,
 )]
-
 pub enum ErrorKind {
   Timeout,
   DnsFailure,
@@ -138,7 +231,6 @@ pub enum ErrorKind {
 }
 
 #[derive(Debug, Clone)]
-
 pub struct HeadResult {
   pub status:        Option<u16>,
   pub etag:          Option<String>,
@@ -148,7 +240,6 @@ pub struct HeadResult {
 }
 
 #[derive(Debug, Clone)]
-
 pub struct GetResult {
   pub status:        Option<u16>,
   pub body:          Option<Vec<u8>>,

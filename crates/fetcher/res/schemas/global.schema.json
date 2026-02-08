@@ -8,14 +8,150 @@
       "type": "integer",
       "minimum": 0
     },
-    "id_prefix": { "type": "string" },
-    "category": { "type": "string" },
-    "provenance": { "type": "string" },
+    "id_prefix": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "provenance": {
+      "type": "string"
+    },
     "tags": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
-    "language": { "type": "string" },
-    "content_type": { "type": "string" }
+    "language": {
+      "type": "string"
+    },
+    "content_type": {
+      "type": "string"
+    },
+    "watch_defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "base_poll_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "id_prefix": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "provenance": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "language": {
+          "type": "string"
+        },
+        "content_type": {
+          "type": "string"
+        },
+        "check_method": {
+          "type": "string",
+          "enum": [
+            "head",
+            "get"
+          ]
+        },
+        "fallback_to_get": {
+          "type": "boolean"
+        },
+        "detectors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "etag",
+              "last_modified",
+              "content_length",
+              "content_hash",
+              "element_hash"
+            ]
+          }
+        },
+        "fetch_body_on_change": {
+          "type": "boolean"
+        },
+        "max_body_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "item_selector": {
+          "type": "string"
+        },
+        "item_identity": {
+          "type": "string",
+          "enum": [
+            "href",
+            "text",
+            "attr"
+          ]
+        },
+        "item_identity_attr": {
+          "type": "string"
+        },
+        "title_selector": {
+          "type": "string"
+        },
+        "link_selector": {
+          "type": "string"
+        },
+        "summary_selector": {
+          "type": "string"
+        },
+        "published_selector": {
+          "type": "string"
+        },
+        "published_format": {
+          "type": "string"
+        },
+        "include_selectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exclude_selectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "normalize_whitespace": {
+          "type": "boolean"
+        },
+        "strip_query_params": {
+          "type": "boolean"
+        },
+        "emit_mode": {
+          "type": "string",
+          "enum": [
+            "new_items_only",
+            "any_change",
+            "digest"
+          ]
+        },
+        "emit_title": {
+          "type": "string"
+        },
+        "min_item_count_change": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
   }
 }

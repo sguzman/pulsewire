@@ -58,6 +58,7 @@ async fn main() -> Result<(), BootError>
   let LoadedConfig {
     app: app_cfg,
     feeds,
+    watches,
     categories
   } = ConfigLoader::load(&cfg_path)
     .await
@@ -95,7 +96,16 @@ async fn main() -> Result<(), BootError>
     }
   };
 
-  info!(feeds = feeds.len(), db = %db_desc, dialect = ?app_cfg.db_dialect, mode = ?app_cfg.mode, "Loaded config");
+  info!(feeds = feeds.len(), watches = watches.len(), db = %db_desc, dialect = ?app_cfg.db_dialect, mode = ?app_cfg.mode, "Loaded config");
+
+  if !watches.is_empty() {
+    warn!(
+      watches = watches.len(),
+      "Ad-hoc watches are loaded but \
+       not scheduled yet (phase 1 \
+       config-only support)"
+    );
+  }
 
   if matches!(
     app_cfg.mode,
