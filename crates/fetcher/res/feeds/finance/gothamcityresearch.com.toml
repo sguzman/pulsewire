@@ -1,4 +1,4 @@
-watch_defaults = { base_poll_seconds = 1800, category = "finance", check_method = "get", content_type = "text/html", detectors = [
+watch_defaults = { base_poll_seconds = 18000, category = "finance", check_method = "get", content_type = "text/html", detectors = [
   "content_hash",
   "element_hash",
 ], emit_mode = "new_items_only", fallback_to_get = true, fetch_body_on_change = true, item_identity = "href", language = "en", max_body_bytes = 1048576, max_items_per_fetch = 3, normalize_whitespace = true, provenance = "gotham-city-research", strip_query_params = true, tags = [
