@@ -3,14 +3,6 @@
 # Global configuration options
 [global]
 
-exclude = [
-  "node_modules/**",
-  "dist/**",
-  "build/**",
-  "vendor/**",
-  "generated/*.md",
-  "docs/**"
-]
 respect-gitignore = true
 
 # List of rules to disable (uncomment and modify as needed)
@@ -110,6 +102,12 @@ exclude = [
   # Specific files or patterns
   "CHANGELOG.md",
   "LICENSE.md",
+  "build/**",
+  "dist/**",
+  "docs/**",
+  "generated/*.md",
+  "node_modules/**",
+  "vendor/**",
 ]
 
 # Respect .gitignore files when scanning directories (default: true)
