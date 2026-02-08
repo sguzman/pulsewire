@@ -12,5 +12,65 @@ language     = "en"
 content_type = "application/rss+xml"
 
 [[feeds]]
-id  = "rss-oxford-worlds-classics"
+id  = "oxford-worlds-classics"
 url = "https://global.oup.com/academic/content/series/o/oxford-worlds-classics-owc/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "oxford-handbooks-ohbk"
+url = "https://global.oup.com/academic/content/series/o/oxford-handbooks-ohbk/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "very-short-introductions-vsi"
+url = "https://global.oup.com/academic/content/series/v/very-short-introductions-vsi/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "what-everyone-needs-to-know-wentk"
+url = "https://global.oup.com/academic/content/series/w/what-everyone-needs-to-know-wentk/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "engaging-philosophy-ephil"
+url = "https://global.oup.com/academic/content/series/e/engaging-philosophy-ephil/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "spiritual-lives-spl"
+url = "https://global.oup.com/academic/content/series/s/spiritual-lives-spl/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "oxford-medical-handbooks-oxhmed"
+url = "https://global.oup.com/academic/content/series/o/oxford-medical-handbooks-oxhmed/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "mayo-clinic-scientific-press-mayo"
+url = "https://global.oup.com/academic/content/series/m/mayo-clinic-scientific-press-mayo/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "comparative-politics-cep"
+url = "https://global.oup.com/academic/content/series/c/comparative-politics-cep/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "biology-of-habitats-series-bohs"
+url = "https://global.oup.com/academic/content/series/b/biology-of-habitats-series-bohs/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "arts-and-humanities"
+url = "https://global.oup.com/academic/category/arts-and-humanities/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "dictionaries-and-reference"
+url = "https://global.oup.com/academic/category/dictionaries-and-reference/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "law"
+url = "https://global.oup.com/academic/category/law/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "medicine-and-health"
+url = "https://global.oup.com/academic/category/medicine-and-health/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "science-and-mathematics"
+url = "https://global.oup.com/academic/category/science-and-mathematics/?view=RSS&lang=en"
+
+[[feeds]]
+id  = "social-sciences"
+url = "https://global.oup.com/academic/category/social-sciences/?view=RSS&lang=en"
