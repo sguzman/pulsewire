@@ -24,6 +24,24 @@ services:
     networks:
       - services
 
+  server:
+    build:
+      context: .
+      dockerfile: crates/server/Dockerfile
+      args:
+        TARGET: x86_64-unknown-linux-musl
+    image: guzmansalv/pulsewire-server:latest
+    container_name: guzmansalv-pulsewire-server
+    restart: unless-stopped
+    environment:
+      SERVER_CONFIG_PATH: /app/res/docker.toml
+    volumes:
+      - ./crates/server/res:/app/res:ro
+    ports:
+      - "8091:8091"
+    networks:
+      - services
+
 networks:
   services:
     external: true

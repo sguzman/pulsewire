@@ -1,0 +1,36 @@
+[app]
+mode     = "prod"
+timezone = "America/Mexico_City"
+
+[http]
+host = "0.0.0.0"
+port = 8091
+
+[database]
+dialect = "postgres"
+
+[sqlite]
+path = "res/db/server.sqlite"
+
+[postgres]
+database       = "data"
+fetcher_schema = "fetcher"
+host           = "postgres"
+password       = "admin"
+port           = 5432
+schema         = "server"
+ssl_mode       = "disable"
+user           = "admin"
+
+[logging]
+level = "info"
+
+[auth]
+token_ttl_seconds = 86400
+
+[dev]
+reset_on_start = false
+
+[seed]
+password = "admin"
+username = "admin"
