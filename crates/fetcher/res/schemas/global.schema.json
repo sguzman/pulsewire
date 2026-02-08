@@ -113,6 +113,10 @@
           "type": "integer",
           "minimum": 0
         },
+        "max_items_per_fetch": {
+          "type": "integer",
+          "minimum": 1
+        },
         "item_selector": {
           "type": "string"
         },

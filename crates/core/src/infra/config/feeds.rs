@@ -514,6 +514,7 @@ struct WatchDefaults {
   detectors: Option<Vec<String>>,
   fetch_body_on_change:  Option<bool>,
   max_body_bytes:        Option<u64>,
+  max_items_per_fetch:   Option<u64>,
   item_selector:         Option<String>,
   item_identity:         Option<String>,
   item_identity_attr:    Option<String>,
@@ -551,6 +552,7 @@ impl WatchDefaults {
       detectors:             None,
       fetch_body_on_change:  None,
       max_body_bytes:        None,
+      max_items_per_fetch:   None,
       item_selector:         None,
       item_identity:         None,
       item_identity_attr:    None,
@@ -624,6 +626,8 @@ impl WatchDefaults {
         .fetch_body_on_change,
       max_body_bytes: raw
         .max_body_bytes,
+      max_items_per_fetch: raw
+        .max_items_per_fetch,
       item_selector: raw
         .item_selector
         .clone(),
@@ -763,6 +767,10 @@ impl WatchDefaults {
         override_with
           .max_body_bytes
           .or(base.max_body_bytes),
+      max_items_per_fetch:
+        override_with
+          .max_items_per_fetch
+          .or(base.max_items_per_fetch),
       item_selector:
         override_with
           .item_selector
@@ -1059,6 +1067,11 @@ fn apply_watch_defaults(
   if watch.max_body_bytes.is_none() {
     watch.max_body_bytes =
       base.max_body_bytes;
+  }
+
+  if watch.max_items_per_fetch.is_none() {
+    watch.max_items_per_fetch =
+      base.max_items_per_fetch;
   }
 
   if watch.item_selector.is_none() {

@@ -65,6 +65,7 @@ pub struct WatchConfig {
   pub detectors: Vec<WatchDetector>,
   pub fetch_body_on_change:  bool,
   pub max_body_bytes: Option<u64>,
+  pub max_items_per_fetch: Option<u64>,
   pub item_selector: Option<String>,
   pub item_identity:
     Option<WatchItemIdentity>,

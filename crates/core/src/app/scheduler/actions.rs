@@ -518,7 +518,15 @@ fn extract_watch_items_from_html(
   let selected: Vec<_> =
     document.select(&item_selector).collect();
 
+  let max_items = watch
+    .max_items_per_fetch
+    .unwrap_or(usize::MAX as u64)
+    as usize;
+
   for node in selected {
+    if items.len() >= max_items {
+      break;
+    }
     let mut link = extract_link(
       &node,
       link_selector.as_ref(),

@@ -116,6 +116,10 @@
           "type": "integer",
           "minimum": 0
         },
+        "max_items_per_fetch": {
+          "type": "integer",
+          "minimum": 1
+        },
         "item_selector": {
           "type": "string"
         },
@@ -257,9 +261,13 @@
             "type": "boolean"
           },
           "max_body_bytes": {
-            "type": "integer",
-            "minimum": 0
-          },
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_items_per_fetch": {
+          "type": "integer",
+          "minimum": 1
+        },
           "item_selector": {
             "type": "string"
           },
@@ -465,9 +473,13 @@
             "type": "boolean"
           },
           "max_body_bytes": {
-            "type": "integer",
-            "minimum": 0
-          },
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_items_per_fetch": {
+          "type": "integer",
+          "minimum": 1
+        },
           "item_selector": {
             "type": "string"
           },

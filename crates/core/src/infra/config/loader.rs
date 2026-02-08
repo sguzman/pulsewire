@@ -694,6 +694,8 @@ fn parse_watch(
       .fetch_body_on_change
       .unwrap_or(true),
     max_body_bytes: w.max_body_bytes,
+    max_items_per_fetch: w
+      .max_items_per_fetch,
     item_selector: w.item_selector,
     item_identity,
     item_identity_attr: w
