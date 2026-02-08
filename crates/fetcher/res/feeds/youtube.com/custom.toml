@@ -1,90 +1,77 @@
 # Akkad Daily
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UCitU2-w3XE8ujvUZjcAnhIg"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCitU2-w3XE8ujvUZjcAnhIg"
 
 # Sargon of Akkad
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UC-yewGHQbNFpDrGM0diZOLA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC-yewGHQbNFpDrGM0diZOLA"
 
 # hbomberguy
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UCtxJpCkXNKHFJzBzfyoPxRQ"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCtxJpCkXNKHFJzBzfyoPxRQ"
 
 # 3Blue1Brown
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UCYO_jab_esuFRV4b17AJtAw"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAw"
 
 # Contrapoints
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UCNvsIonJdJ5E4EXMa65VYpA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCNvsIonJdJ5E4EXMa65VYpA"
 
 # Philosophy Tube
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UC2PA-AKmVpU6NKCGtZq_rKQ"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC2PA-AKmVpU6NKCGtZq_rKQ"
 
 # Rev Desu Says
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UCaJ84U5xsjX9KT1mIF3B22w"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCaJ84U5xsjX9KT1mIF3B22w"
 
 # Reisshub
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UCi3i4mBcopoX2pT0z4dONhQ"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCi3i4mBcopoX2pT0z4dONhQ"
 
 # Mooler
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UCHH-ybUwH1CfJrXxnqw6Ljw"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCHH-ybUwH1CfJrXxnqw6Ljw"
 
 # EFAP Highlights
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UC8zJjrB38jPO5kB13p9CPrg"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC8zJjrB38jPO5kB13p9CPrg"
 
 # Half as Interesting
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UCuCkxoKLYO_EQ2GeFtbM_bw"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCuCkxoKLYO_EQ2GeFtbM_bw"
 
 # Jerma Stream Archive
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UC2oWuUSd3t3t5O3Vxp4lgAA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC2oWuUSd3t3t5O3Vxp4lgAA"
 
 # OneyPlays
 
 [[feeds]]
-base_poll_seconds = 500
 id                = "UCO1ITICo8MLHGAXR1uzFwjA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCO1ITICo8MLHGAXR1uzFwjA"
