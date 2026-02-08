@@ -185,14 +185,12 @@ fn run_app(
         last_tick.elapsed()
       );
 
-    if event::poll(timeout)? {
-      if let Event::Key(key) =
+    if event::poll(timeout)?
+      && let Event::Key(key) =
         event::read()?
-      {
-        if app.handle_key(key)? {
-          return Ok(());
-        }
-      }
+      && app.handle_key(key)?
+    {
+      return Ok(());
     }
 
     if last_tick.elapsed() >= tick_rate

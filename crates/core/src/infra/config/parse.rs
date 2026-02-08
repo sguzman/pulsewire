@@ -120,7 +120,7 @@ pub(crate) fn url_host(
 
   let host = host_port
     .split('@')
-    .last()
+    .next_back()
     .unwrap_or(host_port);
 
   let host = host

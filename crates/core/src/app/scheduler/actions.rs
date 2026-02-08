@@ -18,6 +18,7 @@ use crate::infra::metrics;
 use crate::ports::http::Http;
 use crate::ports::repo::Repo;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn do_head<R, H>(
   cfg: &AppConfig,
   repo: &Arc<R>,
@@ -175,6 +176,7 @@ where
   Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn do_get<R, H>(
   cfg: &AppConfig,
   repo: &Arc<R>,
@@ -377,6 +379,5 @@ fn is_immediate_error(
 
   cfg
     .immediate_error_statuses
-    .iter()
-    .any(|s| *s == code)
+    .contains(&code)
 }

@@ -225,8 +225,7 @@ async fn main() -> Result<(), BootError>
     })?
   );
 
-  let clock =
-    Arc::new(SystemClock::default());
+  let clock = Arc::new(SystemClock);
 
   let rng = Arc::new(MutexRng::new());
 
@@ -264,10 +263,9 @@ fn pick_config_path(
 
   if let Ok(p) =
     std::env::var("CONFIG_PATH")
+    && !p.trim().is_empty()
   {
-    if !p.trim().is_empty() {
-      return PathBuf::from(p);
-    }
+    return PathBuf::from(p);
   }
 
   // Prefer repo-local res/ config; fall

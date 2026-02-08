@@ -28,6 +28,7 @@ use crate::models::{
   FolderRow
 };
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn draw_feed_list(
   frame: &mut Frame,
   area: Rect,
@@ -96,6 +97,7 @@ pub(crate) fn draw_feed_list(
   );
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn draw_feed_view_list(
   frame: &mut Frame,
   area: Rect,

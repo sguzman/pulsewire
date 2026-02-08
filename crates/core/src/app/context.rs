@@ -10,7 +10,6 @@ use crate::ports::repo::Repo;
 /// scheduler needs (configuration,
 /// persistence, HTTP client, clock, and
 /// randomness source).
-
 pub struct AppContext<R, H, C, G>
 where
   R: Repo + ?Sized,

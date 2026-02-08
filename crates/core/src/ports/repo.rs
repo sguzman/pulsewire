@@ -33,7 +33,7 @@ pub struct StateRow {
 }
 
 #[async_trait::async_trait]
-
+#[allow(clippy::too_many_arguments)]
 pub trait Repo: Send + Sync {
   async fn migrate(
     &self,

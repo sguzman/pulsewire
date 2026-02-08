@@ -60,25 +60,22 @@ pub async fn create_user(
   let user_id = if let Some(pool) =
     &state.postgres
   {
-    let row =
-      sqlx::query_scalar::<_, i64>(
-        "INSERT INTO users (username, \
-         password_hash, created_at) \
-         VALUES ($1, $2, NOW()) \
-         RETURNING id"
+    sqlx::query_scalar::<_, i64>(
+      "INSERT INTO users (username, \
+       password_hash, created_at) \
+       VALUES ($1, $2, NOW()) \
+       RETURNING id"
+    )
+    .bind(username)
+    .bind(&password_hash)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| {
+      map_db_error(
+        e,
+        "user create failed"
       )
-      .bind(username)
-      .bind(&password_hash)
-      .fetch_one(pool)
-      .await
-      .map_err(|e| {
-        map_db_error(
-          e,
-          "user create failed"
-        )
-      })?;
-
-    row
+    })?
   } else {
     let pool = state
             .sqlite

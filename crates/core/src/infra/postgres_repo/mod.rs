@@ -44,7 +44,7 @@ impl PostgresRepo {
 
     Ok(Self {
       pool,
-      timezone: timezone.clone()
+      timezone: *timezone
     })
   }
 }

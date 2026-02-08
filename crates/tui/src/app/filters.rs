@@ -31,20 +31,17 @@ impl App {
 
     if let Some(category) =
       &self.filter_category
-    {
-      if !self
+      && !self
         .categories
         .contains(category)
-      {
-        self.filter_category = None;
-      }
+    {
+      self.filter_category = None;
     }
 
     if let Some(tag) = &self.filter_tag
+      && !self.tags.contains(tag)
     {
-      if !self.tags.contains(tag) {
-        self.filter_tag = None;
-      }
+      self.filter_tag = None;
     }
 
     self.feeds_view = self
@@ -114,10 +111,9 @@ impl App {
   ) -> bool {
     if let Some(category) =
       &self.filter_category
+      && &feed.category != category
     {
-      if &feed.category != category {
-        return false;
-      }
+      return false;
     }
 
     if let Some(tag) = &self.filter_tag

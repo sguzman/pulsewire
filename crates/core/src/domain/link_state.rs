@@ -161,7 +161,7 @@ impl LinkState {
       )
     } else if modified {
       (
-        state.backoff_index.max(0),
+        state.backoff_index,
         LinkPhase::NeedsGet,
         Some(
           "head-modified".to_string()
@@ -203,19 +203,16 @@ impl LinkState {
 
     state.backoff_index = backoff_idx;
 
-    if state.etag.is_none() {
-      state.etag = result.etag.clone();
-    } else if result.etag.is_some() {
+    if result.etag.is_some()
+      || state.etag.is_none()
+    {
       state.etag = result.etag.clone();
     }
 
-    if state.last_modified_ms.is_none()
-    {
-      state.last_modified_ms =
-        result.last_modified;
-    } else if result
-      .last_modified
-      .is_some()
+    if result.last_modified.is_some()
+      || state
+        .last_modified_ms
+        .is_none()
     {
       state.last_modified_ms =
         result.last_modified;

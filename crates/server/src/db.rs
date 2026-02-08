@@ -160,18 +160,16 @@ pub async fn reset_server_data(
           sqlx::query(&query)
             .execute(pool)
             .await
+          && !is_missing_table_error(&e)
         {
-          if !is_missing_table_error(&e)
-          {
-            return Err(
-              ConfigError::Invalid(
-                format!(
-                  "cleanup {table} \
-                   failed: {e}"
-                )
+          return Err(
+            ConfigError::Invalid(
+              format!(
+                "cleanup {table} \
+                 failed: {e}"
               )
-            );
-          }
+            )
+          );
         }
       }
     }
@@ -221,16 +219,15 @@ pub async fn reset_server_data(
       if let Err(e) = sqlx::query(&stmt)
         .execute(pool)
         .await
+        && !is_missing_table_error(&e)
       {
-        if !is_missing_table_error(&e) {
-          return Err(
-            ConfigError::Invalid(
-              format!(
-                "cleanup failed: {e}"
-              )
+        return Err(
+          ConfigError::Invalid(
+            format!(
+              "cleanup failed: {e}"
             )
-          );
-        }
+          )
+        );
       }
     }
   }
@@ -238,6 +235,7 @@ pub async fn reset_server_data(
   Ok(())
 }
 
+#[allow(clippy::type_complexity)]
 pub fn set_search_path(
   schema: String
 ) -> impl Fn(

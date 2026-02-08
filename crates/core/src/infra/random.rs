@@ -10,6 +10,12 @@ pub struct MutexRng {
   inner: Mutex<rand::rngs::StdRng>
 }
 
+impl Default for MutexRng {
+  fn default() -> Self {
+    Self::new()
+  }
+}
+
 impl MutexRng {
   pub fn new() -> Self {
     let seed =

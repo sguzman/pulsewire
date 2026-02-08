@@ -7,7 +7,6 @@ use serde::Deserialize;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-
 pub enum ConfigError {
   #[error("config IO error: {0}")]
   Io(#[from] std::io::Error),
@@ -26,7 +25,6 @@ pub enum ConfigError {
   Deserialize,
 )]
 #[serde(rename_all = "lowercase")]
-
 pub enum AppMode {
   Dev,
   Prod
@@ -35,14 +33,12 @@ pub enum AppMode {
 #[derive(
   Debug, Clone, Copy, PartialEq, Eq,
 )]
-
 pub enum SqlDialect {
   Sqlite,
   Postgres
 }
 
 #[derive(Debug, Deserialize)]
-
 pub struct ServerConfig {
   pub app:      AppConfig,
   pub http:     HttpConfig,
@@ -56,33 +52,28 @@ pub struct ServerConfig {
 }
 
 #[derive(Debug, Deserialize)]
-
 pub struct AppConfig {
   pub mode:     AppMode,
   pub timezone: Option<String>
 }
 
 #[derive(Debug, Deserialize)]
-
 pub struct HttpConfig {
   pub host: String,
   pub port: u16
 }
 
 #[derive(Debug, Deserialize)]
-
 pub struct DatabaseConfig {
   pub dialect: String
 }
 
 #[derive(Debug, Deserialize)]
-
 pub struct SqliteConfig {
   pub path: String
 }
 
 #[derive(Debug, Deserialize)]
-
 pub struct PostgresConfig {
   pub host:           String,
   pub port:           u16,
@@ -95,25 +86,21 @@ pub struct PostgresConfig {
 }
 
 #[derive(Debug, Deserialize)]
-
 pub struct LoggingConfig {
   pub level: Option<String>
 }
 
 #[derive(Debug, Deserialize)]
-
 pub struct AuthConfig {
   pub token_ttl_seconds: u64
 }
 
 #[derive(Debug, Deserialize)]
-
 pub struct DevConfig {
   pub reset_on_start: bool
 }
 
 #[derive(Debug, Deserialize)]
-
 pub struct SeedConfig {
   pub username: String,
   pub password: String

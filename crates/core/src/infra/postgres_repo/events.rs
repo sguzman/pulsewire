@@ -11,6 +11,7 @@ use super::util::{
 };
 use crate::domain::model::ErrorKind;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn insert_event(
   pool: &PgPool,
   feed_id: &str,

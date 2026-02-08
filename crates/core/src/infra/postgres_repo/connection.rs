@@ -98,6 +98,7 @@ pub async fn wipe_database(
   Ok(())
 }
 
+#[allow(clippy::type_complexity)]
 fn set_session_defaults(
   schema: String,
   tz_name: String
@@ -115,10 +116,6 @@ fn set_session_defaults(
       + '_
   >
 > {
-  let tz_name = tz_name;
-
-  let schema = schema;
-
   move |conn, _meta| {
     let tz = tz_name.clone();
 

@@ -78,9 +78,8 @@ impl App {
     let page = self.page_size_for_tab();
     let selected =
       self.selected_for_tab();
-    if *selected < offset {
-      *selected = offset;
-    } else if *selected >= offset + page
+    if *selected < offset
+      || *selected >= offset + page
     {
       *selected = offset;
     }
@@ -96,7 +95,7 @@ impl App {
 
     let page = self.page_size_for_tab();
     let total_pages =
-      (len + page - 1) / page;
+      len.div_ceil(page);
     let current_page =
       self.list_offset_value() / page
         + 1;

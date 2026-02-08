@@ -98,20 +98,16 @@ impl App {
               .folder_indices
               .as_ref(),
             modal.feed_id.clone()
-          ) {
-            if let Some(folder_index) =
-              indices.get(selection)
-            {
-              if let Some(folder) = self
-                .folders
-                .get(*folder_index)
-              {
-                self.queue_assign_folder_feed(
-                  folder.id,
-                  feed_id
-                );
-              }
-            }
+          ) && let Some(folder_index) =
+            indices.get(selection)
+            && let Some(folder) = self
+              .folders
+              .get(*folder_index)
+          {
+            self
+              .queue_assign_folder_feed(
+                folder.id, feed_id
+              );
           }
         }
         | ModalKind::FolderUnassign => {
@@ -123,20 +119,16 @@ impl App {
               .folder_indices
               .as_ref(),
             modal.feed_id.clone()
-          ) {
-            if let Some(folder_index) =
-              indices.get(selection)
-            {
-              if let Some(folder) = self
-                .folders
-                .get(*folder_index)
-              {
-                self.queue_unassign_folder_feed(
+          ) && let Some(folder_index) =
+            indices.get(selection)
+            && let Some(folder) = self
+              .folders
+              .get(*folder_index)
+          {
+            self.queue_unassign_folder_feed(
                   folder.id,
                   feed_id
                 );
-              }
-            }
           }
         }
       }

@@ -94,15 +94,13 @@ pub(crate) fn draw_entry_detail(
       .and_then(|row| {
         row.title.as_deref()
       })
-      .or_else(|| {
-        entry.title.as_deref()
-      })
+      .or(entry.title.as_deref())
       .unwrap_or("(untitled)");
     let detail_link = detail
       .and_then(|row| {
         row.link.as_deref()
       })
-      .or_else(|| entry.link.as_deref())
+      .or(entry.link.as_deref())
       .unwrap_or("-");
     let summary = detail
       .and_then(|row| {

@@ -58,7 +58,7 @@ pub fn parse(
     language:      feed.language,
     updated_at_ms: feed
       .updated
-      .map(|d| to_ms(d))
+      .map(to_ms)
   };
 
   let mut items = Vec::new();

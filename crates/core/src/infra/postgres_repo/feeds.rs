@@ -18,15 +18,13 @@ pub async fn upsert_feeds_bulk(
   chunk_size: usize,
   zone: &Tz
 ) -> Result<(), String> {
-  let res = do_upsert_chunks(
+  do_upsert_chunks(
     pool,
     feeds,
     chunk_size.max(1),
     zone
   )
-  .await;
-
-  res
+  .await
 }
 
 async fn do_upsert_chunks(
@@ -40,11 +38,11 @@ async fn do_upsert_chunks(
 
   let mut total = 0usize;
 
-  let mut iter = feeds.into_iter();
+  let iter = feeds.into_iter();
 
   let ingest_start = Instant::now();
 
-  while let Some(feed) = iter.next() {
+  for feed in iter {
     chunk.push(feed);
 
     if chunk.len() == chunk_size {

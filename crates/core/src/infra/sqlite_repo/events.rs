@@ -7,6 +7,7 @@ use sqlx::SqlitePool;
 use super::util::now_epoch_ms;
 use crate::domain::model::ErrorKind;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn insert_event(
   pool: &SqlitePool,
   feed_id: &str,

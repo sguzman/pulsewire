@@ -17,7 +17,7 @@ impl App {
       FeedEntryCounts
     >,
     mode: SortMode,
-    indices: &mut Vec<usize>
+    indices: &mut [usize]
   ) {
     indices.sort_by(|a, b| {
       let left = &feeds[*a];

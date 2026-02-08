@@ -8,30 +8,25 @@ impl App {
       | 0 | 2 | 4 => {
         if let Some(feed) =
           self.current_feed_context()
-        {
-          if !self
+          && !self
             .feed_details
             .contains_key(&feed.id)
-          {
-            self.queue_feed_detail(
-              feed.id
-            );
-          }
+        {
+          self
+            .queue_feed_detail(feed.id);
         }
       }
       | 1 => {
         if let Some(entry) = self
           .entries
           .get(self.selected_entry)
-        {
-          if !self
+          && !self
             .entry_details
             .contains_key(&entry.id)
-          {
-            self.queue_entry_detail(
-              entry.id
-            );
-          }
+        {
+          self.queue_entry_detail(
+            entry.id
+          );
         }
       }
       | _ => {}

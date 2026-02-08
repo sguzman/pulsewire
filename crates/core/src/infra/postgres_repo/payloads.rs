@@ -12,6 +12,7 @@ use super::util::{
 };
 use crate::feed::parser::ParsedFeed;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn insert_payload_with_items(
   pool: &PgPool,
   feed_id: &str,

@@ -15,14 +15,12 @@ use pulsewire_core::infra::config::{
   version,
   about = "pulsewire ops CLI"
 )]
-
 struct Args {
   #[command(subcommand)]
   command: Command
 }
 
 #[derive(Subcommand)]
-
 enum Command {
   /// Validate TOML config (schema +
   /// semantic checks).
@@ -49,7 +47,6 @@ enum Command {
 }
 
 #[tokio::main]
-
 async fn main() -> Result<(), String> {
   let args = Args::parse();
 
@@ -97,23 +94,19 @@ async fn main() -> Result<(), String> {
         .await
         .map_err(|e| e.to_string())?;
 
-      if matches!(app.db_dialect, pulsewire_core::domain::model::SqlDialect::Sqlite) {
-                if let Err(e) = std::fs::remove_file(&app.sqlite_path) {
-                    if e.kind() != std::io::ErrorKind::NotFound {
+      if matches!(app.db_dialect, pulsewire_core::domain::model::SqlDialect::Sqlite)
+                && let Err(e) = std::fs::remove_file(&app.sqlite_path)
+                    && e.kind() != std::io::ErrorKind::NotFound {
                         return Err(format!("failed to remove sqlite db: {e}"));
                     }
-                }
-            }
 
       if let Err(e) =
         std::fs::remove_dir_all(
           &app.log_file_directory
         )
-      {
-        if e.kind() != std::io::ErrorKind::NotFound {
+        && e.kind() != std::io::ErrorKind::NotFound {
                     return Err(format!("failed to remove log directory: {e}"));
                 }
-      }
 
       println!(
         "ok: cleaned local artifacts"
@@ -136,10 +129,9 @@ fn pick_config_path(
   // defaults.
   if let Ok(p) =
     std::env::var("CONFIG_PATH")
+    && !p.trim().is_empty()
   {
-    if !p.trim().is_empty() {
-      return PathBuf::from(p);
-    }
+    return PathBuf::from(p);
   }
 
   PathBuf::from(
