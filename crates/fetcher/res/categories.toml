@@ -91,3 +91,9 @@ domains = [
   "www.theguardian.com",
 ]
 name = "podcasts"
+
+[[categories]]
+domains = [
+  "global.oup.com",
+]
+name = "books"

@@ -1,0 +1,16 @@
+base_poll_seconds = 1800
+id_prefix         = "oup"
+category          = "books"
+provenance        = "oxford-university-press"
+tags = [
+  "books",
+  "classics",
+  "publishing",
+  "rss",
+]
+language     = "en"
+content_type = "application/rss+xml"
+
+[[feeds]]
+id  = "rss-oxford-worlds-classics"
+url = "https://global.oup.com/academic/content/series/o/oxford-worlds-classics-owc/?view=RSS&lang=en"
