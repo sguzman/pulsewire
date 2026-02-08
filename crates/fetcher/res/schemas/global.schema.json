@@ -32,6 +32,15 @@
     "cookie_path": {
       "type": "string"
     },
+    "headers_path": {
+      "type": "string"
+    },
+    "headers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
     "watch_defaults": {
       "type": "object",
       "additionalProperties": false,
@@ -63,6 +72,15 @@
         },
         "cookie_path": {
           "type": "string"
+        },
+        "headers_path": {
+          "type": "string"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "check_method": {
           "type": "string",

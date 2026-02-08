@@ -4,6 +4,8 @@
 //! `HeadResult`/`GetResult` with coarse
 //! error kinds.
 
+use std::collections::HashMap;
+
 use chrono::{
   DateTime,
   Utc
@@ -95,6 +97,37 @@ impl ReqwestHttp {
       .and_then(|v| v.to_str().ok())
       .map(|s| s.to_string())
   }
+
+  fn apply_extra_headers(
+    mut req: reqwest::RequestBuilder,
+    extra_headers: Option<&HashMap<String, String>>
+  ) -> reqwest::RequestBuilder {
+    let Some(extra_headers) =
+      extra_headers
+    else {
+      return req;
+    };
+
+    for (name, value) in extra_headers {
+      let key = name.trim();
+
+      if key.is_empty()
+        || key.starts_with(':')
+        || key.eq_ignore_ascii_case("cookie")
+      {
+        continue;
+      }
+
+      let value = value.trim();
+      if value.is_empty() {
+        continue;
+      }
+
+      req = req.header(key, value);
+    }
+
+    req
+  }
 }
 
 #[async_trait::async_trait]
@@ -102,7 +135,8 @@ impl Http for ReqwestHttp {
   async fn head(
     &self,
     url: &str,
-    cookie_header: Option<&str>
+    cookie_header: Option<&str>,
+    extra_headers: Option<&HashMap<String, String>>
   ) -> HeadResult {
     let start =
       tokio::time::Instant::now();
@@ -117,6 +151,11 @@ impl Http for ReqwestHttp {
       req = req
         .header(header::COOKIE, cookie);
     }
+
+    req = Self::apply_extra_headers(
+      req,
+      extra_headers
+    );
 
     match req.send().await {
       | Ok(resp) => {
@@ -173,7 +212,8 @@ impl Http for ReqwestHttp {
   async fn get(
     &self,
     url: &str,
-    cookie_header: Option<&str>
+    cookie_header: Option<&str>,
+    extra_headers: Option<&HashMap<String, String>>
   ) -> GetResult {
     let start =
       tokio::time::Instant::now();
@@ -188,6 +228,11 @@ impl Http for ReqwestHttp {
       req = req
         .header(header::COOKIE, cookie);
     }
+
+    req = Self::apply_extra_headers(
+      req,
+      extra_headers
+    );
 
     match req.send().await {
       | Ok(resp) => {

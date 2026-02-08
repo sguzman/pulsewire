@@ -107,7 +107,9 @@ impl From<DueFeedRow> for FeedConfig {
       tags:              None,
       language:          None,
       content_type:      None,
-      cookie_path:       None
+      cookie_path:       None,
+      headers_path:      None,
+      headers:           None
     }
   }
 }

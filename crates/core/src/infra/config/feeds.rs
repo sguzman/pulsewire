@@ -177,6 +177,8 @@ pub(crate) async fn load_all_feeds(
     language:          None,
     content_type:      None,
     cookie_path:       None,
+    headers_path:      None,
+    headers:           None,
     feeds:             all_feeds,
     watch_defaults:    None,
     watch_profiles:    Vec::new(),
@@ -317,7 +319,9 @@ struct FeedDefaults {
   tags: Option<Vec<String>>,
   language:          Option<String>,
   content_type:      Option<String>,
-  cookie_path:       Option<String>
+  cookie_path:       Option<String>,
+  headers_path:      Option<String>,
+  headers:           Option<std::collections::HashMap<String, String>>
 }
 
 impl FeedDefaults {
@@ -330,7 +334,9 @@ impl FeedDefaults {
       tags:              None,
       language:          None,
       content_type:      None,
-      cookie_path:       None
+      cookie_path:       None,
+      headers_path:      None,
+      headers:           None
     }
   }
 
@@ -367,6 +373,12 @@ impl FeedDefaults {
         .clone(),
       cookie_path: file
         .cookie_path
+        .clone(),
+      headers_path: file
+        .headers_path
+        .clone(),
+      headers: file
+        .headers
         .clone()
     })
   }
@@ -404,6 +416,12 @@ impl FeedDefaults {
         .clone(),
       cookie_path: file
         .cookie_path
+        .clone(),
+      headers_path: file
+        .headers_path
+        .clone(),
+      headers: file
+        .headers
         .clone()
     })
   }
@@ -457,6 +475,18 @@ impl FeedDefaults {
         .clone()
         .or_else(|| {
           global.cookie_path.clone()
+        }),
+      headers_path:       file
+        .headers_path
+        .clone()
+        .or_else(|| {
+          global.headers_path.clone()
+        }),
+      headers:            file
+        .headers
+        .clone()
+        .or_else(|| {
+          global.headers.clone()
         })
     }
   }
@@ -472,6 +502,8 @@ struct WatchDefaults {
   language:              Option<String>,
   content_type:          Option<String>,
   cookie_path:           Option<String>,
+  headers_path:          Option<String>,
+  headers:               Option<std::collections::HashMap<String, String>>, 
   check_method:          Option<String>,
   fallback_to_get:       Option<bool>,
   detectors: Option<Vec<String>>,
@@ -507,6 +539,8 @@ impl WatchDefaults {
       language:              None,
       content_type:          None,
       cookie_path:           None,
+      headers_path:          None,
+      headers:               None,
       check_method:          None,
       fallback_to_get:       None,
       detectors:             None,
@@ -568,6 +602,12 @@ impl WatchDefaults {
         .clone(),
       cookie_path: raw
         .cookie_path
+        .clone(),
+      headers_path: raw
+        .headers_path
+        .clone(),
+      headers: raw
+        .headers
         .clone(),
       check_method: raw
         .check_method
@@ -677,6 +717,20 @@ impl WatchDefaults {
           .clone()
           .or_else(|| {
             base.cookie_path.clone()
+          }),
+      headers_path:
+        override_with
+          .headers_path
+          .clone()
+          .or_else(|| {
+            base.headers_path.clone()
+          }),
+      headers:
+        override_with
+          .headers
+          .clone()
+          .or_else(|| {
+            base.headers.clone()
           }),
       check_method:
         override_with
@@ -860,6 +914,15 @@ fn apply_feed_defaults(
       defaults.cookie_path.clone();
   }
 
+  if feed.headers_path.is_none() {
+    feed.headers_path =
+      defaults.headers_path.clone();
+  }
+
+  if feed.headers.is_none() {
+    feed.headers = defaults.headers.clone();
+  }
+
   let prefix = match feed
     .id_prefix
     .as_deref()
@@ -954,6 +1017,15 @@ fn apply_watch_defaults(
   if watch.cookie_path.is_none() {
     watch.cookie_path =
       base.cookie_path.clone();
+  }
+
+  if watch.headers_path.is_none() {
+    watch.headers_path =
+      base.headers_path.clone();
+  }
+
+  if watch.headers.is_none() {
+    watch.headers = base.headers.clone();
   }
 
   if watch.check_method.is_none() {

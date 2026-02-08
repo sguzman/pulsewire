@@ -40,7 +40,8 @@ pub async fn do_head<R, H>(
   now_ms: i64,
   rand: f64,
   record_history: bool,
-  cookie_header: Option<&str>
+  cookie_header: Option<&str>,
+  extra_headers: Option<&std::collections::HashMap<String, String>>
 ) -> Result<(), String>
 where
   R: Repo + ?Sized,
@@ -58,7 +59,7 @@ where
   tracing::debug!(feed_id = %feed.id, url = %feed.url, "HEAD request start");
 
   let res = http
-    .head(&feed.url, cookie_header)
+    .head(&feed.url, cookie_header, extra_headers)
     .await;
 
   metrics::record_http_result(
@@ -141,6 +142,7 @@ pub async fn do_get<R, H>(
   feed: &FeedConfig,
   watch: Option<&WatchConfig>,
   cookie_header: Option<&str>,
+  extra_headers: Option<&std::collections::HashMap<String, String>>,
   mut state: LinkState,
   now_ms: i64,
   rand: f64,
@@ -162,7 +164,7 @@ where
   tracing::debug!(feed_id = %feed.id, url = %feed.url, watch = watch.is_some(), "GET request start");
 
   let res = http
-    .get(&feed.url, cookie_header)
+    .get(&feed.url, cookie_header, extra_headers)
     .await;
 
   metrics::record_http_result(

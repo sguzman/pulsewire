@@ -108,6 +108,9 @@ where
   let cookie_header_by_id =
     ctx.cookie_header_by_id.clone();
 
+  let extra_headers_by_id =
+    ctx.extra_headers_by_id.clone();
+
   let warn_after =
     cfg.log_tick_warn_seconds;
 
@@ -169,6 +172,8 @@ where
         watches_by_id.clone();
       let cookie_header_by_id =
         cookie_header_by_id.clone();
+      let extra_headers_by_id =
+        extra_headers_by_id.clone();
 
       async move {
         if let Err(e) = process_feed(
@@ -180,6 +185,7 @@ where
           concurrency,
           watches_by_id,
           cookie_header_by_id,
+          extra_headers_by_id,
           feed
         )
         .await
@@ -224,6 +230,9 @@ async fn process_feed<R, H, C, G>(
   >,
   cookie_header_by_id: Arc<
     HashMap<String, String>
+  >,
+  extra_headers_by_id: Arc<
+    HashMap<String, HashMap<String, String>>
   >,
   feed: FeedConfig
 ) -> Result<(), String>
@@ -277,6 +286,10 @@ where
       .get(&feed.id)
       .map(String::as_str);
 
+  let extra_headers =
+    extra_headers_by_id
+      .get(&feed.id);
+
   let log_feed_timing = cfg
     .log_feed_timing_enabled
     && (cfg
@@ -317,6 +330,7 @@ where
               &feed,
               watch.as_ref(),
               cookie_header,
+              extra_headers,
               state,
               now_ms,
               rand,
@@ -338,6 +352,7 @@ where
               rand,
               record_history,
               cookie_header,
+              extra_headers,
             )
             .await,
           )
@@ -387,6 +402,7 @@ where
         &feed,
         watch.as_ref(),
         cookie_header,
+        extra_headers,
         state,
         now_ms,
         rand,

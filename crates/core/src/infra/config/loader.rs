@@ -426,7 +426,14 @@ impl ConfigLoader {
         cookie_path:
           normalize_optional_string(
             f.cookie_path
-          )
+          ),
+        headers_path:
+          normalize_optional_string(
+            f.headers_path
+          ),
+        headers: normalize_headers(
+          f.headers
+        )
       });
     }
 
@@ -671,6 +678,13 @@ fn parse_watch(
       normalize_optional_string(
         w.cookie_path
       ),
+    headers_path:
+      normalize_optional_string(
+        w.headers_path
+      ),
+    headers: normalize_headers(
+      w.headers
+    ),
     check_method,
     fallback_to_get: w
       .fallback_to_get
@@ -707,6 +721,29 @@ fn parse_watch(
     min_item_count_change: w
       .min_item_count_change
   })
+}
+
+fn normalize_headers(
+  raw: Option<std::collections::HashMap<String, String>>
+) -> Option<std::collections::HashMap<String, String>> {
+  let mut out = std::collections::HashMap::new();
+
+  for (k, v) in raw.unwrap_or_default() {
+    let key = k.trim();
+    let val = v.trim();
+
+    if key.is_empty() || val.is_empty() {
+      continue;
+    }
+
+    out.insert(key.to_string(), val.to_string());
+  }
+
+  if out.is_empty() {
+    None
+  } else {
+    Some(out)
+  }
 }
 
 fn normalize_optional_string(

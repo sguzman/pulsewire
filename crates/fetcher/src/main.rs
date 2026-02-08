@@ -90,6 +90,15 @@ async fn main() -> Result<(), BootError>
     .map_err(BootError::Fatal)?
   );
 
+  let extra_headers_by_id = Arc::new(
+    load_headers_by_id(
+      &all_sources,
+      &cfg_path
+    )
+    .await
+    .map_err(BootError::Fatal)?
+  );
+
   init_logging(&app_cfg);
 
   metrics::init(
@@ -120,7 +129,7 @@ async fn main() -> Result<(), BootError>
     }
   };
 
-  info!(feeds = all_sources.len(), watches = watches_by_id.len(), cookies = cookie_header_by_id.len(), db = %db_desc, dialect = ?app_cfg.db_dialect, mode = ?app_cfg.mode, "Loaded config");
+  info!(feeds = all_sources.len(), watches = watches_by_id.len(), cookies = cookie_header_by_id.len(), headers = extra_headers_by_id.len(), db = %db_desc, dialect = ?app_cfg.db_dialect, mode = ?app_cfg.mode, "Loaded config");
 
   if !watches_by_id.is_empty() {
     info!(
@@ -268,7 +277,8 @@ async fn main() -> Result<(), BootError>
     clock: clock.clone(),
     rng: rng.clone(),
     watches_by_id,
-    cookie_header_by_id
+    cookie_header_by_id,
+    extra_headers_by_id
   };
 
   if let Err(e) =
@@ -560,6 +570,12 @@ fn watches_to_feeds(
           }),
         cookie_path:       w
           .cookie_path
+          .clone(),
+        headers_path:      w
+          .headers_path
+          .clone(),
+        headers:           w
+          .headers
           .clone()
       }
     })
@@ -594,6 +610,163 @@ fn benchmark_feed_stream(
           .to_string(),
       ),
       cookie_path: None,
+      headers_path: None,
+      headers: None,
     }
   })
+}
+
+async fn load_headers_by_id(
+  feeds: &[FeedConfig],
+  config_path: &std::path::Path
+) -> Result<
+  std::collections::HashMap<
+    String,
+    std::collections::HashMap<
+      String,
+      String
+    >
+  >,
+  String
+> {
+  let mut map =
+    std::collections::HashMap::new();
+
+  let base_dir = config_path
+    .parent()
+    .ok_or_else(|| {
+      "config path has no parent"
+        .to_string()
+    })?;
+
+  for feed in feeds {
+    let mut merged = feed
+      .headers
+      .clone()
+      .unwrap_or_default();
+
+    if let Some(headers_path) =
+      feed.headers_path.as_ref()
+    {
+      let path = {
+        let p = std::path::Path::new(
+          headers_path
+        );
+        if p.is_absolute() {
+          p.to_path_buf()
+        } else {
+          base_dir.join(p)
+        }
+      };
+
+      let raw = tokio::fs::read_to_string(
+        &path
+      )
+      .await
+      .map_err(|e| {
+        format!(
+          "failed to read headers \
+           file for source '{}': {} \
+           ({e})",
+          feed.id,
+          path.display()
+        )
+      })?;
+
+      for (k, v) in
+        parse_headers_file(&raw)
+      {
+        merged.insert(k, v);
+      }
+    }
+
+    if let Some(cleaned) =
+      normalize_headers_map(merged)
+    {
+      map.insert(feed.id.clone(), cleaned);
+    }
+  }
+
+  Ok(map)
+}
+
+fn parse_headers_file(
+  raw: &str
+) -> std::collections::HashMap<
+  String,
+  String
+> {
+  let mut out =
+    std::collections::HashMap::new();
+
+  for line in raw.lines() {
+    let trimmed = line.trim();
+
+    if trimmed.is_empty()
+      || trimmed.starts_with('#')
+    {
+      continue;
+    }
+
+    let Some((name, value)) =
+      trimmed.split_once(':')
+    else {
+      continue;
+    };
+
+    let key = name.trim();
+    let val = value.trim();
+
+    if key.is_empty() || val.is_empty() {
+      continue;
+    }
+
+    out.insert(
+      key.to_string(),
+      val.to_string()
+    );
+  }
+
+  out
+}
+
+fn normalize_headers_map(
+  raw: std::collections::HashMap<
+    String,
+    String
+  >
+) -> Option<
+  std::collections::HashMap<
+    String,
+    String
+  >
+> {
+  let mut out =
+    std::collections::HashMap::new();
+
+  for (k, v) in raw {
+    let key = k.trim();
+    let val = v.trim();
+
+    if key.is_empty()
+      || val.is_empty()
+      || key.starts_with(':')
+      || key.eq_ignore_ascii_case(
+        "cookie"
+      )
+    {
+      continue;
+    }
+
+    out.insert(
+      key.to_string(),
+      val.to_string()
+    );
+  }
+
+  if out.is_empty() {
+    None
+  } else {
+    Some(out)
+  }
 }

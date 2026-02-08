@@ -7,3 +7,7 @@ tmp
 # local site cookies
 cookies/*
 !cookies/.gitkeep
+
+# local sensitive headers
+headers/*
+!headers/.gitkeep
