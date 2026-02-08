@@ -13,7 +13,7 @@ extend-exclude = [
   "CHANGELOG.md",
   "crates/fetcher/res/feeds/**/**/*.toml",
   "dist/**",
-  "docs/THIRD_PARTY_LICENSES.md",
+  "docs/**",
   "node_modules/**",
   "target/**",
   "vendor/**",
