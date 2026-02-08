@@ -29,3 +29,11 @@ name                    = "federalregister.gov"
 [[domains]]
 max_concurrent_requests = 1
 name                    = "omny.fm"
+
+[[domains]]
+max_concurrent_requests = 1
+name                    = "gothamcityresearch.com"
+
+[[domains]]
+max_concurrent_requests = 1
+name                    = "www.gothamcityresearch.com"

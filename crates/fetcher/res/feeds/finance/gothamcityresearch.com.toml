@@ -1,0 +1,28 @@
+watch_defaults = { base_poll_seconds = 1800, category = "finance", check_method = "get", content_type = "text/html", detectors = [
+  "content_hash",
+  "element_hash",
+], emit_mode = "new_items_only", fallback_to_get = true, fetch_body_on_change = true, item_identity = "href", language = "en", max_body_bytes = 1048576, max_items_per_fetch = 3, normalize_whitespace = true, provenance = "gotham-city-research", strip_query_params = true, tags = [
+  "activism",
+  "reports",
+  "short-research",
+] }
+
+[[watch_profiles]]
+exclude_selectors = [
+  "footer",
+  "header",
+  "nav",
+  "script",
+  "style",
+]
+item_selector = "#comp-ko3e1e73 [data-hook='item-link-wrapper'] a[href*='/post/']"
+link_selector = "a[href]"
+name = "gotham-home-reports"
+summary_selector = "[data-hook='post-description'] .BOlnTh, [data-hook='post-description']"
+title_selector = "[data-hook='post-title'] h2, h2"
+
+[[watches]]
+emit_title = "Gotham City Research updates"
+id         = "gotham-home"
+profile    = "gotham-home-reports"
+url        = "https://www.gothamcityresearch.com/main"
