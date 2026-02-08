@@ -2,6 +2,17 @@
 
 # Global configuration options
 [global]
+
+exclude = [
+  "node_modules/**",
+  "dist/**",
+  "build/**",
+  "vendor/**",
+  "generated/*.md",
+  "docs/**"
+]
+respect-gitignore = true
+
 # List of rules to disable (uncomment and modify as needed)
 # disable = ["MD013", "MD033"]
 disable = [
