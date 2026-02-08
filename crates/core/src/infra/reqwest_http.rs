@@ -39,6 +39,7 @@ impl ReqwestHttp {
             .user_agent(user_agent.clone())
             .pool_idle_timeout(std::time::Duration::from_secs(120))
             .timeout(std::time::Duration::from_secs(30))
+            .cookie_store(true)
             .build()?;
 
     Ok(Self {

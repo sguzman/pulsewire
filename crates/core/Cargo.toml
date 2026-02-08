@@ -34,6 +34,7 @@ reqwest = { default-features = false, features = [
   "brotli",
   "deflate",
   "gzip",
+  "cookies",
   "rustls",
 ], version = "0.13.1" }
 
