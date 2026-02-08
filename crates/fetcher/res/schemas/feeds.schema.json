@@ -60,10 +60,7 @@
         },
         "check_method": {
           "type": "string",
-          "enum": [
-            "head",
-            "get"
-          ]
+          "enum": ["head", "get"]
         },
         "fallback_to_get": {
           "type": "boolean"
@@ -158,9 +155,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "properties": {
           "name": {
             "type": "string"
@@ -192,10 +187,7 @@
           },
           "check_method": {
             "type": "string",
-            "enum": [
-              "head",
-              "get"
-            ]
+            "enum": ["head", "get"]
           },
           "fallback_to_get": {
             "type": "boolean"
@@ -291,10 +283,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "url"
-        ],
+        "required": ["id", "url"],
         "properties": {
           "id": {
             "type": "string"
@@ -335,10 +324,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "url"
-        ],
+        "required": ["id", "url"],
         "properties": {
           "id": {
             "type": "string"
@@ -376,10 +362,7 @@
           },
           "check_method": {
             "type": "string",
-            "enum": [
-              "head",
-              "get"
-            ]
+            "enum": ["head", "get"]
           },
           "fallback_to_get": {
             "type": "boolean"
@@ -473,14 +456,10 @@
   },
   "anyOf": [
     {
-      "required": [
-        "feeds"
-      ]
+      "required": ["feeds"]
     },
     {
-      "required": [
-        "watches"
-      ]
+      "required": ["watches"]
     }
   ]
 }

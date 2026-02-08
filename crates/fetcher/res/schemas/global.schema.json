@@ -60,10 +60,7 @@
         },
         "check_method": {
           "type": "string",
-          "enum": [
-            "head",
-            "get"
-          ]
+          "enum": ["head", "get"]
         },
         "fallback_to_get": {
           "type": "boolean"
