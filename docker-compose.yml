@@ -1,0 +1,29 @@
+services:
+  fetcher:
+    build:
+      context: .
+      dockerfile: crates/fetcher/Dockerfile
+      args:
+        TARGET: x86_64-unknown-linux-musl
+    image: pulsewire-fetcher:latest
+    container_name: pulsewire-fetcher
+    restart: unless-stopped
+    environment:
+      CONFIG_PATH: /app/res/docker.toml
+      FEEDS_DIR: /app/res/feeds
+    volumes:
+      - ./crates/fetcher/res/docker.toml:/app/res/docker.toml:ro
+      - ./crates/fetcher/res/domains.toml:/app/res/domains.toml:ro
+      - ./crates/fetcher/res/categories.toml:/app/res/categories.toml:ro
+      - ./crates/fetcher/res/schemas:/app/res/schemas:ro
+      - ./crates/fetcher/res/feeds-docker:/app/res/feeds:ro
+      - ./cookies:/app/cookies:ro
+      - ./headers:/app/headers:ro
+    ports:
+      - "9898:9898"
+    networks:
+      - services
+
+networks:
+  services:
+    external: true

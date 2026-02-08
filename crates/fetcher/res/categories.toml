@@ -47,6 +47,7 @@ domains = [
   "ir.thomsonreuters.com",
   "seekingalpha.com",
   "www.coindesk.com",
+  "gothamcityresearch.com",
   "www.gothamcityresearch.com",
 ]
 name = "finance"

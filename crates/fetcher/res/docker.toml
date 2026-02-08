@@ -17,27 +17,30 @@ schema   = "fetcher"
 user     = "admin"
 
 [polling]
-default_seconds = 100
-jitter_fraction = 0.2
-max_seconds     = 3600
+default_seconds = 900
+jitter_fraction = 0.35
+max_seconds     = 21600
 
 [backoff]
-error_base_seconds       = 30
-immediate_error_statuses = [ 404 ]
-max_consecutive_errors   = 3
-max_error_seconds        = 7200
+error_base_seconds = 120
+immediate_error_statuses = [
+  404,
+  429,
+]
+max_consecutive_errors = 4
+max_error_seconds      = 43200
 
 [requests]
-global_max_concurrent_requests = 16
+global_max_concurrent_requests = 4
 user_agent                     = "RssFetcher/1.0 (+https://example.org)"
 
 [state_history]
-sample_rate = 0.4
+sample_rate = 0.1
 
 [logging]
-feed_timing_domains = [ "youtube.com" ]
-feed_timing_enabled = true
-feed_timing_log_all = true
+feed_timing_domains = []
+feed_timing_enabled = false
+feed_timing_log_all = false
 feed_timing_warn_ms = 30000
 file_directory      = "logs"
 file_enabled        = false
