@@ -10,7 +10,14 @@ cache = true
 exclude = [
   "^http://127.0.0.1",
   "^http://localhost",
-  "^https://github.com/sguzman/pulsewire/commit/",
+  "^https://github.com/sguzman/",
   "^https://img.shields.io/",
   "^mailto:",
+]
+
+# Ignore a specific markdown file by path
+exclude_path = [
+  "docs/",
+  "examples/",
+  "tests/",
 ]
