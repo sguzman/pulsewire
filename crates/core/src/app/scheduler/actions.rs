@@ -102,6 +102,16 @@ where
 
   event_res?;
 
+  persist_response_cookies(
+    cfg,
+    repo,
+    &feed.id,
+    cookie_header,
+    &res.set_cookie_headers,
+    now_ms
+  )
+  .await?;
+
   let started = Instant::now();
 
   let state_res = repo
@@ -221,6 +231,16 @@ where
 
   event_res?;
 
+  persist_response_cookies(
+    cfg,
+    repo,
+    &feed.id,
+    cookie_header,
+    &res.set_cookie_headers,
+    now_ms
+  )
+  .await?;
+
   if let Some(body) = res.body.as_ref()
   {
     persist_payload(
@@ -332,6 +352,114 @@ where
   }
 
   Ok(())
+}
+
+
+async fn persist_response_cookies<R>(
+  cfg: &AppConfig,
+  repo: &Arc<R>,
+  feed_id: &str,
+  existing_cookie_header: Option<&str>,
+  set_cookie_headers: &[String],
+  now_ms: i64
+) -> Result<(), String>
+where
+  R: Repo + ?Sized
+{
+  if set_cookie_headers.is_empty() {
+    return Ok(());
+  }
+
+  let merged =
+    merge_cookie_header_with_set_cookie(
+      existing_cookie_header,
+      set_cookie_headers
+    );
+
+  let Some(cookie_header) = merged else {
+    return Ok(());
+  };
+
+  repo.upsert_cookie_header(
+    feed_id,
+    &cookie_header,
+    now_ms,
+    &cfg.timezone
+  )
+  .await
+}
+
+fn merge_cookie_header_with_set_cookie(
+  existing_cookie_header: Option<&str>,
+  set_cookie_headers: &[String]
+) -> Option<String> {
+  let mut pairs =
+    std::collections::BTreeMap::<
+      String,
+      String
+    >::new();
+
+  if let Some(existing) =
+    existing_cookie_header
+  {
+    for segment in existing.split(';') {
+      let trimmed = segment.trim();
+      let Some((k, v)) =
+        trimmed.split_once('=')
+      else {
+        continue;
+      };
+
+      let key = k.trim();
+      let val = v.trim();
+      if key.is_empty() || val.is_empty() {
+        continue;
+      }
+
+      pairs.insert(
+        key.to_string(),
+        val.to_string()
+      );
+    }
+  }
+
+  for set_cookie in set_cookie_headers {
+    let first = set_cookie
+      .split(';')
+      .next()
+      .unwrap_or("")
+      .trim();
+
+    let Some((k, v)) =
+      first.split_once('=')
+    else {
+      continue;
+    };
+
+    let key = k.trim();
+    let val = v.trim();
+
+    if key.is_empty() || val.is_empty() {
+      continue;
+    }
+
+    pairs.insert(
+      key.to_string(),
+      val.to_string()
+    );
+  }
+
+  if pairs.is_empty() {
+    None
+  } else {
+    Some(
+      pairs
+        .into_iter()
+        .map(|(k, v)| format!("{}={}", k, v))
+        .collect::<Vec<_>>()
+        .join("; ")
+    )
+  }
 }
 
 fn build_synthetic_watch_payload(

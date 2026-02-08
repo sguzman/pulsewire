@@ -115,3 +115,9 @@ CREATE TABLE IF NOT EXISTS error_feeds(
 
 ALTER TABLE feed_state_current ADD COLUMN IF NOT EXISTS consecutive_error_count BIGINT NOT NULL DEFAULT 0;
 ALTER TABLE feed_state_history ADD COLUMN IF NOT EXISTS consecutive_error_count BIGINT NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS source_cookies(
+  feed_id TEXT PRIMARY KEY REFERENCES feeds(id) ON DELETE CASCADE,
+  cookie_header TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);

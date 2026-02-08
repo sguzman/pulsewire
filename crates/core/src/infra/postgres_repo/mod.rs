@@ -3,6 +3,7 @@
 //! state, events, and payloads.
 
 mod connection;
+mod cookies;
 mod error_feeds;
 mod events;
 mod feeds;
@@ -210,6 +211,33 @@ impl Repo for PostgresRepo {
       error_kind,
       status,
       error_count,
+      observed_at_ms,
+      zone
+    )
+    .await
+  }
+
+  async fn latest_cookie_header(
+    &self,
+    feed_id: &str
+  ) -> Result<Option<String>, String> {
+    cookies::latest_cookie_header(
+      &self.pool, feed_id
+    )
+    .await
+  }
+
+  async fn upsert_cookie_header(
+    &self,
+    feed_id: &str,
+    cookie_header: &str,
+    observed_at_ms: i64,
+    zone: &Tz
+  ) -> Result<(), String> {
+    cookies::upsert_cookie_header(
+      &self.pool,
+      feed_id,
+      cookie_header,
       observed_at_ms,
       zone
     )

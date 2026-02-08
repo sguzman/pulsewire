@@ -109,3 +109,9 @@ CREATE INDEX IF NOT EXISTS idx_feed_items_payload ON feed_items(payload_id);
 CREATE INDEX IF NOT EXISTS idx_feed_items_feed ON feed_items(feed_id);
 CREATE INDEX IF NOT EXISTS idx_feeds_domain ON feeds(domain);
 CREATE INDEX IF NOT EXISTS idx_feeds_category ON feeds(category);
+
+CREATE TABLE IF NOT EXISTS source_cookies(
+  feed_id TEXT PRIMARY KEY REFERENCES feeds(id) ON DELETE CASCADE,
+  cookie_header TEXT NOT NULL,
+  updated_at_ms INTEGER NOT NULL
+);

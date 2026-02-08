@@ -99,6 +99,17 @@ impl ReqwestHttp {
       .map(|s| s.to_string())
   }
 
+  fn parse_set_cookie_headers(
+    headers: &header::HeaderMap
+  ) -> Vec<String> {
+    headers
+      .get_all(header::SET_COOKIE)
+      .iter()
+      .filter_map(|v| v.to_str().ok())
+      .map(|s| s.to_string())
+      .collect()
+  }
+
   fn apply_extra_headers(
     mut req: reqwest::RequestBuilder,
     extra_headers: Option<&HashMap<String, String>>
@@ -176,6 +187,11 @@ impl Http for ReqwestHttp {
             resp.headers()
           );
 
+        let set_cookie_headers =
+          Self::parse_set_cookie_headers(
+            resp.headers()
+          );
+
         let error = status.and_then(|s| {
                     Self::status_error_kind(
                         StatusCode::from_u16(s).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
@@ -187,7 +203,8 @@ impl Http for ReqwestHttp {
           etag,
           last_modified,
           error,
-          latency_ms
+          latency_ms,
+          set_cookie_headers
         }
       }
       | Err(e) => {
@@ -204,7 +221,8 @@ impl Http for ReqwestHttp {
           error: Some(
             Self::classify_error(&e)
           ),
-          latency_ms
+          latency_ms,
+          set_cookie_headers: Vec::new()
         }
       }
     }
@@ -249,6 +267,11 @@ impl Http for ReqwestHttp {
             resp.headers()
           );
 
+        let set_cookie_headers =
+          Self::parse_set_cookie_headers(
+            resp.headers()
+          );
+
         let body = match resp
           .bytes()
           .await
@@ -277,7 +300,8 @@ impl Http for ReqwestHttp {
           etag,
           last_modified,
           error,
-          latency_ms
+          latency_ms,
+          set_cookie_headers
         }
       }
       | Err(e) => {
@@ -295,7 +319,8 @@ impl Http for ReqwestHttp {
           error: Some(
             Self::classify_error(&e)
           ),
-          latency_ms
+          latency_ms,
+          set_cookie_headers: Vec::new()
         }
       }
     }

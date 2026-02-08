@@ -242,7 +242,8 @@ pub struct HeadResult {
   pub etag:          Option<String>,
   pub last_modified: Option<i64>, /* epoch millis */
   pub error:         Option<ErrorKind>,
-  pub latency_ms:    u64
+  pub latency_ms:    u64,
+  pub set_cookie_headers: Vec<String>
 }
 
 #[derive(Debug, Clone)]
@@ -252,5 +253,6 @@ pub struct GetResult {
   pub etag:          Option<String>,
   pub last_modified: Option<i64>, /* epoch millis */
   pub error:         Option<ErrorKind>,
-  pub latency_ms:    u64
+  pub latency_ms:    u64,
+  pub set_cookie_headers: Vec<String>
 }

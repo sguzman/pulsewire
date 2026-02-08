@@ -215,6 +215,60 @@ where
   Ok(())
 }
 
+
+fn merge_cookie_headers(
+  static_cookie_header: Option<&str>,
+  persisted_cookie_header: Option<&str>
+) -> Option<String> {
+  let mut pairs =
+    std::collections::BTreeMap::<
+      String,
+      String
+    >::new();
+
+  for source in [
+    static_cookie_header,
+    persisted_cookie_header,
+  ] {
+    let Some(raw) = source else {
+      continue;
+    };
+
+    for segment in raw.split(';') {
+      let trimmed = segment.trim();
+      let Some((k, v)) =
+        trimmed.split_once('=')
+      else {
+        continue;
+      };
+
+      let key = k.trim();
+      let val = v.trim();
+
+      if key.is_empty() || val.is_empty() {
+        continue;
+      }
+
+      pairs.insert(
+        key.to_string(),
+        val.to_string()
+      );
+    }
+  }
+
+  if pairs.is_empty() {
+    None
+  } else {
+    Some(
+      pairs
+        .into_iter()
+        .map(|(k, v)| format!("{}={}", k, v))
+        .collect::<Vec<_>>()
+        .join("; ")
+    )
+  }
+}
+
 #[allow(clippy::too_many_arguments)]
 async fn process_feed<R, H, C, G>(
   cfg: Arc<
@@ -281,10 +335,24 @@ where
     .get(&feed.id)
     .cloned();
 
-  let cookie_header =
+  let persisted_cookie_header =
+    repo.latest_cookie_header(&feed.id)
+      .await?;
+
+  let static_cookie_header =
     cookie_header_by_id
       .get(&feed.id)
       .map(String::as_str);
+
+  let merged_cookie_header =
+    merge_cookie_headers(
+      static_cookie_header,
+      persisted_cookie_header
+        .as_deref()
+    );
+
+  let cookie_header =
+    merged_cookie_header.as_deref();
 
   let extra_headers =
     extra_headers_by_id

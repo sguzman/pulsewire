@@ -107,4 +107,17 @@ pub trait Repo: Send + Sync {
     observed_at_ms: i64,
     zone: &Tz
   ) -> Result<(), String>;
+
+  async fn latest_cookie_header(
+    &self,
+    feed_id: &str
+  ) -> Result<Option<String>, String>;
+
+  async fn upsert_cookie_header(
+    &self,
+    feed_id: &str,
+    cookie_header: &str,
+    observed_at_ms: i64,
+    zone: &Tz
+  ) -> Result<(), String>;
 }
