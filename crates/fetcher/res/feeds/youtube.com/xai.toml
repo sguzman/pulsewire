@@ -17135,16 +17135,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCi9gZn
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCbaxUExGKrH2zxY4AkY9wCg"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCbaxUExGKrH2zxY4AkY9wCg"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCbaxUExGKrH2zxY4AkY9wCg"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCbaxUExGKrH2zxY4AkY9wCg"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCZ0fo0n8AGSBPIifLUiTLaA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCZ0fo0n8AGSBPIifLUiTLaA"
 

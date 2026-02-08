@@ -16,7 +16,7 @@ services:
       - ./crates/fetcher/res/domains.toml:/app/res/domains.toml:ro
       - ./crates/fetcher/res/categories.toml:/app/res/categories.toml:ro
       - ./crates/fetcher/res/schemas:/app/res/schemas:ro
-      - ./crates/fetcher/res/feeds-docker:/app/res/feeds:ro
+      - ./crates/fetcher/res/feeds:/app/res/feeds:ro
       - ./cookies:/app/cookies:ro
       - ./headers:/app/headers:ro
     ports:

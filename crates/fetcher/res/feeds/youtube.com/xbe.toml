@@ -470,11 +470,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCzwCuj
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCxJf49T4iTO_jtzWX3rW_jg"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCxJf49T4iTO_jtzWX3rW_jg"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCCAHL7F38EJxMz36sSZ7u6A"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCCAHL7F38EJxMz36sSZ7u6A"
 
@@ -2690,11 +2685,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCaJYTR
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCpMAZbus-sWXC5PKXO7OTaw"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCpMAZbus-sWXC5PKXO7OTaw"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCI0e3nCC9VvF0kZegPeLT3Q"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCI0e3nCC9VvF0kZegPeLT3Q"
 
@@ -2977,11 +2967,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCjmd64
 base_poll_seconds = 500
 id                = "UCoklLE4n6GoUQ5Xn2_5dqfA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCoklLE4n6GoUQ5Xn2_5dqfA"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCJdl3Paao2f3ha5JXMYUCIA"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCJdl3Paao2f3ha5JXMYUCIA"
 
 [[feeds]]
 base_poll_seconds = 500
@@ -3592,11 +3577,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCvwW99
 base_poll_seconds = 500
 id                = "UCpLtYCDcDnolUf49ZWRZ94g"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCpLtYCDcDnolUf49ZWRZ94g"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCINb0wqPz-A0dV9nARjJlOQ"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCINb0wqPz-A0dV9nARjJlOQ"
 
 [[feeds]]
 base_poll_seconds = 500
@@ -4797,11 +4777,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC64mkY
 base_poll_seconds = 500
 id                = "UCHSIA2JRC5PWvUX4Sl8OrcA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCHSIA2JRC5PWvUX4Sl8OrcA"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCQD3awTLw9i8Xzh85FKsuJA"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCQD3awTLw9i8Xzh85FKsuJA"
 
 [[feeds]]
 base_poll_seconds = 500
@@ -10620,11 +10595,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCkCIzR
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCXDc-ckqru8BgppXbCt0APw"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCXDc-ckqru8BgppXbCt0APw"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCU6ZasdR7eZjD9ouwHZB-2w"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCU6ZasdR7eZjD9ouwHZB-2w"
 
@@ -13050,11 +13020,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCeeVuC
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCsT0YIqwnpJCM-mx7-gSA4Q"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCsT0YIqwnpJCM-mx7-gSA4Q"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCPk61a2BWrCs9Kclsl4UbTQ"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCPk61a2BWrCs9Kclsl4UbTQ"
 
@@ -13472,16 +13437,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCEhlLB
 base_poll_seconds = 500
 id                = "UCu-phmhkLAKLFq90VsisDgQ"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCu-phmhkLAKLFq90VsisDgQ"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCCODtTcd5M1JavPCOr_Uydg"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCCODtTcd5M1JavPCOr_Uydg"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCCODtTcd5M1JavPCOr_Uydg"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCCODtTcd5M1JavPCOr_Uydg"
 
 [[feeds]]
 base_poll_seconds = 500

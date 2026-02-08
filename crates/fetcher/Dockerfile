@@ -26,7 +26,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifi
 COPY --from=builder /app/target/${TARGET}/release/pulsewire /usr/local/bin/pulsewire
 COPY crates/fetcher/res/config.toml crates/fetcher/res/docker.toml crates/fetcher/res/domains.toml crates/fetcher/res/categories.toml /app/res/
 COPY crates/fetcher/res/schemas /app/res/schemas
-COPY crates/fetcher/res/feeds-docker /app/res/feeds
+COPY crates/fetcher/res/feeds /app/res/feeds
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 ENV CONFIG_PATH=/app/res/docker.toml
 ENV FEEDS_DIR=/app/res/feeds

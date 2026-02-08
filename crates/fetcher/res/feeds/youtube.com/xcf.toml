@@ -840,16 +840,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCLhpcJ
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCTosgQvaBFbzVkx7qzi1tNw"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCTosgQvaBFbzVkx7qzi1tNw"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCTosgQvaBFbzVkx7qzi1tNw"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCTosgQvaBFbzVkx7qzi1tNw"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCC1aXzKxN1P3WcpTh84-1OQ"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCC1aXzKxN1P3WcpTh84-1OQ"
 

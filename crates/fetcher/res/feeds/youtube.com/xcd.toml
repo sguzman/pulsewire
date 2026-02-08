@@ -17510,11 +17510,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC9GzvP
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCtfVcXWhbSnF-fWHJ6ugw5A"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCtfVcXWhbSnF-fWHJ6ugw5A"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCLu7izqYz6ApyMChz3m1Plw"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCLu7izqYz6ApyMChz3m1Plw"
 

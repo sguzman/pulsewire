@@ -4385,11 +4385,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCOUFSl
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UC4NNPgQ9sOkBjw6GlkgCylg"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC4NNPgQ9sOkBjw6GlkgCylg"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCi2Cvq5OIIG7Atzx2fw11Rg"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCi2Cvq5OIIG7Atzx2fw11Rg"
 
@@ -8307,16 +8302,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCeuWLP
 base_poll_seconds = 500
 id                = "UCNF09SqLLInrxgzJMTVRSZQ"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCNF09SqLLInrxgzJMTVRSZQ"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCNhX3WQEkraW3VHPyup8jkQ"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCNhX3WQEkraW3VHPyup8jkQ"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCNhX3WQEkraW3VHPyup8jkQ"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCNhX3WQEkraW3VHPyup8jkQ"
 
 [[feeds]]
 base_poll_seconds = 500

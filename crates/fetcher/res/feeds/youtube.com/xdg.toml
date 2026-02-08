@@ -5020,16 +5020,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCzOxyJ
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCL_f53ZEJxp8TtlOkHwMV9Q"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCL_f53ZEJxp8TtlOkHwMV9Q"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCL_f53ZEJxp8TtlOkHwMV9Q"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCL_f53ZEJxp8TtlOkHwMV9Q"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCc7sDSLWVfM4NJGy8NfcU1w"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCc7sDSLWVfM4NJGy8NfcU1w"
 
@@ -9567,11 +9557,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCbC7S3
 base_poll_seconds = 500
 id                = "UCbgrF8xWRLer4CV2QN6JvaA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCbgrF8xWRLer4CV2QN6JvaA"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCHAtzWEoegu7Z5zEVzjOM_Q"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCHAtzWEoegu7Z5zEVzjOM_Q"
 
 [[feeds]]
 base_poll_seconds = 500
@@ -21390,11 +21375,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC8yT-7
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UC1K6SmusvGbpAK2C13bLQFg"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1K6SmusvGbpAK2C13bLQFg"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCOBguLqK272CN7ptp3CySOA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCOBguLqK272CN7ptp3CySOA"
 
@@ -24332,11 +24312,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCvEpsA
 base_poll_seconds = 500
 id                = "UCZ1HVPT-XJXtH8ev_J45mMw"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCZ1HVPT-XJXtH8ev_J45mMw"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCYbru-MPO1xjes4FVn61JUQ"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCYbru-MPO1xjes4FVn61JUQ"
 
 [[feeds]]
 base_poll_seconds = 500

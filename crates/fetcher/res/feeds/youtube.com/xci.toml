@@ -23585,11 +23585,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCL7Mxq
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCiZVMOinTQGb8HQu53VbV4Q"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCiZVMOinTQGb8HQu53VbV4Q"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCuR4lL9oMNITJuULQZvTfVQ"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCuR4lL9oMNITJuULQZvTfVQ"
 

@@ -1695,11 +1695,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCnbrZz
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCG1h-Wqjtwz7uUANw6gazRw"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCG1h-Wqjtwz7uUANw6gazRw"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCrq554ZQSCEWs1k8sm-e8-g"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCrq554ZQSCEWs1k8sm-e8-g"
 
@@ -7775,16 +7770,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCxV43I
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UCvqbFHwN-nwalWPjPUKpvTA"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCvqbFHwN-nwalWPjPUKpvTA"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UCvqbFHwN-nwalWPjPUKpvTA"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCvqbFHwN-nwalWPjPUKpvTA"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UC5lHqWVNh_xP0iVB7dsRgQw"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC5lHqWVNh_xP0iVB7dsRgQw"
 
@@ -10502,11 +10487,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCWEILZ
 base_poll_seconds = 500
 id                = "UCSz445K2cuiigTsMbYQa_xA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSz445K2cuiigTsMbYQa_xA"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UC2t5bjwHdUX4vM2g8TRDq5g"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC2t5bjwHdUX4vM2g8TRDq5g"
 
 [[feeds]]
 base_poll_seconds = 500
@@ -20865,11 +20845,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCqaqFV
 
 [[feeds]]
 base_poll_seconds = 500
-id                = "UC0intLFzLaudFG-xAvUEO-A"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC0intLFzLaudFG-xAvUEO-A"
-
-[[feeds]]
-base_poll_seconds = 500
 id                = "UCBEU3TlHYZHgo9E03NqJCsA"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCBEU3TlHYZHgo9E03NqJCsA"
 
@@ -23927,16 +23902,6 @@ url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC6DPnz
 base_poll_seconds = 500
 id                = "UCb0oxCNT0cDsoJWZUR0CKTg"
 url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UCb0oxCNT0cDsoJWZUR0CKTg"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UC67f2Qf7FYhtoUIF4Sf29cA"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC67f2Qf7FYhtoUIF4Sf29cA"
-
-[[feeds]]
-base_poll_seconds = 500
-id                = "UC67f2Qf7FYhtoUIF4Sf29cA"
-url               = "https://www.youtube.com/feeds/videos.xml?channel_id=UC67f2Qf7FYhtoUIF4Sf29cA"
 
 [[feeds]]
 base_poll_seconds = 500
