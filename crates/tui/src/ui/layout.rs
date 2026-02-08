@@ -44,42 +44,16 @@ pub(crate) fn draw_login(
   app: &App
 ) {
   let banner = banner_text(app);
-  let has_banner = banner.is_some();
-  let chunks = if has_banner {
-    Layout::default()
-      .direction(Direction::Vertical)
-      .margin(2)
-      .constraints([
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Min(3),
-        Constraint::Length(3)
-      ])
-      .split(frame.area())
-  } else {
-    Layout::default()
-      .direction(Direction::Vertical)
-      .margin(2)
-      .constraints([
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Min(3),
-        Constraint::Length(3)
-      ])
-      .split(frame.area())
-  };
-
-  let (
-    username_idx,
-    password_idx,
-    help_idx,
-    status_idx
-  ) = if has_banner {
-    (1, 2, 3, 4)
-  } else {
-    (0, 1, 2, 3)
-  };
+  let chunks = Layout::default()
+    .direction(Direction::Vertical)
+    .margin(2)
+    .constraints([
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Min(3),
+      Constraint::Length(3)
+    ])
+    .split(frame.area());
 
   let username_style = if matches!(
     app.focus,
@@ -121,11 +95,11 @@ pub(crate) fn draw_login(
 
   frame.render_widget(
     username,
-    chunks[username_idx]
+    chunks[0]
   );
   frame.render_widget(
     password,
-    chunks[password_idx]
+    chunks[1]
   );
 
   let help = Paragraph::new(
@@ -138,36 +112,14 @@ pub(crate) fn draw_login(
       .title("Help")
   );
 
-  frame.render_widget(
-    help,
-    chunks[help_idx]
+  frame.render_widget(help, chunks[2]);
+
+  draw_status_with_notice(
+    frame,
+    chunks[3],
+    app.status.as_str(),
+    banner,
   );
-
-  let status =
-    Paragraph::new(app.status.as_str())
-      .block(
-        Block::default()
-          .borders(Borders::ALL)
-          .title("Status")
-      );
-
-  frame.render_widget(
-    status,
-    chunks[status_idx]
-  );
-
-  if let Some((text, style)) = banner {
-    let banner = Paragraph::new(text)
-      .block(
-        Block::default()
-          .borders(Borders::ALL)
-          .title("Notice")
-      )
-      .style(style);
-
-    frame
-      .render_widget(banner, chunks[0]);
-  }
 }
 
 pub(crate) fn draw_main(
@@ -175,29 +127,15 @@ pub(crate) fn draw_main(
   app: &App
 ) {
   let banner = banner_text(app);
-  let has_banner = banner.is_some();
-  let chunks = if has_banner {
-    Layout::default()
-      .direction(Direction::Vertical)
-      .margin(1)
-      .constraints([
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Min(3),
-        Constraint::Length(3)
-      ])
-      .split(frame.area())
-  } else {
-    Layout::default()
-      .direction(Direction::Vertical)
-      .margin(1)
-      .constraints([
-        Constraint::Length(3),
-        Constraint::Min(3),
-        Constraint::Length(3)
-      ])
-      .split(frame.area())
-  };
+  let chunks = Layout::default()
+    .direction(Direction::Vertical)
+    .margin(1)
+    .constraints([
+      Constraint::Length(3),
+      Constraint::Min(3),
+      Constraint::Length(3)
+    ])
+    .split(frame.area());
 
   let titles = [
     "Feeds",
@@ -223,27 +161,7 @@ pub(crate) fn draw_main(
         .add_modifier(Modifier::BOLD)
     );
 
-  frame.render_widget(
-    tabs,
-    chunks[if has_banner {
-      1
-    } else {
-      0
-    }]
-  );
-
-  if let Some((text, style)) = banner {
-    let banner = Paragraph::new(text)
-      .block(
-        Block::default()
-          .borders(Borders::ALL)
-          .title("Notice")
-      )
-      .style(style);
-
-    frame
-      .render_widget(banner, chunks[0]);
-  }
+  frame.render_widget(tabs, chunks[0]);
 
   let content = Layout::default()
     .direction(Direction::Horizontal)
@@ -251,13 +169,7 @@ pub(crate) fn draw_main(
       Constraint::Percentage(60),
       Constraint::Percentage(40)
     ])
-    .split(
-      chunks[if has_banner {
-        2
-      } else {
-        1
-      }]
-    );
+    .split(chunks[1]);
 
   match app.tab {
     | 0 => {
@@ -394,24 +306,11 @@ pub(crate) fn draw_main(
     }
   }
 
-  let footer =
-    Paragraph::new(app.status.as_str())
-      .block(
-        Block::default()
-          .borders(Borders::ALL)
-          .title("Status")
-      )
-      .wrap(Wrap {
-        trim: true
-      });
-
-  frame.render_widget(
-    footer,
-    chunks[if has_banner {
-      3
-    } else {
-      2
-    }]
+  draw_status_with_notice(
+    frame,
+    chunks[2],
+    app.status.as_str(),
+    banner,
   );
 
   if let Some(modal) = &app.modal {
@@ -442,6 +341,53 @@ pub(crate) fn draw_main(
       &input.title,
       &input.value
     );
+  }
+}
+
+fn draw_status_with_notice(
+  frame: &mut Frame,
+  area: ratatui::layout::Rect,
+  status_text: &str,
+  notice: Option<(String, Style)>,
+) {
+  if let Some((text, style)) = notice {
+    let split = Layout::default()
+      .direction(Direction::Horizontal)
+      .constraints([
+        Constraint::Percentage(70),
+        Constraint::Percentage(30),
+      ])
+      .split(area);
+
+    let status = Paragraph::new(status_text)
+      .block(
+        Block::default()
+          .borders(Borders::ALL)
+          .title("Status"),
+      )
+      .wrap(Wrap { trim: true });
+
+    let banner = Paragraph::new(text)
+      .block(
+        Block::default()
+          .borders(Borders::ALL)
+          .title("Notice"),
+      )
+      .style(style)
+      .wrap(Wrap { trim: true });
+
+    frame.render_widget(status, split[0]);
+    frame.render_widget(banner, split[1]);
+  } else {
+    let status = Paragraph::new(status_text)
+      .block(
+        Block::default()
+          .borders(Borders::ALL)
+          .title("Status"),
+      )
+      .wrap(Wrap { trim: true });
+
+    frame.render_widget(status, area);
   }
 }
 
