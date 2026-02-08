@@ -1,9 +1,15 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::Instant;
 
 use tracing::{
   error,
   warn
+};
+use scraper::{
+  ElementRef,
+  Html,
+  Selector
 };
 
 use super::concurrency::ConcurrencyGuards;
@@ -315,6 +321,7 @@ where
             watch_cfg,
             now_ms,
             body_hash,
+            body,
           ))
         } else {
           tracing::debug!(feed_id = %feed.id, error = %parse_err, "Watch parse failed but no body change detected; skipping synthetic emit");
@@ -462,11 +469,294 @@ fn merge_cookie_header_with_set_cookie(
   }
 }
 
+
+fn extract_watch_items_from_html(
+  feed: &FeedConfig,
+  watch: &WatchConfig,
+  body: &[u8],
+  now_ms: i64
+) -> Vec<FeedItem> {
+  let Some(item_selector_raw) =
+    watch.item_selector.as_deref()
+  else {
+    return Vec::new();
+  };
+
+  let Some(item_selector) =
+    parse_selector(item_selector_raw)
+  else {
+    return Vec::new();
+  };
+
+  let title_selector = watch
+    .title_selector
+    .as_deref()
+    .and_then(parse_selector);
+
+  let link_selector = watch
+    .link_selector
+    .as_deref()
+    .and_then(parse_selector);
+
+  let summary_selector = watch
+    .summary_selector
+    .as_deref()
+    .and_then(parse_selector);
+
+  let published_selector = watch
+    .published_selector
+    .as_deref()
+    .and_then(parse_selector);
+
+  let html =
+    String::from_utf8_lossy(body);
+  let document = Html::parse_document(&html);
+
+  let mut seen = HashSet::new();
+  let mut items = Vec::new();
+
+  let selected: Vec<_> =
+    document.select(&item_selector).collect();
+
+  for node in selected {
+    let mut link = extract_link(
+      &node,
+      link_selector.as_ref(),
+      &feed.url,
+      watch.strip_query_params,
+    );
+
+    if link.is_none() {
+      link = node
+        .value()
+        .attr("href")
+        .map(|s| s.to_string());
+    }
+
+    let title = extract_text(
+      &node,
+      title_selector.as_ref(),
+    )
+    .or_else(|| {
+      let own = text_of(&node);
+      if own.is_empty() {
+        None
+      } else {
+        Some(own)
+      }
+    });
+
+    let summary = extract_text(
+      &node,
+      summary_selector.as_ref(),
+    );
+
+    let published_at_ms =
+      extract_published_at_ms(
+        &node,
+        published_selector.as_ref(),
+        watch.published_format
+          .as_deref(),
+      )
+      .or(Some(now_ms));
+
+    let identity =
+      resolve_identity(
+        &node,
+        watch,
+        link.as_deref(),
+        title.as_deref(),
+      );
+
+    let Some(identity) = identity else {
+      continue;
+    };
+
+    if !seen.insert(identity.clone()) {
+      continue;
+    }
+
+    items.push(FeedItem {
+      title,
+      link,
+      guid: Some(format!(
+        "{}:{}",
+        feed.id, identity
+      )),
+      published_at_ms,
+      category: Some(
+        feed.category.clone()
+      ),
+      description: summary.clone(),
+      summary,
+    });
+  }
+
+  items
+}
+
+fn parse_selector(
+  raw: &str
+) -> Option<Selector> {
+  Selector::parse(raw).ok()
+}
+
+fn extract_text(
+  node: &ElementRef<'_>,
+  selector: Option<&Selector>
+) -> Option<String> {
+  let selector = selector?;
+
+  let element = node.select(selector).next()?;
+  let text = text_of(&element);
+
+  if text.is_empty() {
+    None
+  } else {
+    Some(text)
+  }
+}
+
+fn text_of(
+  node: &ElementRef<'_>
+) -> String {
+  node.text()
+    .map(str::trim)
+    .filter(|s| !s.is_empty())
+    .collect::<Vec<_>>()
+    .join(" ")
+}
+
+fn extract_link(
+  node: &ElementRef<'_>,
+  selector: Option<&Selector>,
+  base_url: &str,
+  strip_query_params: bool
+) -> Option<String> {
+  let mut raw = if let Some(sel) =
+    selector
+  {
+    node.select(sel)
+      .next()
+      .and_then(|n| {
+        n.value().attr("href")
+      })
+      .map(str::to_string)
+  } else {
+    None
+  };
+
+  if raw.is_none() {
+    raw = node
+      .value()
+      .attr("href")
+      .map(str::to_string);
+  }
+
+  let mut href = raw?;
+  if href.starts_with('/') {
+    let base = base_url.trim_end_matches('/');
+    href = format!(
+      "{}{}",
+      base, href
+    );
+  }
+
+  if strip_query_params {
+    href = href
+      .split('?')
+      .next()
+      .unwrap_or(&href)
+      .to_string();
+  }
+
+  Some(href)
+}
+
+fn extract_published_at_ms(
+  node: &ElementRef<'_>,
+  selector: Option<&Selector>,
+  published_format: Option<&str>
+) -> Option<i64> {
+  let selector = selector?;
+  let elem = node.select(selector).next()?;
+
+  let raw = elem
+    .value()
+    .attr("datetime")
+    .map(str::to_string)
+    .or_else(|| {
+      let t = text_of(&elem);
+      if t.is_empty() {
+        None
+      } else {
+        Some(t)
+      }
+    })?;
+
+  if let Some(fmt) = published_format
+    && let Ok(dt) = chrono::DateTime::parse_from_str(&raw, fmt)
+  {
+    return Some(dt.timestamp_millis());
+  }
+
+  chrono::DateTime::parse_from_rfc3339(&raw)
+    .map(|dt| dt.timestamp_millis())
+    .ok()
+}
+
+fn resolve_identity(
+  node: &ElementRef<'_>,
+  watch: &WatchConfig,
+  link: Option<&str>,
+  title: Option<&str>
+) -> Option<String> {
+  match watch.item_identity {
+    | Some(
+      crate::domain::model::WatchItemIdentity::Href,
+    ) => {
+      link.map(str::to_string)
+    }
+    | Some(
+      crate::domain::model::WatchItemIdentity::Text,
+    ) => {
+      title
+        .map(str::to_string)
+        .or_else(|| {
+          let t = text_of(node);
+          if t.is_empty() {
+            None
+          } else {
+            Some(t)
+          }
+        })
+    }
+    | Some(
+      crate::domain::model::WatchItemIdentity::Attr,
+    ) => {
+      let attr = watch
+        .item_identity_attr
+        .as_deref()?;
+      node.value()
+        .attr(attr)
+        .map(str::to_string)
+    }
+    | None => {
+      link
+        .map(str::to_string)
+        .or_else(|| {
+          title.map(str::to_string)
+        })
+    }
+  }
+}
+
 fn build_synthetic_watch_payload(
   feed: &FeedConfig,
   watch: &WatchConfig,
   now_ms: i64,
-  body_hash: Option<&str>
+  body_hash: Option<&str>,
+  body: &[u8]
 ) -> ParsedFeed {
   let title = watch
     .emit_title
@@ -501,6 +791,34 @@ fn build_synthetic_watch_payload(
       )
     }
   };
+
+  let extracted_items =
+    extract_watch_items_from_html(
+      feed, watch, body, now_ms
+    );
+
+  if !extracted_items.is_empty() {
+    return ParsedFeed {
+      metadata: FeedMetadata {
+        title:         Some(
+          title.clone()
+        ),
+        link:          Some(
+          feed.url.clone()
+        ),
+        description:   Some(
+          "synthetic payload from \
+         ad-hoc watch"
+            .to_string()
+        ),
+        language:      watch
+          .language
+          .clone(),
+        updated_at_ms: Some(now_ms)
+      },
+      items: extracted_items
+    };
+  }
 
   ParsedFeed {
     metadata: FeedMetadata {

@@ -55,6 +55,7 @@ hex  = "0.4.3"
 sha2 = "0.10.9"
 
 feed-rs = "2.3.1"
+scraper = "0.24.0"
 
 async-trait = "0.1.89"
 rand        = "0.9.2"
