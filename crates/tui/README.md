@@ -1,8 +1,9 @@
-# Pulsewire TUI (pulsewire-tui)
+# Pulsewire TUI (pulsewire-Tui)
 
 Interactive terminal UI for the Pulsewire server API.
 
 ## Features
+
 - Login with username/password.
 - Browse feeds, entries, favorites, folders, and subscriptions.
 - Toggle entry read/unread and feed subscriptions.
@@ -12,16 +13,19 @@ Interactive terminal UI for the Pulsewire server API.
 - Configurable keybindings and server settings.
 
 ## Usage
-```
+
+```text
 PULSEWIRE_TUI_CONFIG=crates/tui/res/config.toml cargo run -p pulsewire-tui
 ```
 
 Controls (defaults, configurable in `config.toml`):
+
 - Login: type username/password, Tab to switch field, Enter to login.
 - Tabs: `1` Feeds, `2` Entries, `3` Favorites, `4` Folders, `5` Subscriptions.
 - Navigation: Up/Down or `j`/`k`.
 - Top/middle/bottom: `g`/`M`/`G`.
-- Open entries for selected item: `e` (feeds/favorites/subscriptions or folder entries in Folders).
+- Open entries for selected item: `e` (feeds/favorites/subscriptions or folder
+  entries in Folders).
 - Open all entries: `E`.
 - Search entries: `/` (opens search prompt).
 - Toggle read filter (all/read/unread): `w`.
@@ -39,11 +43,13 @@ Controls (defaults, configurable in `config.toml`):
 - Quit: `q`.
 
 ## Config
-Default config: `crates/tui/res/config.toml`.
-Schema: `crates/tui/res/schemas/tui.schema.json`.
+Default config: `crates/tui/res/config.toml`. Schema:
+`crates/tui/res/schemas/tui.schema.json`.
 
 Sections:
+
 - `[server]` – API base URL and timeout.
 - `[auth]` – auto-login flag + default credentials.
 - `[ui]` – per-tab page sizes and refresh interval.
-- `[keybindings]` – action bindings (supports `left`, `right`, `up`, `down`, `tab`, `enter`, `backspace`, `esc`, single chars, and `ctrl+<key>`).
+- `[keybindings]` – action bindings (supports `left`, `right`, `up`, `down`,
+  `tab`, `enter`, `backspace`, `esc`, single chars, and `ctrl+<key>`).

@@ -1,26 +1,31 @@
-# Pulsewire Core (pulsewire-core)
+# Pulsewire Core (pulsewire-Core)
 
 Shared runtime library for the fetcher and server. This crate owns the domain model, scheduler logic, and infrastructure adapters (DB, HTTP, clock, RNG).
 
-## What it does
+## What It Does
+
 - Parses and validates the TOML config bundle (app/domains/categories/feeds).
 - Owns the scheduler that decides when to HEAD/GET feeds and applies backoff.
 - Defines domain types (feeds, state, HTTP results, errors) and ports/traits.
 - Provides SQLite/Postgres repos and SQL schema application.
 
-## Key modules
+## Key Modules
+
 - `app/` – scheduler orchestration and context wiring.
 - `domain/` – core types (feeds, poll/backoff rules, state machine decisions).
 - `ports/` – trait definitions for repos, HTTP, time, RNG.
-- `infra/` – concrete implementations (sqlx repos, reqwest HTTP, logging, config loader).
+- `infra/` – concrete implementations (sqlx repos, reqwest HTTP, logging, config
+  loader).
 - `res/sql/` – database DDL for SQLite and Postgres.
 
-## Extension points
+## Extension Points
+
 - Implement `ports::repo::Repo` to support a new backend.
 - Implement `ports::http::Http` to change the HTTP stack.
 - Implement `ports::clock::Clock` for custom time or test control.
 
 ## Tests
+
 - Property-style tests live under `crates/core/tests`.
 
 ## Usage
