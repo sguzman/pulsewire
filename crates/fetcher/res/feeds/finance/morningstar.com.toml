@@ -1,0 +1,18 @@
+watch_defaults = { base_poll_seconds = 900, category = "finance", check_method = "get", fallback_to_get = true, detectors = ["content_hash", "element_hash"], fetch_body_on_change = true, max_body_bytes = 1048576, item_identity = "href", normalize_whitespace = true, strip_query_params = true, emit_mode = "new_items_only", provenance = "morningstar" }
+
+[[watch_profiles]]
+name = "morningstar-stock-articles"
+item_selector = "main article a[href], main a[href*='/stocks/'], main a[href*='/markets/']"
+title_selector = "h2, h3, [class*='title']"
+link_selector = "a[href]"
+summary_selector = "p, [class*='summary'], [class*='dek']"
+exclude_selectors = ["nav", "header", "footer", "[aria-label='breadcrumb']", "[class*='subscribe']", "[class*='ad']"]
+
+[[watches]]
+id = "morningstar-stocks"
+url = "https://www.morningstar.com/stocks"
+profile = "morningstar-stock-articles"
+emit_title = "Morningstar Stocks updates"
+tags = ["stocks", "market", "morningstar", "ad-hoc"]
+language = "en"
+content_type = "text/html"
