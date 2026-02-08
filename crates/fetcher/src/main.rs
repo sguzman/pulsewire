@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -7,28 +8,29 @@ use pulsewire_core::domain::model::{
   AppConfig,
   AppMode,
   FeedConfig,
-  SqlDialect
+  SqlDialect,
+  WatchConfig,
 };
 use pulsewire_core::infra::config::{
   ConfigLoader,
-  LoadedConfig
+  LoadedConfig,
 };
 use pulsewire_core::infra::logging::{
+  init_logging,
   BootError,
-  init_logging
 };
 use pulsewire_core::infra::random::MutexRng;
 use pulsewire_core::infra::reqwest_http::ReqwestHttp;
 use pulsewire_core::infra::system_clock::SystemClock;
 use pulsewire_core::infra::{
   database,
-  metrics
+  metrics,
 };
 use pulsewire_core::ports::repo::Repo;
 use tracing::{
   error,
   info,
-  warn
+  warn,
 };
 
 /// Binary entrypoint:
@@ -47,7 +49,6 @@ use tracing::{
 /// - exits with `BootError` on fatal
 ///   startup/ingest errors
 #[tokio::main]
-
 async fn main() -> Result<(), BootError>
 {
   let args = parse_args();
@@ -65,6 +66,20 @@ async fn main() -> Result<(), BootError>
     .map_err(|e| {
       BootError::Fatal(e.to_string())
     })?;
+
+  let watch_feed_configs =
+    watches_to_feeds(&watches);
+
+  let mut all_sources = feeds;
+  all_sources
+    .extend(watch_feed_configs.clone());
+
+  let watches_by_id = Arc::new(
+    watches
+      .into_iter()
+      .map(|w| (w.id.clone(), w))
+      .collect::<HashMap<_, _>>()
+  );
 
   init_logging(&app_cfg);
 
@@ -96,14 +111,12 @@ async fn main() -> Result<(), BootError>
     }
   };
 
-  info!(feeds = feeds.len(), watches = watches.len(), db = %db_desc, dialect = ?app_cfg.db_dialect, mode = ?app_cfg.mode, "Loaded config");
+  info!(feeds = all_sources.len(), watches = watches_by_id.len(), db = %db_desc, dialect = ?app_cfg.db_dialect, mode = ?app_cfg.mode, "Loaded config");
 
-  if !watches.is_empty() {
-    warn!(
-      watches = watches.len(),
-      "Ad-hoc watches are loaded but \
-       not scheduled yet (phase 1 \
-       config-only support)"
+  if !watches_by_id.is_empty() {
+    info!(
+      watches = watches_by_id.len(),
+      "Ad-hoc watches enabled"
     );
   }
 
@@ -132,11 +145,11 @@ async fn main() -> Result<(), BootError>
         );
 
         pulsewire_core::infra::postgres_repo::wipe_database(
-                    &app_cfg.postgres,
-                    &app_cfg.timezone,
-                )
-                .await
-                .map_err(BootError::Fatal)?;
+                &app_cfg.postgres,
+                &app_cfg.timezone,
+            )
+            .await
+            .map_err(BootError::Fatal)?;
       }
     }
   }
@@ -222,7 +235,7 @@ async fn main() -> Result<(), BootError>
   ingest_feeds(
     repo.clone(),
     cfg.clone(),
-    feeds
+    all_sources
   )
   .await?;
 
@@ -240,11 +253,12 @@ async fn main() -> Result<(), BootError>
   let rng = Arc::new(MutexRng::new());
 
   let ctx = AppContext {
-    cfg:   cfg.clone(),
-    repo:  repo.clone(),
-    http:  http.clone(),
+    cfg: cfg.clone(),
+    repo: repo.clone(),
+    http: http.clone(),
     clock: clock.clone(),
-    rng:   rng.clone()
+    rng: rng.clone(),
+    watches_by_id
   };
 
   if let Err(e) =
@@ -376,20 +390,80 @@ where
     .map_err(BootError::Fatal)
 }
 
+fn watches_to_feeds(
+  watches: &[WatchConfig]
+) -> Vec<FeedConfig> {
+  watches
+    .iter()
+    .map(|w| {
+      FeedConfig {
+        id:                w.id.clone(),
+        url:               w
+          .url
+          .clone(),
+        domain:            w
+          .domain
+          .clone(),
+        category:          w
+          .category
+          .clone(),
+        base_poll_seconds: w
+          .base_poll_seconds,
+        provenance:        w
+          .provenance
+          .clone()
+          .or_else(|| {
+            Some(
+              "ad-hoc-watch"
+                .to_string()
+            )
+          }),
+        tags:              w
+          .tags
+          .clone(),
+        language:          w
+          .language
+          .clone(),
+        content_type:      w
+          .content_type
+          .clone()
+          .or_else(|| {
+            Some(
+              "text/html".to_string()
+            )
+          })
+      }
+    })
+    .collect()
+}
+
 fn benchmark_feed_stream(
   count: usize,
-  default_poll_seconds: u64,
+  base_poll_seconds: u64,
   category: String
 ) -> impl Iterator<Item = FeedConfig> {
-  (0..count).map(move |i| FeedConfig {
-        id: format!("bench-{i}"),
-        url: format!("https://bench.example.com/{i}.xml"),
-        domain: "bench.example.com".to_string(),
-        category: category.clone(),
-        base_poll_seconds: default_poll_seconds,
-        provenance: None,
-        tags: None,
-        language: None,
-        content_type: None,
-    })
+  (0..count).map(move |i| {
+    FeedConfig {
+      id: format!(
+        "benchmark-feed-{i}"
+      ),
+      url: format!(
+        "https://example.org/feed/{i}.xml"
+      ),
+      domain: "example.org".to_string(),
+      category: category.clone(),
+      base_poll_seconds,
+      provenance: Some(
+        "benchmark".to_string(),
+      ),
+      tags: None,
+      language: Some(
+        "en".to_string(),
+      ),
+      content_type: Some(
+        "application/rss+xml"
+          .to_string(),
+      ),
+    }
+  })
 }
