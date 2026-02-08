@@ -1,0 +1,34 @@
+services:
+  fetcher:
+    build:
+      context: ../..
+      dockerfile: crates/fetcher/Dockerfile
+      args:
+        TARGET: x86_64-unknown-linux-musl
+    image: guzmansalv/pulsewire-fetcher:latest
+    container_name: guzmansalv-pulsewire-fetcher
+    restart: unless-stopped
+    environment:
+      CONFIG_PATH: /app/res/docker.toml
+      FEEDS_DIR: /app/res/feeds
+    volumes:
+      - ./res/docker.toml:/app/res/docker.toml:ro
+      - ./res/domains.toml:/app/res/domains.toml:ro
+      - ./res/categories.toml:/app/res/categories.toml:ro
+      - ./res/schemas:/app/res/schemas:ro
+      - ./res/feeds:/app/res/feeds:ro
+      - ../../cookies:/app/cookies:ro
+      - ../../headers:/app/headers:ro
+    dns:
+      - 172.31.0.53
+    ports:
+      - "9898:9898"
+    networks:
+      - services
+      - dnsnet
+
+networks:
+  services:
+    external: true
+  dnsnet:
+    external: true
