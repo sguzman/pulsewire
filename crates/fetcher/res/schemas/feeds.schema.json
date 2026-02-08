@@ -4,6 +4,9 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "enabled": {
+      "type": "boolean"
+    },
     "base_poll_seconds": {
       "type": "integer",
       "minimum": 0

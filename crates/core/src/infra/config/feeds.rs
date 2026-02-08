@@ -73,6 +73,10 @@ pub(crate) async fn load_all_feeds(
     let parsed: RawFeedsFile =
       toml::from_str(&content)?;
 
+    if matches!(parsed.enabled, Some(false)) {
+      continue;
+    }
+
     let file_feed_defaults =
       FeedDefaults::from_file(
         &parsed, &p
@@ -169,6 +173,7 @@ pub(crate) async fn load_all_feeds(
   }
 
   Ok(RawFeedsFile {
+    enabled:           None,
     base_poll_seconds: None,
     id_prefix:         None,
     category:          None,

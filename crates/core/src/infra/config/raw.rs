@@ -185,6 +185,7 @@ pub(crate) struct RawDomainEntry {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct RawFeedsFile {
+  pub enabled:           Option<bool>,
   pub base_poll_seconds: Option<u64>,
   pub id_prefix:         Option<String>,
   pub category:          Option<String>,
