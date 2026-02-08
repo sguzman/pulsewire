@@ -1,16 +1,31 @@
-watch_defaults = { base_poll_seconds = 1800, category = "finance", provenance = "hindenburg", tags = ["short-research", "activism", "reports"], language = "en", content_type = "text/html", check_method = "get", fallback_to_get = true, detectors = ["content_hash", "element_hash"], fetch_body_on_change = true, max_body_bytes = 1048576, max_items_per_fetch = 10, item_identity = "href", normalize_whitespace = true, strip_query_params = true, emit_mode = "new_items_only" }
+watch_defaults = { base_poll_seconds = 1800, category = "finance", check_method = "get", content_type = "text/html", detectors = [
+  "content_hash",
+  "element_hash",
+], emit_mode = "new_items_only", fallback_to_get = true, fetch_body_on_change = true, item_identity = "href", language = "en", max_body_bytes = 1048576, max_items_per_fetch = 10, normalize_whitespace = true, provenance = "hindenburg", strip_query_params = true, tags = [
+  "activism",
+  "reports",
+  "short-research",
+] }
 
 [[watch_profiles]]
-name = "hindenburg-home-reports"
+exclude_selectors = [
+  ".menu",
+  ".nav-links",
+  "footer",
+  "header",
+  "nav",
+  "script",
+  "style",
+]
 item_selector = ".post-title a[rel='bookmark'], .featured_post h1 a"
-title_selector = ".post-title, h1"
 link_selector = "a[href]"
-published_selector = "time.entry-date"
+name = "hindenburg-home-reports"
 published_format = "%+"
-exclude_selectors = ["header", "footer", "nav", ".nav-links", ".menu", "script", "style"]
+published_selector = "time.entry-date"
+title_selector = ".post-title, h1"
 
 [[watches]]
-id = "hindenburg-home"
-url = "https://hindenburgresearch.com/"
-profile = "hindenburg-home-reports"
 emit_title = "Hindenburg Research updates"
+id         = "hindenburg-home"
+profile    = "hindenburg-home-reports"
+url        = "https://hindenburgresearch.com/"

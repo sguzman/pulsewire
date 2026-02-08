@@ -16,7 +16,7 @@ pub async fn latest_cookie_header(
       FROM source_cookies
       WHERE feed_id = $1
       LIMIT 1
-      "#,
+      "#
   )
   .bind(feed_id)
   .fetch_optional(pool)

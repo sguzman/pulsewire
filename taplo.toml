@@ -1,7 +1,7 @@
 exclude = [
   "cliff.toml",
-  "crates/fetcher/res/feeds/youtube.com/*.toml",
   "crates/fetcher/res/feeds/podcasts/*.toml",
+  "crates/fetcher/res/feeds/youtube.com/*.toml",
   "release.toml",
 ]
 

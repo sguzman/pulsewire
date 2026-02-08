@@ -41,7 +41,8 @@ pub struct FeedConfig {
   pub content_type:      Option<String>,
   pub cookie_path:       Option<String>,
   pub headers_path:      Option<String>,
-  pub headers:           Option<HashMap<String, String>>
+  pub headers:
+    Option<HashMap<String, String>>
 }
 
 #[derive(
@@ -59,7 +60,8 @@ pub struct WatchConfig {
   pub content_type: Option<String>,
   pub cookie_path: Option<String>,
   pub headers_path: Option<String>,
-  pub headers: Option<HashMap<String, String>>,
+  pub headers:
+    Option<HashMap<String, String>>,
   pub check_method: WatchCheckMethod,
   pub fallback_to_get:       bool,
   pub detectors: Vec<WatchDetector>,
@@ -239,21 +241,21 @@ pub enum ErrorKind {
 
 #[derive(Debug, Clone)]
 pub struct HeadResult {
-  pub status:        Option<u16>,
-  pub etag:          Option<String>,
-  pub last_modified: Option<i64>, /* epoch millis */
-  pub error:         Option<ErrorKind>,
-  pub latency_ms:    u64,
+  pub status:             Option<u16>,
+  pub etag: Option<String>,
+  pub last_modified:      Option<i64>, /* epoch millis */
+  pub error: Option<ErrorKind>,
+  pub latency_ms:         u64,
   pub set_cookie_headers: Vec<String>
 }
 
 #[derive(Debug, Clone)]
 pub struct GetResult {
-  pub status:        Option<u16>,
-  pub body:          Option<Vec<u8>>,
-  pub etag:          Option<String>,
-  pub last_modified: Option<i64>, /* epoch millis */
-  pub error:         Option<ErrorKind>,
-  pub latency_ms:    u64,
+  pub status:             Option<u16>,
+  pub body: Option<Vec<u8>>,
+  pub etag: Option<String>,
+  pub last_modified:      Option<i64>, /* epoch millis */
+  pub error: Option<ErrorKind>,
+  pub latency_ms:         u64,
   pub set_cookie_headers: Vec<String>
 }

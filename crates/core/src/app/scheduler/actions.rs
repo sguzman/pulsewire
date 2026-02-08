@@ -2,14 +2,14 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::Instant;
 
-use tracing::{
-  error,
-  warn
-};
 use scraper::{
   ElementRef,
   Html,
   Selector
+};
+use tracing::{
+  error,
+  warn
 };
 
 use super::concurrency::ConcurrencyGuards;
@@ -47,7 +47,12 @@ pub async fn do_head<R, H>(
   rand: f64,
   record_history: bool,
   cookie_header: Option<&str>,
-  extra_headers: Option<&std::collections::HashMap<String, String>>
+  extra_headers: Option<
+    &std::collections::HashMap<
+      String,
+      String
+    >
+  >
 ) -> Result<(), String>
 where
   R: Repo + ?Sized,
@@ -65,7 +70,11 @@ where
   tracing::debug!(feed_id = %feed.id, url = %feed.url, "HEAD request start");
 
   let res = http
-    .head(&feed.url, cookie_header, extra_headers)
+    .head(
+      &feed.url,
+      cookie_header,
+      extra_headers
+    )
     .await;
 
   metrics::record_http_result(
@@ -158,7 +167,12 @@ pub async fn do_get<R, H>(
   feed: &FeedConfig,
   watch: Option<&WatchConfig>,
   cookie_header: Option<&str>,
-  extra_headers: Option<&std::collections::HashMap<String, String>>,
+  extra_headers: Option<
+    &std::collections::HashMap<
+      String,
+      String
+    >
+  >,
   mut state: LinkState,
   now_ms: i64,
   rand: f64,
@@ -180,7 +194,11 @@ where
   tracing::debug!(feed_id = %feed.id, url = %feed.url, watch = watch.is_some(), "GET request start");
 
   let res = http
-    .get(&feed.url, cookie_header, extra_headers)
+    .get(
+      &feed.url,
+      cookie_header,
+      extra_headers
+    )
     .await;
 
   metrics::record_http_result(
@@ -361,7 +379,6 @@ where
   Ok(())
 }
 
-
 async fn persist_response_cookies<R>(
   cfg: &AppConfig,
   repo: &Arc<R>,
@@ -383,17 +400,19 @@ where
       set_cookie_headers
     );
 
-  let Some(cookie_header) = merged else {
+  let Some(cookie_header) = merged
+  else {
     return Ok(());
   };
 
-  repo.upsert_cookie_header(
-    feed_id,
-    &cookie_header,
-    now_ms,
-    &cfg.timezone
-  )
-  .await
+  repo
+    .upsert_cookie_header(
+      feed_id,
+      &cookie_header,
+      now_ms,
+      &cfg.timezone
+    )
+    .await
 }
 
 fn merge_cookie_header_with_set_cookie(
@@ -419,7 +438,9 @@ fn merge_cookie_header_with_set_cookie(
 
       let key = k.trim();
       let val = v.trim();
-      if key.is_empty() || val.is_empty() {
+      if key.is_empty()
+        || val.is_empty()
+      {
         continue;
       }
 
@@ -446,7 +467,8 @@ fn merge_cookie_header_with_set_cookie(
     let key = k.trim();
     let val = v.trim();
 
-    if key.is_empty() || val.is_empty() {
+    if key.is_empty() || val.is_empty()
+    {
       continue;
     }
 
@@ -462,13 +484,14 @@ fn merge_cookie_header_with_set_cookie(
     Some(
       pairs
         .into_iter()
-        .map(|(k, v)| format!("{}={}", k, v))
+        .map(|(k, v)| {
+          format!("{}={}", k, v)
+        })
         .collect::<Vec<_>>()
         .join("; ")
     )
   }
 }
-
 
 fn extract_watch_items_from_html(
   feed: &FeedConfig,
@@ -510,13 +533,15 @@ fn extract_watch_items_from_html(
 
   let html =
     String::from_utf8_lossy(body);
-  let document = Html::parse_document(&html);
+  let document =
+    Html::parse_document(&html);
 
   let mut seen = HashSet::new();
   let mut items = Vec::new();
 
-  let selected: Vec<_> =
-    document.select(&item_selector).collect();
+  let selected: Vec<_> = document
+    .select(&item_selector)
+    .collect();
 
   let max_items = watch
     .max_items_per_fetch
@@ -531,7 +556,7 @@ fn extract_watch_items_from_html(
       &node,
       link_selector.as_ref(),
       &feed.url,
-      watch.strip_query_params,
+      watch.strip_query_params
     );
 
     if link.is_none() {
@@ -543,7 +568,7 @@ fn extract_watch_items_from_html(
 
     let title = extract_text(
       &node,
-      title_selector.as_ref(),
+      title_selector.as_ref()
     )
     .or_else(|| {
       let own = text_of(&node);
@@ -556,27 +581,28 @@ fn extract_watch_items_from_html(
 
     let summary = extract_text(
       &node,
-      summary_selector.as_ref(),
+      summary_selector.as_ref()
     );
 
     let published_at_ms =
       extract_published_at_ms(
         &node,
         published_selector.as_ref(),
-        watch.published_format
-          .as_deref(),
+        watch
+          .published_format
+          .as_deref()
       )
       .or(Some(now_ms));
 
-    let identity =
-      resolve_identity(
-        &node,
-        watch,
-        link.as_deref(),
-        title.as_deref(),
-      );
+    let identity = resolve_identity(
+      &node,
+      watch,
+      link.as_deref(),
+      title.as_deref()
+    );
 
-    let Some(identity) = identity else {
+    let Some(identity) = identity
+    else {
       continue;
     };
 
@@ -596,7 +622,7 @@ fn extract_watch_items_from_html(
         feed.category.clone()
       ),
       description: summary.clone(),
-      summary,
+      summary
     });
   }
 
@@ -615,7 +641,8 @@ fn extract_text(
 ) -> Option<String> {
   let selector = selector?;
 
-  let element = node.select(selector).next()?;
+  let element =
+    node.select(selector).next()?;
   let text = text_of(&element);
 
   if text.is_empty() {
@@ -628,7 +655,8 @@ fn extract_text(
 fn text_of(
   node: &ElementRef<'_>
 ) -> String {
-  node.text()
+  node
+    .text()
     .map(str::trim)
     .filter(|s| !s.is_empty())
     .collect::<Vec<_>>()
@@ -641,18 +669,18 @@ fn extract_link(
   base_url: &str,
   strip_query_params: bool
 ) -> Option<String> {
-  let mut raw = if let Some(sel) =
-    selector
-  {
-    node.select(sel)
-      .next()
-      .and_then(|n| {
-        n.value().attr("href")
-      })
-      .map(str::to_string)
-  } else {
-    None
-  };
+  let mut raw =
+    if let Some(sel) = selector {
+      node
+        .select(sel)
+        .next()
+        .and_then(|n| {
+          n.value().attr("href")
+        })
+        .map(str::to_string)
+    } else {
+      None
+    };
 
   if raw.is_none() {
     raw = node
@@ -663,11 +691,9 @@ fn extract_link(
 
   let mut href = raw?;
   if href.starts_with('/') {
-    let base = base_url.trim_end_matches('/');
-    href = format!(
-      "{}{}",
-      base, href
-    );
+    let base =
+      base_url.trim_end_matches('/');
+    href = format!("{}{}", base, href);
   }
 
   if strip_query_params {
@@ -687,7 +713,8 @@ fn extract_published_at_ms(
   published_format: Option<&str>
 ) -> Option<i64> {
   let selector = selector?;
-  let elem = node.select(selector).next()?;
+  let elem =
+    node.select(selector).next()?;
 
   let raw = elem
     .value()
@@ -703,14 +730,19 @@ fn extract_published_at_ms(
     })?;
 
   if let Some(fmt) = published_format
-    && let Ok(dt) = chrono::DateTime::parse_from_str(&raw, fmt)
+    && let Ok(dt) =
+      chrono::DateTime::parse_from_str(
+        &raw, fmt
+      )
   {
     return Some(dt.timestamp_millis());
   }
 
-  chrono::DateTime::parse_from_rfc3339(&raw)
-    .map(|dt| dt.timestamp_millis())
-    .ok()
+  chrono::DateTime::parse_from_rfc3339(
+    &raw
+  )
+  .map(|dt| dt.timestamp_millis())
+  .ok()
 }
 
 fn resolve_identity(
@@ -816,7 +848,7 @@ fn build_synthetic_watch_payload(
         ),
         description:   Some(
           "synthetic payload from \
-         ad-hoc watch"
+           ad-hoc watch"
             .to_string()
         ),
         language:      watch
@@ -824,7 +856,7 @@ fn build_synthetic_watch_payload(
           .clone(),
         updated_at_ms: Some(now_ms)
       },
-      items: extracted_items
+      items:    extracted_items
     };
   }
 

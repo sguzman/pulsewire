@@ -1,19 +1,34 @@
 enabled = false
-watch_defaults = { base_poll_seconds = 900, category = "finance", check_method = "get", fallback_to_get = true, detectors = ["content_hash", "element_hash"], fetch_body_on_change = true, max_body_bytes = 1048576, item_identity = "href", normalize_whitespace = true, strip_query_params = true, emit_mode = "new_items_only", cookie_path = "../../../cookies/morningstar.cookies", headers_path = "../../../headers/morningstar.headers", provenance = "morningstar" }
+watch_defaults = { base_poll_seconds = 900, category = "finance", check_method = "get", cookie_path = "../../../cookies/morningstar.cookies", detectors = [
+  "content_hash",
+  "element_hash",
+], emit_mode = "new_items_only", fallback_to_get = true, fetch_body_on_change = true, headers_path = "../../../headers/morningstar.headers", item_identity = "href", max_body_bytes = 1048576, normalize_whitespace = true, provenance = "morningstar", strip_query_params = true }
 
 [[watch_profiles]]
-name = "morningstar-stock-articles"
+exclude_selectors = [
+  "[aria-label='breadcrumb']",
+  "[class*='ad']",
+  "[class*='subscribe']",
+  "footer",
+  "header",
+  "nav",
+]
 item_selector = "main article a[href], main a[href*='/stocks/'], main a[href*='/markets/']"
-title_selector = "h2, h3, [class*='title']"
 link_selector = "a[href]"
+name = "morningstar-stock-articles"
 summary_selector = "p, [class*='summary'], [class*='dek']"
-exclude_selectors = ["nav", "header", "footer", "[aria-label='breadcrumb']", "[class*='subscribe']", "[class*='ad']"]
+title_selector = "h2, h3, [class*='title']"
 
 [[watches]]
-id = "morningstar-stocks"
-url = "https://www.morningstar.com/stocks"
-profile = "morningstar-stock-articles"
-emit_title = "Morningstar Stocks updates"
-tags = ["stocks", "market", "morningstar", "ad-hoc"]
-language = "en"
 content_type = "text/html"
+emit_title = "Morningstar Stocks updates"
+id = "morningstar-stocks"
+language = "en"
+profile = "morningstar-stock-articles"
+tags = [
+  "ad-hoc",
+  "market",
+  "morningstar",
+  "stocks",
+]
+url = "https://www.morningstar.com/stocks"

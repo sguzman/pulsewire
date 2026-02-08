@@ -32,9 +32,9 @@ tracing-subscriber = { features = [
 
 reqwest = { default-features = false, features = [
   "brotli",
+  "cookies",
   "deflate",
   "gzip",
-  "cookies",
   "rustls",
 ], version = "0.13.1" }
 

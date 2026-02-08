@@ -14,13 +14,17 @@ pub trait Http: Send + Sync {
     &self,
     url: &str,
     cookie_header: Option<&str>,
-    extra_headers: Option<&HashMap<String, String>>
+    extra_headers: Option<
+      &HashMap<String, String>
+    >
   ) -> HeadResult;
 
   async fn get(
     &self,
     url: &str,
     cookie_header: Option<&str>,
-    extra_headers: Option<&HashMap<String, String>>
+    extra_headers: Option<
+      &HashMap<String, String>
+    >
   ) -> GetResult;
 }

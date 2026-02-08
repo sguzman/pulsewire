@@ -215,7 +215,6 @@ where
   Ok(())
 }
 
-
 fn merge_cookie_headers(
   static_cookie_header: Option<&str>,
   persisted_cookie_header: Option<&str>
@@ -228,7 +227,7 @@ fn merge_cookie_headers(
 
   for source in [
     static_cookie_header,
-    persisted_cookie_header,
+    persisted_cookie_header
   ] {
     let Some(raw) = source else {
       continue;
@@ -245,7 +244,9 @@ fn merge_cookie_headers(
       let key = k.trim();
       let val = v.trim();
 
-      if key.is_empty() || val.is_empty() {
+      if key.is_empty()
+        || val.is_empty()
+      {
         continue;
       }
 
@@ -262,7 +263,9 @@ fn merge_cookie_headers(
     Some(
       pairs
         .into_iter()
-        .map(|(k, v)| format!("{}={}", k, v))
+        .map(|(k, v)| {
+          format!("{}={}", k, v)
+        })
         .collect::<Vec<_>>()
         .join("; ")
     )
@@ -286,7 +289,10 @@ async fn process_feed<R, H, C, G>(
     HashMap<String, String>
   >,
   extra_headers_by_id: Arc<
-    HashMap<String, HashMap<String, String>>
+    HashMap<
+      String,
+      HashMap<String, String>
+    >
   >,
   feed: FeedConfig
 ) -> Result<(), String>
@@ -335,9 +341,9 @@ where
     .get(&feed.id)
     .cloned();
 
-  let persisted_cookie_header =
-    repo.latest_cookie_header(&feed.id)
-      .await?;
+  let persisted_cookie_header = repo
+    .latest_cookie_header(&feed.id)
+    .await?;
 
   let static_cookie_header =
     cookie_header_by_id
@@ -355,8 +361,7 @@ where
     merged_cookie_header.as_deref();
 
   let extra_headers =
-    extra_headers_by_id
-      .get(&feed.id);
+    extra_headers_by_id.get(&feed.id);
 
   let log_feed_timing = cfg
     .log_feed_timing_enabled

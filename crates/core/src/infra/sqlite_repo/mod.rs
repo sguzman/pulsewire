@@ -204,7 +204,8 @@ impl Repo for SqliteRepo {
   async fn latest_cookie_header(
     &self,
     feed_id: &str
-  ) -> Result<Option<String>, String> {
+  ) -> Result<Option<String>, String>
+  {
     cookies::latest_cookie_header(
       &self.pool, feed_id
     )

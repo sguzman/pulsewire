@@ -635,9 +635,9 @@ async fn load_headers_by_id(
   let base_dir = config_path
     .parent()
     .ok_or_else(|| {
-      "config path has no parent"
-        .to_string()
-    })?;
+    "config path has no parent"
+      .to_string()
+  })?;
 
   for feed in feeds {
     let mut merged = feed
@@ -659,19 +659,20 @@ async fn load_headers_by_id(
         }
       };
 
-      let raw = tokio::fs::read_to_string(
-        &path
-      )
-      .await
-      .map_err(|e| {
-        format!(
-          "failed to read headers \
-           file for source '{}': {} \
-           ({e})",
-          feed.id,
-          path.display()
+      let raw =
+        tokio::fs::read_to_string(
+          &path
         )
-      })?;
+        .await
+        .map_err(|e| {
+          format!(
+            "failed to read headers \
+             file for source '{}': {} \
+             ({e})",
+            feed.id,
+            path.display()
+          )
+        })?;
 
       for (k, v) in
         parse_headers_file(&raw)
@@ -683,7 +684,10 @@ async fn load_headers_by_id(
     if let Some(cleaned) =
       normalize_headers_map(merged)
     {
-      map.insert(feed.id.clone(), cleaned);
+      map.insert(
+        feed.id.clone(),
+        cleaned
+      );
     }
   }
 
@@ -717,7 +721,8 @@ fn parse_headers_file(
     let key = name.trim();
     let val = value.trim();
 
-    if key.is_empty() || val.is_empty() {
+    if key.is_empty() || val.is_empty()
+    {
       continue;
     }
 
@@ -751,9 +756,8 @@ fn normalize_headers_map(
     if key.is_empty()
       || val.is_empty()
       || key.starts_with(':')
-      || key.eq_ignore_ascii_case(
-        "cookie"
-      )
+      || key
+        .eq_ignore_ascii_case("cookie")
     {
       continue;
     }

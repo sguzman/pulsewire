@@ -87,10 +87,7 @@
         },
         "check_method": {
           "type": "string",
-          "enum": [
-            "head",
-            "get"
-          ]
+          "enum": ["head", "get"]
         },
         "fallback_to_get": {
           "type": "boolean"
@@ -189,9 +186,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "properties": {
           "name": {
             "type": "string"
@@ -235,10 +230,7 @@
           },
           "check_method": {
             "type": "string",
-            "enum": [
-              "head",
-              "get"
-            ]
+            "enum": ["head", "get"]
           },
           "fallback_to_get": {
             "type": "boolean"
@@ -261,13 +253,13 @@
             "type": "boolean"
           },
           "max_body_bytes": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "max_items_per_fetch": {
-          "type": "integer",
-          "minimum": 1
-        },
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_items_per_fetch": {
+            "type": "integer",
+            "minimum": 1
+          },
           "item_selector": {
             "type": "string"
           },
@@ -338,10 +330,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "url"
-        ],
+        "required": ["id", "url"],
         "properties": {
           "id": {
             "type": "string"
@@ -394,10 +383,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "url"
-        ],
+        "required": ["id", "url"],
         "properties": {
           "id": {
             "type": "string"
@@ -447,10 +433,7 @@
           },
           "check_method": {
             "type": "string",
-            "enum": [
-              "head",
-              "get"
-            ]
+            "enum": ["head", "get"]
           },
           "fallback_to_get": {
             "type": "boolean"
@@ -473,13 +456,13 @@
             "type": "boolean"
           },
           "max_body_bytes": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "max_items_per_fetch": {
-          "type": "integer",
-          "minimum": 1
-        },
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_items_per_fetch": {
+            "type": "integer",
+            "minimum": 1
+          },
           "item_selector": {
             "type": "string"
           },
@@ -548,14 +531,10 @@
   },
   "anyOf": [
     {
-      "required": [
-        "feeds"
-      ]
+      "required": ["feeds"]
     },
     {
-      "required": [
-        "watches"
-      ]
+      "required": ["watches"]
     }
   ]
 }

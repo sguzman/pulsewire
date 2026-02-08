@@ -73,7 +73,10 @@ pub(crate) async fn load_all_feeds(
     let parsed: RawFeedsFile =
       toml::from_str(&content)?;
 
-    if matches!(parsed.enabled, Some(false)) {
+    if matches!(
+      parsed.enabled,
+      Some(false)
+    ) {
       continue;
     }
 
@@ -326,7 +329,12 @@ struct FeedDefaults {
   content_type:      Option<String>,
   cookie_path:       Option<String>,
   headers_path:      Option<String>,
-  headers:           Option<std::collections::HashMap<String, String>>
+  headers: Option<
+    std::collections::HashMap<
+      String,
+      String
+    >
+  >
 }
 
 impl FeedDefaults {
@@ -382,9 +390,7 @@ impl FeedDefaults {
       headers_path: file
         .headers_path
         .clone(),
-      headers: file
-        .headers
-        .clone()
+      headers: file.headers.clone()
     })
   }
 
@@ -425,9 +431,7 @@ impl FeedDefaults {
       headers_path: file
         .headers_path
         .clone(),
-      headers: file
-        .headers
-        .clone()
+      headers: file.headers.clone()
     })
   }
 
@@ -481,13 +485,13 @@ impl FeedDefaults {
         .or_else(|| {
           global.cookie_path.clone()
         }),
-      headers_path:       file
+      headers_path:      file
         .headers_path
         .clone()
         .or_else(|| {
           global.headers_path.clone()
         }),
-      headers:            file
+      headers:           file
         .headers
         .clone()
         .or_else(|| {
@@ -508,7 +512,12 @@ struct WatchDefaults {
   content_type:          Option<String>,
   cookie_path:           Option<String>,
   headers_path:          Option<String>,
-  headers:               Option<std::collections::HashMap<String, String>>, 
+  headers: Option<
+    std::collections::HashMap<
+      String,
+      String
+    >
+  >,
   check_method:          Option<String>,
   fallback_to_get:       Option<bool>,
   detectors: Option<Vec<String>>,
@@ -613,9 +622,7 @@ impl WatchDefaults {
       headers_path: raw
         .headers_path
         .clone(),
-      headers: raw
-        .headers
-        .clone(),
+      headers: raw.headers.clone(),
       check_method: raw
         .check_method
         .clone(),
@@ -933,7 +940,8 @@ fn apply_feed_defaults(
   }
 
   if feed.headers.is_none() {
-    feed.headers = defaults.headers.clone();
+    feed.headers =
+      defaults.headers.clone();
   }
 
   let prefix = match feed
@@ -1038,7 +1046,8 @@ fn apply_watch_defaults(
   }
 
   if watch.headers.is_none() {
-    watch.headers = base.headers.clone();
+    watch.headers =
+      base.headers.clone();
   }
 
   if watch.check_method.is_none() {
@@ -1069,7 +1078,8 @@ fn apply_watch_defaults(
       base.max_body_bytes;
   }
 
-  if watch.max_items_per_fetch.is_none() {
+  if watch.max_items_per_fetch.is_none()
+  {
     watch.max_items_per_fetch =
       base.max_items_per_fetch;
   }

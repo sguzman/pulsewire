@@ -1,15 +1,15 @@
 base_poll_seconds = 1800
-id_prefix         = "oup"
-category          = "books"
-provenance        = "oxford-university-press"
+category = "books"
+content_type = "application/rss+xml"
+id_prefix = "oup"
+language = "en"
+provenance = "oxford-university-press"
 tags = [
   "books",
   "classics",
   "publishing",
   "rss",
 ]
-language     = "en"
-content_type = "application/rss+xml"
 
 [[feeds]]
 id  = "oxford-worlds-classics"

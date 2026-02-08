@@ -112,7 +112,9 @@ impl ReqwestHttp {
 
   fn apply_extra_headers(
     mut req: reqwest::RequestBuilder,
-    extra_headers: Option<&HashMap<String, String>>
+    extra_headers: Option<
+      &HashMap<String, String>
+    >
   ) -> reqwest::RequestBuilder {
     let Some(extra_headers) =
       extra_headers
@@ -125,7 +127,9 @@ impl ReqwestHttp {
 
       if key.is_empty()
         || key.starts_with(':')
-        || key.eq_ignore_ascii_case("cookie")
+        || key.eq_ignore_ascii_case(
+          "cookie"
+        )
       {
         continue;
       }
@@ -148,7 +152,9 @@ impl Http for ReqwestHttp {
     &self,
     url: &str,
     cookie_header: Option<&str>,
-    extra_headers: Option<&HashMap<String, String>>
+    extra_headers: Option<
+      &HashMap<String, String>
+    >
   ) -> HeadResult {
     let start =
       tokio::time::Instant::now();
@@ -222,7 +228,8 @@ impl Http for ReqwestHttp {
             Self::classify_error(&e)
           ),
           latency_ms,
-          set_cookie_headers: Vec::new()
+          set_cookie_headers: Vec::new(
+          )
         }
       }
     }
@@ -232,7 +239,9 @@ impl Http for ReqwestHttp {
     &self,
     url: &str,
     cookie_header: Option<&str>,
-    extra_headers: Option<&HashMap<String, String>>
+    extra_headers: Option<
+      &HashMap<String, String>
+    >
   ) -> GetResult {
     let start =
       tokio::time::Instant::now();
@@ -320,7 +329,8 @@ impl Http for ReqwestHttp {
             Self::classify_error(&e)
           ),
           latency_ms,
-          set_cookie_headers: Vec::new()
+          set_cookie_headers: Vec::new(
+          )
         }
       }
     }

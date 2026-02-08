@@ -726,19 +726,35 @@ fn parse_watch(
 }
 
 fn normalize_headers(
-  raw: Option<std::collections::HashMap<String, String>>
-) -> Option<std::collections::HashMap<String, String>> {
-  let mut out = std::collections::HashMap::new();
+  raw: Option<
+    std::collections::HashMap<
+      String,
+      String
+    >
+  >
+) -> Option<
+  std::collections::HashMap<
+    String,
+    String
+  >
+> {
+  let mut out =
+    std::collections::HashMap::new();
 
-  for (k, v) in raw.unwrap_or_default() {
+  for (k, v) in raw.unwrap_or_default()
+  {
     let key = k.trim();
     let val = v.trim();
 
-    if key.is_empty() || val.is_empty() {
+    if key.is_empty() || val.is_empty()
+    {
       continue;
     }
 
-    out.insert(key.to_string(), val.to_string());
+    out.insert(
+      key.to_string(),
+      val.to_string()
+    );
   }
 
   if out.is_empty() {
