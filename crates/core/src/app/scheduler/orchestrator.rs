@@ -1,10 +1,5 @@
 use std::time::Instant;
 
-use futures::stream::{
-  FuturesUnordered,
-  StreamExt
-};
-
 use super::concurrency::ConcurrencyGuards;
 use super::processing::run_tick;
 use crate::app::context::AppContext;
@@ -39,37 +34,34 @@ impl Scheduler {
       );
     }
 
-    let mut handles =
-      FuturesUnordered::new();
+    let tick_interval =
+      std::time::Duration::from_secs(5);
 
-    for category in categories {
-      let ctx = ctx.clone();
+    let cfg = ctx.cfg.clone();
 
-      let name = category.clone();
+    let concurrency =
+      ConcurrencyGuards::new(cfg);
 
-      handles.push(tokio::spawn(async move {
-                Scheduler::run_forever_category(ctx, name).await
-            }));
-    }
+    let mut interval =
+      tokio::time::interval(
+        tick_interval
+      );
 
-    while let Some(handle) =
-      handles.next().await
-    {
-      match handle {
-        | Ok(Ok(())) => {}
-        | Ok(Err(e)) => {
-          return Err(e);
-        }
-        | Err(e) => {
-          return Err(format!(
-            "category task join \
-             error: {e}"
-          ));
-        }
+    loop {
+      interval.tick().await;
+
+      for category in &categories {
+        let tick_started = Instant::now();
+
+        run_tick(
+          &ctx,
+          &concurrency,
+          tick_started,
+          category,
+        )
+        .await?;
       }
     }
-
-    Ok(())
   }
 
   pub async fn run_forever_category<
@@ -111,7 +103,7 @@ impl Scheduler {
         &ctx,
         &concurrency,
         tick_started,
-        &category
+        &category,
       )
       .await?;
     }

@@ -17,8 +17,8 @@ schema   = "fetcher"
 user     = "admin"
 
 [polling]
-default_seconds = 900
-jitter_fraction = 0.35
+default_seconds = 1800
+jitter_fraction = 0.5
 max_seconds     = 21600
 
 [backoff]
@@ -31,11 +31,11 @@ max_consecutive_errors = 4
 max_error_seconds = 43200
 
 [requests]
-global_max_concurrent_requests = 4
+global_max_concurrent_requests = 2
 user_agent                     = "RssFetcher/1.0 (+https://example.org)"
 
 [state_history]
-sample_rate = 0.1
+sample_rate = 0.02
 
 [logging]
 feed_timing_domains = [  ]
@@ -48,7 +48,7 @@ file_level          = "info"
 file_name           = "pulsewire"
 file_rotation       = "hourly"
 level               = "info"
-tick_warn_seconds   = 600
+tick_warn_seconds   = 1200
 
 [metrics]
 bind    = "0.0.0.0:9898"

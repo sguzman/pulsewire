@@ -8,6 +8,10 @@ services:
     image: guzmansalv/pulsewire-server:latest
     container_name: guzmansalv-pulsewire-server
     restart: unless-stopped
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: "0.25"
+    pids_limit: 128
     environment:
       SERVER_CONFIG_PATH: /app/res/docker.toml
     volumes:

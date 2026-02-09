@@ -7,7 +7,11 @@ services:
         TARGET: x86_64-unknown-linux-musl
     image: guzmansalv/pulsewire-fetcher:latest
     container_name: guzmansalv-pulsewire-fetcher
-    restart: unless-stopped
+    restart: on-failure:5
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: "0.75"
+    pids_limit: 256
     environment:
       CONFIG_PATH: /app/res/docker.toml
       FEEDS_DIR: /app/res/feeds
