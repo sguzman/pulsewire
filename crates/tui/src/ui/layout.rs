@@ -93,14 +93,10 @@ pub(crate) fn draw_login(
   )
   .style(password_style);
 
-  frame.render_widget(
-    username,
-    chunks[0]
-  );
-  frame.render_widget(
-    password,
-    chunks[1]
-  );
+  frame
+    .render_widget(username, chunks[0]);
+  frame
+    .render_widget(password, chunks[1]);
 
   let help = Paragraph::new(
     "Tab switches field. Enter logs \
@@ -118,7 +114,7 @@ pub(crate) fn draw_login(
     frame,
     chunks[3],
     app.status.as_str(),
-    banner,
+    banner
   );
 }
 
@@ -310,7 +306,7 @@ pub(crate) fn draw_main(
     frame,
     chunks[2],
     app.status.as_str(),
-    banner,
+    banner
   );
 
   if let Some(modal) = &app.modal {
@@ -348,44 +344,54 @@ fn draw_status_with_notice(
   frame: &mut Frame,
   area: ratatui::layout::Rect,
   status_text: &str,
-  notice: Option<(String, Style)>,
+  notice: Option<(String, Style)>
 ) {
   if let Some((text, style)) = notice {
     let split = Layout::default()
       .direction(Direction::Horizontal)
       .constraints([
         Constraint::Percentage(70),
-        Constraint::Percentage(30),
+        Constraint::Percentage(30)
       ])
       .split(area);
 
-    let status = Paragraph::new(status_text)
-      .block(
-        Block::default()
-          .borders(Borders::ALL)
-          .title("Status"),
-      )
-      .wrap(Wrap { trim: true });
+    let status =
+      Paragraph::new(status_text)
+        .block(
+          Block::default()
+            .borders(Borders::ALL)
+            .title("Status")
+        )
+        .wrap(Wrap {
+          trim: true
+        });
 
     let banner = Paragraph::new(text)
       .block(
         Block::default()
           .borders(Borders::ALL)
-          .title("Notice"),
+          .title("Notice")
       )
       .style(style)
-      .wrap(Wrap { trim: true });
+      .wrap(Wrap {
+        trim: true
+      });
 
-    frame.render_widget(status, split[0]);
-    frame.render_widget(banner, split[1]);
+    frame
+      .render_widget(status, split[0]);
+    frame
+      .render_widget(banner, split[1]);
   } else {
-    let status = Paragraph::new(status_text)
-      .block(
-        Block::default()
-          .borders(Borders::ALL)
-          .title("Status"),
-      )
-      .wrap(Wrap { trim: true });
+    let status =
+      Paragraph::new(status_text)
+        .block(
+          Block::default()
+            .borders(Borders::ALL)
+            .title("Status")
+        )
+        .wrap(Wrap {
+          trim: true
+        });
 
     frame.render_widget(status, area);
   }

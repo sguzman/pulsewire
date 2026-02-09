@@ -28,7 +28,7 @@ immediate_error_statuses = [
   429,
 ]
 max_consecutive_errors = 4
-max_error_seconds      = 43200
+max_error_seconds = 43200
 
 [requests]
 global_max_concurrent_requests = 4
@@ -38,7 +38,7 @@ user_agent                     = "RssFetcher/1.0 (+https://example.org)"
 sample_rate = 0.1
 
 [logging]
-feed_timing_domains = []
+feed_timing_domains = [  ]
 feed_timing_enabled = false
 feed_timing_log_all = false
 feed_timing_warn_ms = 30000

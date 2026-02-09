@@ -44,10 +44,10 @@ name = "tech"
 domains = [
   "cointelegraph.com",
   "feeds.bloomberg.com",
+  "gothamcityresearch.com",
   "ir.thomsonreuters.com",
   "seekingalpha.com",
   "www.coindesk.com",
-  "gothamcityresearch.com",
   "www.gothamcityresearch.com",
 ]
 name = "finance"
