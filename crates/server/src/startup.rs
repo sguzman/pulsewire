@@ -24,10 +24,12 @@ pub async fn run()
           .to_string()
       });
 
-  unsafe { std::env::set_var(
-    "SCHEMAS_DIR",
-    schema_dir("server")
-  ); }
+  unsafe {
+    std::env::set_var(
+      "SCHEMAS_DIR",
+      schema_dir("server")
+    );
+  }
 
   let config = ServerConfig::load(
     Path::new(&config_path)

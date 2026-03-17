@@ -11,7 +11,5 @@ pub const SCHEMAS_ROOT: &str =
 pub fn schema_dir(
   service: &str
 ) -> String {
-  format!(
-    "{SCHEMAS_ROOT}/schemas/{service}"
-  )
+  format!("{SCHEMAS_ROOT}/{service}")
 }

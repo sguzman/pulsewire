@@ -51,10 +51,12 @@ fn main() -> Result<()> {
   let config_path =
     resolve_config_path();
 
-  unsafe { std::env::set_var(
-    "SCHEMAS_DIR",
-    schema_dir("tui")
-  ); }
+  unsafe {
+    std::env::set_var(
+      "SCHEMAS_DIR",
+      schema_dir("tui")
+    );
+  }
 
   let config =
     TuiConfig::load(&config_path)
