@@ -367,19 +367,28 @@ fn parse_args() -> Args {
   let mut mode = RunMode::Scheduler;
 
   while let Some(arg) = args.next() {
-    if arg == "--ingest-benchmark" {
-      if let Some(n) = args.next() {
-        let feeds_to_insert = n
-          .parse::<usize>()
-          .unwrap_or(0);
-
-        mode =
-          RunMode::IngestBenchmark {
-            feeds_to_insert
-          };
+    match arg.as_str() {
+      | "-h" | "--help" => {
+        print_help_and_exit()
       }
-    } else {
-      config_path = Some(arg);
+      | "--version" => {
+        print_version_and_exit()
+      }
+      | "--ingest-benchmark" => {
+        if let Some(n) = args.next() {
+          let feeds_to_insert = n
+            .parse::<usize>()
+            .unwrap_or(0);
+
+          mode =
+            RunMode::IngestBenchmark {
+              feeds_to_insert
+            };
+        }
+      }
+      | _ => {
+        config_path = Some(arg);
+      }
     }
   }
 
@@ -387,6 +396,48 @@ fn parse_args() -> Args {
     config_path,
     mode
   }
+}
+
+fn print_help_and_exit() -> ! {
+  println!(
+    "Usage: pulsewire \
+     [--ingest-benchmark <count>] \
+     [config_path]"
+  );
+  println!("Options:");
+  println!(
+    "  --ingest-benchmark <count>  \
+     ingest that many feeds for \
+     benchmarking"
+  );
+  println!(
+    "  config_path                 \
+     explicit path to config.toml"
+  );
+  println!(
+    "  -h, --help                  \
+     display this help text"
+  );
+  println!(
+    "  --version                   \
+     print the CLI version"
+  );
+  println!();
+  println!(
+    "Config path lookup order: CLI \
+     flag, CONFIG_PATH, repo defaults."
+  );
+
+  std::process::exit(0);
+}
+
+fn print_version_and_exit() -> ! {
+  println!(
+    "pulsewire {}",
+    env!("CARGO_PKG_VERSION")
+  );
+
+  std::process::exit(0);
 }
 
 async fn ingest_feeds<R, I>(
