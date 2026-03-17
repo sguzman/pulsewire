@@ -2,7 +2,11 @@ use std::collections::{
   HashMap,
   HashSet
 };
-use std::path::Path;
+use std::env;
+use std::path::{
+  Path,
+  PathBuf
+};
 
 use chrono_tz::Tz;
 use tokio::fs;
@@ -95,7 +99,11 @@ impl ConfigLoader {
     };
 
     let schema_dir =
-      base_dir.join("schemas");
+      env::var("SCHEMAS_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+          base_dir.join("schemas")
+        });
 
     let config_schema = load_schema(
       &schema_dir,

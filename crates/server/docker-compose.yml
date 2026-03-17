@@ -14,8 +14,10 @@ services:
     pids_limit: 128
     environment:
       SERVER_CONFIG_PATH: /app/res/docker.toml
+      SCHEMAS_DIR: /app/schemas/server
     volumes:
       - ./res:/app/res:ro
+      - ../../schemas:/app/schemas:ro
     dns:
       - 172.31.0.53
     ports:

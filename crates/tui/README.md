@@ -44,7 +44,7 @@ Controls (defaults, configurable in `config.toml`):
 
 ## Config
 Default config: `crates/tui/res/config.toml`. Schema:
-`crates/tui/res/schemas/tui.schema.json`.
+`crates/schemas/tui/tui.schema.json`.
 
 Sections:
 

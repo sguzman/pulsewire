@@ -5,6 +5,7 @@ name    = "pulsewire-tui"
 version = { workspace = true }
 
 [dependencies]
+pulsewire-schemas = { path = "../schemas" }
 anyhow = "1.0"
 crossterm = "0.28"
 jsonschema = "0.38"

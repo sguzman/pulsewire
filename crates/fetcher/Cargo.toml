@@ -9,6 +9,7 @@ name = "pulsewire"
 path = "src/main.rs"
 
 [dependencies]
+pulsewire-schemas = { path = "../schemas" }
 pulsewire-core = { path = "../core" }
 tokio = { features = [
   "macros",

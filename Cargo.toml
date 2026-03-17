@@ -4,6 +4,7 @@ members = [
   "crates/core",
   "crates/fetcher",
   "crates/server",
+  "crates/schemas",
   "crates/tui",
 ]
 resolver = "2"

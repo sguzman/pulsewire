@@ -54,13 +54,13 @@ This gives RSS-like behavior without RSS.
 ## Config/Schema Plan
 
 ### A. New schema files
-- `crates/fetcher/res/schemas/watch.schema.json` (single watch object)
-- `crates/fetcher/res/schemas/watch-global.schema.json` (watch defaults)
-- Extend `crates/fetcher/res/schemas/feeds.schema.json`:
+- `crates/schemas/fetcher/watch.schema.json` (single watch object)
+- `crates/schemas/fetcher/watch-global.schema.json` (watch defaults)
+- Extend `crates/schemas/fetcher/feeds.schema.json`:
   - `required` becomes `anyOf: [feeds, watches]`
   - add `watch_defaults`
   - add `watches: [watch.schema]`
-- Extend `crates/fetcher/res/schemas/global.schema.json` to include watch default keys.
+- Extend `crates/schemas/fetcher/global.schema.json` to include watch default keys.
 
 ### B. TOML layout example
 - `crates/fetcher/res/feeds/news/site.toml`

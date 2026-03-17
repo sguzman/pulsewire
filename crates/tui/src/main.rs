@@ -29,6 +29,7 @@ use crossterm::terminal::{
   disable_raw_mode,
   enable_raw_mode
 };
+use pulsewire_schemas::schema_dir;
 use ratatui::Terminal;
 use ratatui::backend::CrosstermBackend;
 
@@ -49,6 +50,12 @@ use crate::ui::{
 fn main() -> Result<()> {
   let config_path =
     resolve_config_path();
+
+  unsafe { std::env::set_var(
+    "SCHEMAS_DIR",
+    schema_dir("tui")
+  ); }
+
   let config =
     TuiConfig::load(&config_path)
       .with_context(|| {

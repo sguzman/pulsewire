@@ -58,12 +58,12 @@ impl Scheduler {
       );
 
     // If a tick is delayed due to retry
-    // backoff, skip missed ticks instead
-    // of replaying all of them.
-    interval
-      .set_missed_tick_behavior(
-        MissedTickBehavior::Skip,
-      );
+    // backoff, skip missed ticks
+    // instead of replaying all of
+    // them.
+    interval.set_missed_tick_behavior(
+      MissedTickBehavior::Skip
+    );
 
     let mut consecutive_errors: u32 = 0;
 
@@ -73,13 +73,14 @@ impl Scheduler {
       let mut tick_failed = false;
 
       for category in &categories {
-        let tick_started = Instant::now();
+        let tick_started =
+          Instant::now();
 
         match run_tick(
           &ctx,
           &concurrency,
           tick_started,
-          category,
+          category
         )
         .await
         {
@@ -91,10 +92,9 @@ impl Scheduler {
               consecutive_errors
                 .saturating_add(1);
 
-            let backoff =
-              retry_backoff(
-                consecutive_errors,
-              );
+            let backoff = retry_backoff(
+              consecutive_errors
+            );
 
             warn!(
                 category = category,
@@ -146,10 +146,9 @@ impl Scheduler {
         )
       );
 
-    interval
-      .set_missed_tick_behavior(
-        MissedTickBehavior::Skip,
-      );
+    interval.set_missed_tick_behavior(
+      MissedTickBehavior::Skip
+    );
 
     let mut consecutive_errors: u32 = 0;
 
@@ -162,7 +161,7 @@ impl Scheduler {
         &ctx,
         &concurrency,
         tick_started,
-        &category,
+        &category
       )
       .await
       {
@@ -175,7 +174,7 @@ impl Scheduler {
               .saturating_add(1);
 
           let backoff = retry_backoff(
-            consecutive_errors,
+            consecutive_errors
           );
 
           warn!(
@@ -197,15 +196,12 @@ impl Scheduler {
 fn retry_backoff(
   consecutive_errors: u32
 ) -> Duration {
-  let exp =
-    consecutive_errors.min(
-      RETRY_EXP_CAP,
-    );
+  let exp = consecutive_errors
+    .min(RETRY_EXP_CAP);
 
-  let mult =
-    1u64
-      .checked_shl(exp)
-      .unwrap_or(u64::MAX);
+  let mult = 1u64
+    .checked_shl(exp)
+    .unwrap_or(u64::MAX);
 
   let secs = RETRY_BASE_SECS
     .saturating_mul(mult)

@@ -15,11 +15,12 @@ services:
     environment:
       CONFIG_PATH: /app/res/docker.toml
       FEEDS_DIR: /app/res/feeds
+      SCHEMAS_DIR: /app/schemas/fetcher
     volumes:
       - ./res/docker.toml:/app/res/docker.toml:ro
       - ./res/domains.toml:/app/res/domains.toml:ro
       - ./res/categories.toml:/app/res/categories.toml:ro
-      - ./res/schemas:/app/res/schemas:ro
+      - ../../schemas:/app/schemas:ro
       - ./res/feeds:/app/res/feeds:ro
       - ../../cookies:/app/cookies:ro
       - ../../headers:/app/headers:ro

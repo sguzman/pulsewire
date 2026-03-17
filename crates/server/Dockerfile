@@ -26,7 +26,9 @@ WORKDIR /app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /app/target/${TARGET}/release/pulsewire-server /usr/local/bin/pulsewire-server
 COPY crates/server/res /app/res
+COPY crates/schemas/server /app/schemas/server
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 ENV SERVER_CONFIG_PATH=/app/res/docker.toml
+ENV SCHEMAS_DIR=/app/schemas/server
 USER 65532:65532
 ENTRYPOINT ["pulsewire-server"]

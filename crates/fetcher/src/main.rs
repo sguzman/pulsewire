@@ -27,6 +27,7 @@ use pulsewire_core::infra::{
   metrics,
 };
 use pulsewire_core::ports::repo::Repo;
+use pulsewire_schemas::schema_dir;
 use tracing::{
   error,
   info,
@@ -55,6 +56,11 @@ async fn main() -> Result<(), BootError>
 
   let cfg_path =
     pick_config_path(args.config_path);
+
+  unsafe { std::env::set_var(
+    "SCHEMAS_DIR",
+    schema_dir("fetcher")
+  ); }
 
   let LoadedConfig {
     app: app_cfg,

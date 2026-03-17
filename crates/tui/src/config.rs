@@ -1,3 +1,4 @@
+use std::env;
 use std::path::{
   Path,
   PathBuf
@@ -167,8 +168,14 @@ impl TuiConfig {
         )
       })?;
 
-    let schema_path = base_dir
-      .join("schemas")
+    let schema_dir =
+      env::var("SCHEMAS_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+          base_dir.join("schemas")
+        });
+
+    let schema_path = schema_dir
       .join("tui.schema.json");
 
     let schema =

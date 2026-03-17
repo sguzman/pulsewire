@@ -5,6 +5,7 @@ name    = "pulsewire-server"
 version = { workspace = true }
 
 [dependencies]
+pulsewire-schemas = { path = "../schemas" }
 argon2 = "0.5.3"
 axum = "0.7.5"
 chrono = { features = [

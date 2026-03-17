@@ -23,4 +23,4 @@ set 2) `crates/fetcher/res/config.toml`
 ## Notes
 
 - `clean` is destructive and requires `--confirm`.
-- Validation uses the JSON schemas under `crates/fetcher/res/schemas/`.
+- Validation uses the JSON schemas under `crates/schemas/fetcher/`.

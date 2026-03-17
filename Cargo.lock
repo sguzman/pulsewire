@@ -2267,9 +2267,14 @@ name = "pulsewire-fetcher"
 version = "0.1.25"
 dependencies = [
  "pulsewire-core",
+ "pulsewire-schemas",
  "tokio",
  "tracing",
 ]
+
+[[package]]
+name = "pulsewire-schemas"
+version = "0.1.0"
 
 [[package]]
 name = "pulsewire-server"
@@ -2280,6 +2285,7 @@ dependencies = [
  "chrono",
  "hex",
  "jsonschema",
+ "pulsewire-schemas",
  "serde",
  "serde_json",
  "sha2",
@@ -2298,6 +2304,7 @@ dependencies = [
  "anyhow",
  "crossterm",
  "jsonschema",
+ "pulsewire-schemas",
  "ratatui",
  "reqwest 0.12.26",
  "serde",
