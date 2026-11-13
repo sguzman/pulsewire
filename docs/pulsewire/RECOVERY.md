@@ -83,6 +83,20 @@ Set the variables in a trusted private shell and invoke
 a real password into a public terminal log, shell history, Git commit, or CI
 configuration. This is **operator-managed recovery**, not a self-service reset.
 
+### Verified operator-recovery drill (2026-11-13)
+
+The recovery mode is verified against both SQLite (unit test) and isolated
+PostgreSQL (regression and container runtime). [Rust CI 43525939594](https://github.com/sguzman/pulsewire/actions/runs/43525939594)
+and [container CI 43525939629](https://github.com/sguzman/pulsewire/actions/runs/43525939629)
+both passed. The container test proved that an invalid confirmation leaves the
+database password hash unchanged, and that successful recovery revokes earlier
+sessions and reset tokens while preserving the administrator role.
+
+The command validates the confirmation and required credentials **before
+opening the database**. A correct confirmation still presumes trusted operator
+access to the database connection; it is not an authorization substitute and
+must not be exposed through a web endpoint or untrusted job runner.
+
 ## Gates before production use
 
 - Confirm the host's real storage topology, schema names, and backup permissions.
