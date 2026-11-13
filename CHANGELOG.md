@@ -1,6 +1,11 @@
 # Changelog
 ## [Unreleased]
 
+### 🔐 Security
+- Add persistent per-account login throttling shared across SQLite/PostgreSQL processes, including HTTP 429 responses and restart/concurrency regression coverage.
+- Reject password changes that would weaken the existing minimum 12-byte password policy.
+- Retain disabled public password-reset routes while transactional login/rotation versus recovery remains a tracked P0 release blocker.
+
 ### ⚙️ Miscellaneous
 - Tech words ([74a4d7a](https://github.com/sguzman/pulsewire/commit/74a4d7a8bc0989fe29eb01c149d9f18acd1b409d))
 - Format to alpha ([3d70722](https://github.com/sguzman/pulsewire/commit/3d707226423a06a57ecbabbe9bda51522ecdd7f2))## [0.1.24] - 2026-01-14
