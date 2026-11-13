@@ -1350,43 +1350,145 @@ mod postgres_runtime_tests {
     .expect("new password works");
     assert!(!fresh.token.is_empty());
 
-    // Offline operator recovery must also work with PostgreSQL. Verify
-    // that both types of tokens are revoked without changing the admin role.
-    let mut current_headers = HeaderMap::new();
+    // Offline operator recovery must
+    // also work with PostgreSQL. Verify
+    // that both types of tokens are
+    // revoked without changing the
+    // admin role.
+    let mut current_headers =
+      HeaderMap::new();
     current_headers.insert(
       "authorization",
-      format!("Bearer {}", fresh.token).parse().expect("fresh bearer")
+      format!("Bearer {}", fresh.token)
+        .parse()
+        .expect("fresh bearer")
     );
-    let pgpool = state.postgres.as_ref().expect("postgres pool");
-    let id: i64 = sqlx::query_scalar("SELECT id FROM users WHERE username = $1")
-      .bind("existing_user").fetch_one(pgpool).await.expect("user id");
+    let pgpool = state
+      .postgres
+      .as_ref()
+      .expect("postgres pool");
+    let id: i64 = sqlx::query_scalar(
+      "SELECT id FROM users WHERE \
+       username = $1"
+    )
+    .bind("existing_user")
+    .fetch_one(pgpool)
+    .await
+    .expect("user id");
     sqlx::query(
-      "INSERT INTO user_password_resets (user_id, token_hash, expires_at, created_at) VALUES ($1, $2, NOW() + INTERVAL '1 hour', NOW())"
-    ).bind(id).bind("obsolete-reset").execute(pgpool).await.expect("legacy reset fixture");
-    assert!(recover_user_password(&state, "missing", "long-replacement-passphrase").await.is_err());
-    assert!(recover_user_password(&state, "existing_user", "short").await.is_err());
-    assert!(crate::auth::auth_user_id(&state, &current_headers).await.is_ok());
-    recover_user_password(&state, "existing_user", "recovered-long-passphrase")
-      .await.expect("PostgreSQL operator recovery");
-    assert!(crate::auth::auth_user_id(&state, &current_headers).await.is_err());
-    let remaining_sessions: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM user_tokens WHERE user_id = $1"
-    ).bind(id).fetch_one(pgpool).await.expect("sessions");
-    let remaining_resets: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM user_password_resets WHERE user_id = $1"
-    ).bind(id).fetch_one(pgpool).await.expect("reset tokens");
+      "INSERT INTO \
+       user_password_resets (user_id, \
+       token_hash, expires_at, \
+       created_at) VALUES ($1, $2, \
+       NOW() + INTERVAL '1 hour', \
+       NOW())"
+    )
+    .bind(id)
+    .bind("obsolete-reset")
+    .execute(pgpool)
+    .await
+    .expect("legacy reset fixture");
+    assert!(
+      recover_user_password(
+        &state,
+        "missing",
+        "long-replacement-passphrase"
+      )
+      .await
+      .is_err()
+    );
+    assert!(
+      recover_user_password(
+        &state,
+        "existing_user",
+        "short"
+      )
+      .await
+      .is_err()
+    );
+    assert!(
+      crate::auth::auth_user_id(
+        &state,
+        &current_headers
+      )
+      .await
+      .is_ok()
+    );
+    recover_user_password(
+      &state,
+      "existing_user",
+      "recovered-long-passphrase"
+    )
+    .await
+    .expect(
+      "PostgreSQL operator recovery"
+    );
+    assert!(
+      crate::auth::auth_user_id(
+        &state,
+        &current_headers
+      )
+      .await
+      .is_err()
+    );
+    let remaining_sessions: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM \
+         user_tokens WHERE user_id = \
+         $1"
+      )
+      .bind(id)
+      .fetch_one(pgpool)
+      .await
+      .expect("sessions");
+    let remaining_resets: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM \
+         user_password_resets WHERE \
+         user_id = $1"
+      )
+      .bind(id)
+      .fetch_one(pgpool)
+      .await
+      .expect("reset tokens");
     assert_eq!(remaining_sessions, 0);
     assert_eq!(remaining_resets, 0);
-    let (role, new_hash): (bool, String) = sqlx::query_as(
-      "SELECT is_admin, password_hash FROM users WHERE id = $1"
-    ).bind(id).fetch_one(pgpool).await.expect("preserved user");
+    let (role, new_hash): (
+      bool,
+      String
+    ) = sqlx::query_as(
+      "SELECT is_admin, password_hash \
+       FROM users WHERE id = $1"
+    )
+    .bind(id)
+    .fetch_one(pgpool)
+    .await
+    .expect("preserved user");
     assert!(role);
-    assert!(verify_password(&new_hash, "updated-legacy-passphrase").is_err());
-    verify_password(&new_hash, "recovered-long-passphrase").expect("recovered password");
-    let Json(relogin) = auth::login(State(state.clone()), Json(LoginRequest {
-      username: "existing_user".into(),
-      password: "recovered-long-passphrase".into()
-    })).await.expect("login after recovery");
+    assert!(
+      verify_password(
+        &new_hash,
+        "updated-legacy-passphrase"
+      )
+      .is_err()
+    );
+    verify_password(
+      &new_hash,
+      "recovered-long-passphrase"
+    )
+    .expect("recovered password");
+    let Json(relogin) = auth::login(
+      State(state.clone()),
+      Json(LoginRequest {
+        username: "existing_user"
+          .into(),
+        password:
+          "recovered-long-passphrase"
+            .into()
+      })
+    )
+    .await
+    .expect("login after recovery");
     assert!(!relogin.token.is_empty());
   }
 }

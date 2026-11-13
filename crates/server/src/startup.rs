@@ -71,29 +71,44 @@ pub async fn run()
     ));
   }
 
-  // Reject missing or invalid operator authorization before opening
-  // any database connection or executing schema migrations.
-  let recovery_credentials = if recovery_only {
-    if std::env::var("PULSEWIRE_RECOVERY_CONFIRM").ok().as_deref()
-      != Some("RECOVER_USER")
-    {
-      return Err(ConfigError::Invalid(
+  // Reject missing or invalid operator
+  // authorization before opening
+  // any database connection or
+  // executing schema migrations.
+  let recovery_credentials =
+    if recovery_only {
+      if std::env::var(
+        "PULSEWIRE_RECOVERY_CONFIRM"
+      )
+      .ok()
+      .as_deref()
+        != Some("RECOVER_USER")
+      {
+        return Err(ConfigError::Invalid(
         "set PULSEWIRE_RECOVERY_CONFIRM=RECOVER_USER for offline recovery".into()
       ));
-    }
-    let username = std::env::var("PULSEWIRE_RECOVERY_USERNAME")
+      }
+      let username = std::env::var("PULSEWIRE_RECOVERY_USERNAME")
       .map_err(|_| ConfigError::Invalid("PULSEWIRE_RECOVERY_USERNAME required".into()))?;
-    let password = std::env::var("PULSEWIRE_RECOVERY_PASSWORD")
+      let password = std::env::var("PULSEWIRE_RECOVERY_PASSWORD")
       .map_err(|_| ConfigError::Invalid("PULSEWIRE_RECOVERY_PASSWORD required".into()))?;
-    if username.trim().is_empty() || password.len() < 12 {
-      return Err(ConfigError::Invalid(
-        "recovery requires an existing username and password at least 12 bytes long".into()
-      ));
-    }
-    Some((username, password))
-  } else {
-    None
-  };
+      if username.trim().is_empty()
+        || password.len() < 12
+      {
+        return Err(
+          ConfigError::Invalid(
+            "recovery requires an \
+             existing username and \
+             password at least 12 \
+             bytes long"
+              .into()
+          )
+        );
+      }
+      Some((username, password))
+    } else {
+      None
+    };
 
   logging::init_tracing(&config)?;
 
@@ -132,9 +147,18 @@ pub async fn run()
   )
   .await?;
 
-  if let Some((username, password)) = recovery_credentials {
-    db::recover_user_password(&state, &username, &password).await?;
-    tracing::info!("user recovered; all previous sessions revoked; HTTP server not started");
+  if let Some((username, password)) =
+    recovery_credentials
+  {
+    db::recover_user_password(
+      &state, &username, &password
+    )
+    .await?;
+    tracing::info!(
+      "user recovered; all previous \
+       sessions revoked; HTTP server \
+       not started"
+    );
     return Ok(());
   }
 
