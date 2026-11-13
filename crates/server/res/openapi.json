@@ -213,51 +213,6 @@
         }
       }
     },
-    "/v1/users/password-reset/request": {
-      "post": {
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PasswordResetRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "reset token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PasswordResetResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/users/password-reset/confirm": {
-      "post": {
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PasswordResetConfirm"
-              }
-            }
-          }
-        },
-        "responses": {
-          "204": {
-            "description": "updated"
-          }
-        }
-      }
-    },
     "/v1/feeds": {
       "get": {
         "security": [

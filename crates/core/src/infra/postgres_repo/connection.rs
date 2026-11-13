@@ -208,7 +208,7 @@ async fn ensure_database_exists(
 
   let create_sql = format!(
     "CREATE DATABASE \"{}\";",
-    &cfg.database
+    cfg.database
   );
 
   let res = sqlx::query(&create_sql)

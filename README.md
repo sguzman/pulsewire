@@ -101,7 +101,8 @@ Server config (`crates/server/res/config.toml`):
 ## HTTP Server API (high Level)
 
 - Auth: login/logout, rotate token, list/revoke tokens.
-- Users: create user, change password, delete account, password reset flow.
+- Users: create user, change password, delete account. Self-service password
+  reset is intentionally unavailable until a secure recovery flow is added.
 - Feeds: list feeds, feed detail, list feed entries.
 - Entries: list, detail, read/unread, batch read/unread, unread counts, search.
 - Subscriptions: list/create/delete.
@@ -146,7 +147,7 @@ OpenAPI docs:
 - Justfile: `just build`, `just fmt`, `just validate`, `just test`,
   `just post-change`, `just all`
 - Release policy: `docs/RELEASE.md`
-- Roadmap: `docs/ROADMAP.md`
+- Roadmap: [`docs/pulsewire/ROADMAP.md`](docs/pulsewire/ROADMAP.md)
 - Changelog config: `cliff.toml`
 - Release config: `release.toml`
 - License inventory:

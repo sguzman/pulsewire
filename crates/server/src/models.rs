@@ -110,26 +110,6 @@ pub struct FolderEntriesQuery {
   pub since:  Option<i64>
 }
 
-#[derive(Debug, Deserialize)]
-
-pub struct PasswordResetRequest {
-  pub username: String
-}
-
-#[derive(Debug, Deserialize)]
-
-pub struct PasswordResetConfirm {
-  pub token:        String,
-  pub new_password: String
-}
-
-#[derive(Debug, Serialize)]
-
-pub struct PasswordResetResponse {
-  pub reset_token: String,
-  pub expires_in:  u64
-}
-
 #[derive(
   Debug, Serialize, sqlx::FromRow,
 )]
