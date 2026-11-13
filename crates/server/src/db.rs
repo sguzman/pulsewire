@@ -1005,7 +1005,7 @@ mod postgres_runtime_tests {
       .await
       .is_err()
     );
-    auth::login(
+    let Json(fresh) = auth::login(
       State(state.clone()),
       Json(LoginRequest {
         username: "existing_user"
@@ -1017,5 +1017,6 @@ mod postgres_runtime_tests {
     )
     .await
     .expect("new password works");
+    assert!(!fresh.token.is_empty());
   }
 }
