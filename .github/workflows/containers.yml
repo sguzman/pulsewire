@@ -237,3 +237,50 @@ jobs:
           restored_favorites="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
             psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.favorites WHERE feed_id = 'pulsewire-ci-real-rss'")"
           test "$restored_favorites" -ge 1
+# Offline operator recovery: invalid confirmation does not connect
+          # or mutate the database. A successful recovery kills old sessions.
+          prior_hash="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT password_hash FROM server.users WHERE username = 'owner'")"
+          if docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_RECOVERY_CONFIRM=DENIED \
+            -e PULSEWIRE_RECOVERY_USERNAME=owner \
+            -e PULSEWIRE_RECOVERY_PASSWORD=ci-new-long-password \
+            pulsewire-server:ci --recover-user; then
+            echo "recovery must reject invalid confirmation" >&2
+            exit 1
+          fi
+          hash_after_denied="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT password_hash FROM server.users WHERE username = 'owner'")"
+          test "$prior_hash" = "$hash_after_denied"
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -c "INSERT INTO server.user_password_resets (user_id, token_hash, expires_at, created_at) SELECT id, 'obsolete-ci-reset', NOW() + INTERVAL '1 hour', NOW() FROM server.users WHERE username = 'owner'"
+          docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_RECOVERY_CONFIRM=RECOVER_USER \
+            -e PULSEWIRE_RECOVERY_USERNAME=owner \
+            -e PULSEWIRE_RECOVERY_PASSWORD=ci-new-long-password \
+            pulsewire-server:ci --recover-user
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries')"
+          test "$code" = 401
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d "{\"username\":\"owner\",\"password\":\"$TEST_ADMIN_PASSWORD\"}" \
+            http://127.0.0.1:18091/v1/auth/login)"
+          test "$code" = 401
+          code="$(curl -sS -o "$RUNNER_TEMP/recovered.json" -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d '{"username":"owner","password":"ci-new-long-password"}' \
+            http://127.0.0.1:18091/v1/auth/login)"
+          test "$code" = 200
+          jq -e '.token | length > 0' "$RUNNER_TEMP/recovered.json"
+          remaining="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT COUNT(*) FROM server.user_password_resets WHERE user_id = (SELECT id FROM server.users WHERE username = 'owner')")"
+          test "$remaining" = 0
+          role="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT is_admin FROM server.users WHERE username = 'owner'")"
+          test "$role" = t
