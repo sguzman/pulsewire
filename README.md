@@ -53,6 +53,16 @@ Pulsewire is a time-aware ingestion engine for the open web: RSS/Atom feeds toda
   `openapi.json`, `openapi.html`).
 - `branding/` – logo/banner/icon assets.
 
+Login protection: the HTTP server persists an atomic per-username attempt
+counter in its selected SQLite/PostgreSQL database. The first five login
+attempts in a 15-minute window are evaluated; subsequent attempts receive
+HTTP 429 and `Retry-After: 900`. Successful login removes that username's
+counter; expired windows reset automatically. Unknown and known usernames
+return the same invalid-credentials response for failed attempts. This is
+**not** a substitute for network-level request throttling: targeted attempts
+may temporarily block the target username. Keep the listener restricted to
+trusted networks or behind a trusted reverse proxy.
+
 ## Configuration
 Fetcher config resolution order: 1) CLI argument path (if provided), else 2)
 `CONFIG_PATH` environment variable (if set), else 3)

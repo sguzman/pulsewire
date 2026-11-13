@@ -5,6 +5,7 @@ mod db;
 mod errors;
 mod handlers;
 mod logging;
+mod login_throttle;
 mod models;
 mod schema;
 mod startup;

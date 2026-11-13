@@ -50,8 +50,14 @@ impl IntoResponse for ServerError {
       }
     };
 
-    (self.status, axum::Json(body))
-      .into_response()
+    let mut response = (self.status, axum::Json(body)).into_response();
+    if self.status == StatusCode::TOO_MANY_REQUESTS {
+      response.headers_mut().insert(
+        axum::http::header::RETRY_AFTER,
+        axum::http::HeaderValue::from_static("900")
+      );
+    }
+    response
   }
 }
 
@@ -92,6 +98,7 @@ fn status_code_to_string(
         StatusCode::FORBIDDEN => "forbidden",
         StatusCode::NOT_FOUND => "not_found",
         StatusCode::CONFLICT => "conflict",
+        StatusCode::TOO_MANY_REQUESTS => "rate_limited",
         StatusCode::INTERNAL_SERVER_ERROR => "internal_error",
         _ => status.canonical_reason().unwrap_or("error"),
     }

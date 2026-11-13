@@ -6,6 +6,14 @@ CREATE TABLE IF NOT EXISTS users(
   created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS login_rate_limits(
+  username_key TEXT PRIMARY KEY,
+  attempt_count INTEGER NOT NULL,
+  window_started_at BIGINT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_rate_limits_window ON login_rate_limits(window_started_at);
+
 CREATE TABLE IF NOT EXISTS user_tokens(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,

@@ -1490,5 +1490,31 @@ mod postgres_runtime_tests {
     .await
     .expect("login after recovery");
     assert!(!relogin.token.is_empty());
+
+    // Atomic PostgreSQL reservations across concurrent connections and
+    // shared unknown-account buckets. No password hashes are logged.
+    let mut handles = Vec::new();
+    for _ in 0..12 {
+      let cloned = state.clone();
+      handles.push(tokio::spawn(async move {
+        crate::login_throttle::reserve_attempt(&cloned, "ci-unknown-concurrent").await
+      }));
+    }
+    let mut admitted = 0;
+    let mut denied = 0;
+    for handle in handles {
+      match handle.await.expect("join concurrent login") {
+        Ok(()) => admitted += 1,
+        Err(err) => {
+          assert_eq!(
+            axum::response::IntoResponse::into_response(err).status(),
+            axum::http::StatusCode::TOO_MANY_REQUESTS
+          );
+          denied += 1;
+        }
+      }
+    }
+    assert_eq!(admitted, crate::login_throttle::MAX_ATTEMPTS);
+    assert_eq!(denied, 12 - crate::login_throttle::MAX_ATTEMPTS);
   }
 }

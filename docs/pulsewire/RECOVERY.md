@@ -97,6 +97,20 @@ opening the database**. A correct confirmation still presumes trusted operator
 access to the database connection; it is not an authorization substitute and
 must not be exposed through a web endpoint or untrusted job runner.
 
+### Login-attempt throttling
+
+Pulsewire keeps an atomic, per-username hashed attempt counter in the
+configured SQLite or PostgreSQL database. Five attempts per 15-minute fixed
+window are evaluated; later attempts return 429 with a Retry-After header.
+Successful login clears the counter and old windows reset automatically.
+The counter also covers unknown usernames, and failed credentials always
+produce a generic 401 rather than identifying existing accounts.
+
+Account-targeted denial of service is possible (a malicious client can
+temporarily block a known username). Deploy a trusted network/reverse-proxy
+rate limit for source-based protections; do not expose the API publicly without
+one. Privileged offline recovery is unaffected by HTTP login throttling.
+
 ## Gates before production use
 
 - Confirm the host's real storage topology, schema names, and backup permissions.

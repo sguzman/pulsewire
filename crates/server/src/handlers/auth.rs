@@ -16,6 +16,7 @@ use crate::auth::{
   verify_password
 };
 use crate::errors::ServerError;
+use crate::login_throttle;
 use crate::models::{
   LoginRequest,
   TokenResponse,
@@ -43,6 +44,8 @@ pub async fn login(
       "username and password required"
     ));
   }
+
+  login_throttle::reserve_attempt(&state, username).await?;
 
   let (user_id, password_hash) =
     if let Some(pool) = &state.postgres
@@ -115,6 +118,8 @@ pub async fn login(
         .await
         .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
   }
+
+  login_throttle::clear_attempts(&state, username).await?;
 
   Ok(Json(TokenResponse {
     token,

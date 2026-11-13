@@ -61,6 +61,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Invalid credentials; identical response for unknown and known usernames"
+          },
+          "429": {
+            "description": "Too many login attempts: limit 5 per username per 15-minute window; Retry-After: 900 seconds"
           }
         }
       }
