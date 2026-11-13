@@ -16,6 +16,20 @@ jobs:
   rust:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pulsewire_ci
+          POSTGRES_PASSWORD: 'p@ss/word?#:with+punctuation'
+          POSTGRES_DB: pulsewire_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pulsewire_ci -d pulsewire_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - name: Toolchain
@@ -26,5 +40,9 @@ jobs:
         run: cargo check --workspace --locked
       - name: Rust tests
         run: cargo test --workspace --locked
+      - name: PostgreSQL service integration
+        env:
+          PULSEWIRE_TEST_POSTGRES_PASSWORD: 'p@ss/word?#:with+punctuation'
+        run: cargo test -p pulsewire-server postgres_runtime_schemas_auth_and_password_rotation --locked -- --ignored --test-threads=1
       - name: Rust Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
