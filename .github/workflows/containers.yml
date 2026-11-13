@@ -294,6 +294,13 @@ jobs:
                 -H 'Content-Type: application/json' --data-binary @- \
                 http://127.0.0.1:18091/v1/auth/login
           }
+          # Password changes must not weaken the 12-byte account policy.
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $(jq -er '.token' "$RUNNER_TEMP/recovered.json")" \
+            -H 'Content-Type: application/json' \
+            -d '{"current_password":"ci-new-long-password","new_password":"short"}' \
+            http://127.0.0.1:18091/v1/users/password)"
+          test "$code" = 400
           for attempt in {1..4}; do
             test "$(login_status absent-user incorrect-passphrase)" = 401
           done
