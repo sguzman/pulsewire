@@ -17,24 +17,20 @@ services:
       FEEDS_DIR: /app/res/feeds
       SCHEMAS_DIR: /app/schemas/fetcher
       PULSEWIRE_POSTGRES_PASSWORD: ${PULSEWIRE_POSTGRES_PASSWORD:?Set PULSEWIRE_POSTGRES_PASSWORD for Pulsewire}
+      PULSEWIRE_POSTGRES_HOST: ${PULSEWIRE_POSTGRES_HOST:-postgres}
     volumes:
       - ./res/docker.toml:/app/res/docker.toml:ro
       - ./res/domains.toml:/app/res/domains.toml:ro
       - ./res/categories.toml:/app/res/categories.toml:ro
-      - ../../crates/schemas:/app/schemas:ro
       - ./res/feeds:/app/res/feeds:ro
       - ../../cookies:/app/cookies:ro
       - ../../headers:/app/headers:ro
-    dns:
-      - 172.31.0.53
     ports:
-      - "9898:9898"
+      - "127.0.0.1:9898:9898"
     networks:
-      - services
-      - dnsnet
+      - pulsewire_services
 
 networks:
-  services:
+  pulsewire_services:
     external: true
-  dnsnet:
-    external: true
+    name: ${PULSEWIRE_DOCKER_NETWORK:?Set PULSEWIRE_DOCKER_NETWORK to a network shared with PostgreSQL}

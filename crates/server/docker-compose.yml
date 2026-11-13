@@ -16,19 +16,15 @@ services:
       SERVER_CONFIG_PATH: /app/res/docker.toml
       SCHEMAS_DIR: /app/schemas/server
       PULSEWIRE_POSTGRES_PASSWORD: ${PULSEWIRE_POSTGRES_PASSWORD:?Set PULSEWIRE_POSTGRES_PASSWORD for Pulsewire}
+      PULSEWIRE_POSTGRES_HOST: ${PULSEWIRE_POSTGRES_HOST:-postgres}
     volumes:
       - ./res:/app/res:ro
-      - ../../crates/schemas:/app/schemas:ro
-    dns:
-      - 172.31.0.53
     ports:
-      - "8091:8091"
+      - "127.0.0.1:8091:8091"
     networks:
-      - services
-      - dnsnet
+      - pulsewire_services
 
 networks:
-  services:
+  pulsewire_services:
     external: true
-  dnsnet:
-    external: true
+    name: ${PULSEWIRE_DOCKER_NETWORK:?Set PULSEWIRE_DOCKER_NETWORK to a network shared with PostgreSQL}

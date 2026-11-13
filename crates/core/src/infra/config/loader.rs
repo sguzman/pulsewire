@@ -256,6 +256,12 @@ impl ConfigLoader {
     let mut postgres: PostgresConfig =
       parse_postgres(raw_cfg.postgres)?;
     if let Ok(value) = env::var(
+      "PULSEWIRE_POSTGRES_HOST"
+    ) && !value.trim().is_empty()
+    {
+      postgres.host = value;
+    }
+    if let Ok(value) = env::var(
       "PULSEWIRE_POSTGRES_PASSWORD"
     ) && !value.trim().is_empty()
     {

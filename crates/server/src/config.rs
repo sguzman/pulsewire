@@ -139,6 +139,14 @@ impl ServerConfig {
     let mut config: ServerConfig =
       toml::from_str(&content)?;
     if let Ok(value) = env::var(
+      "PULSEWIRE_POSTGRES_HOST"
+    ) && !value.trim().is_empty()
+      && let Some(pg) =
+        config.postgres.as_mut()
+    {
+      pg.host = value;
+    }
+    if let Ok(value) = env::var(
       "PULSEWIRE_POSTGRES_PASSWORD"
     ) && !value.trim().is_empty()
       && let Some(pg) =

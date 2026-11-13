@@ -90,6 +90,12 @@ or use a private, non-checked-in TOML config. The environment value overrides
 a configured `postgres.password`. The Docker Compose examples require this
 variable; never commit real database credentials.
 
+Container deployment note: use an explicit existing Docker network shared with
+PostgreSQL (`PULSEWIRE_DOCKER_NETWORK`) and optionally override its DNS hostname
+(`PULSEWIRE_POSTGRES_HOST`, default `postgres`). The Compose examples do not
+hard-code a DNS server or publish their ports to the LAN. See
+[`docs/pulsewire/DEPLOYMENT.md`](docs/pulsewire/DEPLOYMENT.md) for a safe runbook.
+
 Server config (`crates/server/res/config.toml`):
 
 - `[app]` – `mode` and `timezone`.

@@ -18,6 +18,14 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - name: Validate Compose configuration
+        env:
+          PULSEWIRE_POSTGRES_PASSWORD: 'ci-only:p@ss/word?#'
+          PULSEWIRE_POSTGRES_HOST: ci-postgres
+          PULSEWIRE_DOCKER_NETWORK: ci-only-existing-network
+        run: |
+          docker compose -f crates/fetcher/docker-compose.yml config --quiet
+          docker compose -f crates/server/docker-compose.yml config --quiet
       - name: Build fetcher and server images
         run: |
           docker build --file crates/fetcher/Dockerfile --tag pulsewire-fetcher:ci .
@@ -50,7 +58,7 @@ jobs:
           }
           trap cleanup EXIT
           docker network create pulsewire-ci
-          docker run -d --name pulsewire-ci-postgres --network pulsewire-ci --network-alias postgres \
+          docker run -d --name pulsewire-ci-postgres --network pulsewire-ci --network-alias ci-postgres \
             -e POSTGRES_USER=admin -e POSTGRES_PASSWORD="$TEST_DB_PASSWORD" -e POSTGRES_DB=data \
             postgres:16-alpine
           for i in {1..40}; do
@@ -68,17 +76,20 @@ jobs:
           EOF
           docker run --rm --network pulsewire-ci \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
             -e FEEDS_DIR=/app/smoke-feeds \
             -v "$RUNNER_TEMP/pulsewire-smoke:/app/smoke-feeds:ro" \
             pulsewire-fetcher:ci --ingest-benchmark 1
           docker run --rm --network pulsewire-ci \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
             -e PULSEWIRE_BOOTSTRAP_USERNAME=owner \
             -e PULSEWIRE_BOOTSTRAP_PASSWORD="$TEST_ADMIN_PASSWORD" \
             pulsewire-server:ci --bootstrap-admin
           docker run -d --name pulsewire-ci-server --network pulsewire-ci \
             -p 127.0.0.1:18091:8091 \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
             pulsewire-server:ci
           healthy=0
           for i in {1..30}; do
