@@ -182,3 +182,11 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 - **PW-022 is verified complete:** the explicit startup/cleanup and two-backend restore-and-migration acceptance criteria now have passing evidence. **Weighted progress: 43% → 48% (+5 percentage points)**.
 - **Still open:** PW-043 requires retention and additional upgrade/migration recovery procedures. PW-051 needs TUI and broader reader integration. Expanded container API smoke is separately tracked by [run 43519275224](https://github.com/sguzman/pulsewire/actions/runs/43519275224); do not claim it passed before it finishes.
 - **Next:** complete the expanded API smoke and repair any errors; then cover retention and production migration repeatability, followed by remaining account abuse prevention. Continue keeping YouTube and podcast ingestion disabled.
+
+## Verification ledger — 2026-11-13, round 6 addendum (reader API smoke)
+
+- **Verified container CI:** [run 43519275224](https://github.com/sguzman/pulsewire/actions/runs/43519275224) **completed successfully** on source commit [`59e36406e286`](https://github.com/sguzman/pulsewire/commit/59e36406e286a54eb35b58804fe2228db66119f7). Compose validation, clean image builds, non-root/slim catalog assertions, and the isolated PostgreSQL smoke step were green.
+- **Reader API checks:** anonymous `GET /v1/entries` was rejected with HTTP 401; authenticated subscription and favorite creation succeeded; search returned the two fixture articles; read/unread filtering tracked an article marked read.
+- **Recovered reader state:** the CI job backed up the disposable PostgreSQL database using `pg_dump`, restored into a different database with `pg_restore`, and verified that subscriptions and favorites survived alongside the previously tested articles and read-state rows. The production/home database was not contacted.
+- **Milestone accounting:** PW-051 still requires end-to-end TUI verification and both storage-backed user workflows; PW-043 still requires retention and broader migration/backfill checks. **Overall remains 48% (+0 pp)** after this addendum.
+- **Known follow-up:** improve server startup ordering by rejecting `dev.reset_on_start` *before* database connection/schema migration, even though the flag cannot currently trigger a wipe.
