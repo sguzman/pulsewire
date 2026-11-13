@@ -1,6 +1,6 @@
 pub(crate) mod auth;
 mod docs;
-mod entries;
+pub(crate) mod entries;
 mod favorites;
 mod feeds;
 mod folders;
