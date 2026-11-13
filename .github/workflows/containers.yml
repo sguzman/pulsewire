@@ -113,7 +113,7 @@ jobs:
             http://127.0.0.1:18091/v1/users)"
           test "$code" = 401
           test "$(docker port pulsewire-ci-server 8091/tcp)" = '127.0.0.1:18091'
-# Exercise the real GET -> XML parser -> PostgreSQL -> API path using
+          # Exercise the real GET -> XML parser -> PostgreSQL -> API path using
           # deterministic HTTP inside the isolated Docker network. No external RSS requests.
           docker run -d --name pulsewire-ci-rss --network pulsewire-ci --network-alias ci-rss \
             -v "$GITHUB_WORKSPACE/tests/fixtures/rss:/usr/share/nginx/html:ro" \
