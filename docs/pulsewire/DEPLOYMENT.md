@@ -52,7 +52,9 @@ tables, then bootstrap the first administrator with the server image's
 `PULSEWIRE_BOOTSTRAP_USERNAME` and `PULSEWIRE_BOOTSTRAP_PASSWORD` privately.
 The bootstrap command exits without exposing an HTTP listener.
 
-**Not yet accepted for real deployment:** PostgreSQL backup and restore
-verification, repeatable upgrades with real datasets, feed fetching at steady
-state, TLS/reverse-proxy configuration, browser/TUI workflow QA, and migration
-from any existing Pulsewire database.
+**Not yet accepted for real deployment:** backup/restore against the actual
+host database (isolated PostgreSQL and SQLite recovery tests are now green),
+repeatable upgrades with real datasets, feed fetching at steady state,
+TLS/reverse-proxy configuration, browser/TUI workflow QA, and migration from
+any existing Pulsewire database. See [RECOVERY.md](RECOVERY.md) for the tested
+recovery approach and its limitations.
