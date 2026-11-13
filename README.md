@@ -147,6 +147,11 @@ OpenAPI docs:
   `PULSEWIRE_BOOTSTRAP_USERNAME=<name> PULSEWIRE_BOOTSTRAP_PASSWORD=<passphrase> cargo run -p pulsewire-server --release -- --bootstrap-admin`
   The bootstrap command does not open an HTTP listener. Remove bootstrap credentials
   from the environment afterward. `POST /v1/users` requires an admin bearer token.
+- Offline password recovery for a database operator (no public reset endpoint):
+  `PULSEWIRE_RECOVERY_CONFIRM=RECOVER_USER PULSEWIRE_RECOVERY_USERNAME=<existing-user> PULSEWIRE_RECOVERY_PASSWORD=<new-passphrase> cargo run -p pulsewire-server --release -- --recover-user`
+  Requires the database configuration/credentials, a password of at least 12 bytes,
+  and an explicit confirmation. Revokes all previous sessions/reset tokens without
+  changing the user's role. Keep environment secrets private and clear them afterward.
 - Run server (default config): `cargo run -p pulsewire-server --release`
 - Run server with explicit config:
   `SERVER_CONFIG_PATH=/path/to/config.toml cargo run -p pulsewire-server --release`

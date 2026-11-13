@@ -18,24 +18,17 @@ pub async fn run()
 -> Result<(), ConfigError> {
   let args: Vec<String> =
     std::env::args().skip(1).collect();
-  let bootstrap_only = match args
-    .as_slice()
-  {
-    | [] => false,
-    | [flag]
-      if flag
-        == "--bootstrap-admin" =>
-    {
-      true
-    }
-    | _ => {
-      return Err(ConfigError::Invalid(
-        "usage: pulsewire-server \
-         [--bootstrap-admin]"
-          .into()
-      ))
-    }
-  };
+  let (bootstrap_only, recovery_only) =
+    match args.as_slice() {
+      | [] => (false, false),
+      | [flag] if flag == "--bootstrap-admin" => (true, false),
+      | [flag] if flag == "--recover-user" => (false, true),
+      | _ => {
+        return Err(ConfigError::Invalid(
+          "usage: pulsewire-server [--bootstrap-admin | --recover-user]".into()
+        ));
+      }
+    };
   let config_path =
     std::env::var("SERVER_CONFIG_PATH")
       .unwrap_or_else(|_| {
@@ -100,6 +93,27 @@ pub async fn run()
     Path::new(&config_path)
   )
   .await?;
+
+  if recovery_only {
+    let confirmed = std::env::var("PULSEWIRE_RECOVERY_CONFIRM")
+      .unwrap_or_default();
+    if confirmed != "RECOVER_USER" {
+      return Err(ConfigError::Invalid(
+        "set PULSEWIRE_RECOVERY_CONFIRM=RECOVER_USER for offline recovery".into()
+      ));
+    }
+    let username = std::env::var("PULSEWIRE_RECOVERY_USERNAME")
+      .map_err(|_| ConfigError::Invalid(
+        "PULSEWIRE_RECOVERY_USERNAME required".into()
+      ))?;
+    let password = std::env::var("PULSEWIRE_RECOVERY_PASSWORD")
+      .map_err(|_| ConfigError::Invalid(
+        "PULSEWIRE_RECOVERY_PASSWORD required".into()
+      ))?;
+    db::recover_user_password(&state, &username, &password).await?;
+    tracing::info!("user recovered; all previous sessions revoked; HTTP server not started");
+    return Ok(());
+  }
 
   if bootstrap_only {
     let username = std::env::var(

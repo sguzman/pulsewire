@@ -67,6 +67,22 @@ state in an accessible database layout; independently backing up two files
 does not provide a single atomic cross-file snapshot. Coordinate writers
 and snapshot points for a multi-file installation.
 
+## Offline user password recovery
+
+The unauthenticated HTTP password-reset endpoint remains disabled. A database
+operator who already has access to Pulsewire's configured database may use the
+server's `--recover-user` mode to set a new password for an **existing** user.
+It requires `PULSEWIRE_RECOVERY_USERNAME`, `PULSEWIRE_RECOVERY_PASSWORD`
+(minimum 12 bytes), and `PULSEWIRE_RECOVERY_CONFIRM=RECOVER_USER`. It makes
+an atomic password update and deletes existing authentication and historical
+reset tokens. It never creates an account, changes an administrator role, or
+opens an HTTP listener.
+
+Set the variables in a trusted private shell and invoke
+`pulsewire-server --recover-user` using the normal private config. Do not put
+a real password into a public terminal log, shell history, Git commit, or CI
+configuration. This is **operator-managed recovery**, not a self-service reset.
+
 ## Gates before production use
 
 - Confirm the host's real storage topology, schema names, and backup permissions.
