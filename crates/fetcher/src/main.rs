@@ -147,8 +147,14 @@ async fn main() -> Result<(), BootError>
     );
   }
 
-  if matches!(app_cfg.mode, AppMode::Dev) {
-    warn!("Development mode: preserving database contents on startup");
+  if matches!(
+    app_cfg.mode,
+    AppMode::Dev
+  ) {
+    warn!(
+      "Development mode: preserving \
+       database contents on startup"
+    );
   }
 
   let repo = database::create_repo(
