@@ -216,3 +216,25 @@ async fn ensure_admin_role_sqlite(
   }
   Ok(())
 }
+
+#[cfg(test)]
+mod schema_security_tests {
+  use super::*;
+  use sqlx::sqlite::SqlitePoolOptions;
+
+  #[tokio::test]
+  async fn existing_sqlite_users_are_migrated_without_role_escalation() {
+    let pool = SqlitePoolOptions::new().max_connections(1)
+      .connect("sqlite::memory:").await.expect("sqlite");
+    sqlx::query("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT NOT NULL, password_hash TEXT NOT NULL, created_at TEXT NOT NULL)")
+      .execute(&pool).await.expect("legacy table");
+    sqlx::query("INSERT INTO users (id,username,password_hash,created_at) VALUES (9,'legacy','hash','2026-01-01')")
+      .execute(&pool).await.expect("legacy user");
+    ensure_admin_role_sqlite(&pool).await.expect("migrate once");
+    ensure_admin_role_sqlite(&pool).await.expect("migrate twice");
+    let (id, admin): (i64, i64) = sqlx::query_as("SELECT id, is_admin FROM users WHERE username='legacy'")
+      .fetch_one(&pool).await.expect("existing user");
+    assert_eq!(id, 9);
+    assert_eq!(admin, 0);
+  }
+}
