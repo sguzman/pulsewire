@@ -11,7 +11,6 @@ use axum::http::{
 use crate::app_state::AppState;
 use crate::auth::{
   bearer_token,
-  generate_token,
   hash_token,
   verify_password
 };
@@ -88,39 +87,13 @@ pub async fn login(
     )
   })?;
 
-  let token = generate_token();
-
-  let token_hash = hash_token(&token);
-
-  let ttl =
-    state.token_ttl_seconds as i64;
-
-  if let Some(pool) = &state.postgres {
-    sqlx::query(
-            "INSERT INTO user_tokens (user_id, token_hash, expires_at, created_at) VALUES ($1, $2, NOW() + ($3 || ' seconds')::interval, NOW())",
-        )
-        .bind(user_id)
-        .bind(&token_hash)
-        .bind(ttl)
-        .execute(pool)
-        .await
-        .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-  } else {
-    let pool = state
-            .sqlite
-            .as_ref()
-            .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
-
-    sqlx::query(
-            "INSERT INTO user_tokens (user_id, token_hash, expires_at, created_at) VALUES (?1, ?2, datetime('now', '+' || ?3 || ' seconds'), datetime('now'))",
-        )
-        .bind(user_id)
-        .bind(&token_hash)
-        .bind(ttl)
-        .execute(pool)
-        .await
-        .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-  }
+  let token =
+    crate::session_issue::issue_for_verified_login(
+      &state,
+      username,
+      &password_hash
+    )
+    .await?;
 
   login_throttle::clear_attempts(
     &state, username
@@ -172,84 +145,17 @@ pub async fn rotate_token(
   ServerError
 > {
   let token = bearer_token(&headers)?;
-
   let token_hash = hash_token(&token);
 
-  let user_id = if let Some(pool) =
-    &state.postgres
-  {
-    sqlx::query_scalar::<_, i64>(
-            "SELECT user_id FROM user_tokens WHERE token_hash = $1 AND expires_at > NOW()",
-        )
-        .bind(&token_hash)
-        .fetch_optional(pool)
-        .await
-        .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-        .ok_or_else(|| ServerError::new(StatusCode::UNAUTHORIZED, "invalid token"))?
-  } else {
-    let pool = state
-            .sqlite
-            .as_ref()
-            .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
-
-    sqlx::query_scalar::<_, i64>(
-            "SELECT user_id FROM user_tokens WHERE token_hash = ?1 AND expires_at > datetime('now')",
-        )
-        .bind(&token_hash)
-        .fetch_optional(pool)
-        .await
-        .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-        .ok_or_else(|| ServerError::new(StatusCode::UNAUTHORIZED, "invalid token"))?
-  };
-
-  let new_token = generate_token();
-
-  let new_hash = hash_token(&new_token);
-
-  let ttl =
-    state.token_ttl_seconds as i64;
-
-  if let Some(pool) = &state.postgres {
-    sqlx::query(
-            "INSERT INTO user_tokens (user_id, token_hash, expires_at, created_at) VALUES ($1, $2, NOW() + ($3 || ' seconds')::interval, NOW())",
-        )
-        .bind(user_id)
-        .bind(&new_hash)
-        .bind(ttl)
-        .execute(pool)
-        .await
-        .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
-    sqlx::query("DELETE FROM user_tokens WHERE token_hash = $1")
-            .bind(&token_hash)
-            .execute(pool)
-            .await
-            .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-  } else {
-    let pool = state
-            .sqlite
-            .as_ref()
-            .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
-
-    sqlx::query(
-            "INSERT INTO user_tokens (user_id, token_hash, expires_at, created_at) VALUES (?1, ?2, datetime('now', '+' || ?3 || ' seconds'), datetime('now'))",
-        )
-        .bind(user_id)
-        .bind(&new_hash)
-        .bind(ttl)
-        .execute(pool)
-        .await
-        .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
-    sqlx::query("DELETE FROM user_tokens WHERE token_hash = ?1")
-            .bind(&token_hash)
-            .execute(pool)
-            .await
-            .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-  }
+  let new_token =
+    crate::session_issue::rotate_existing_token(
+      &state,
+      &token_hash
+    )
+    .await?;
 
   Ok(Json(TokenResponse {
-    token:      new_token,
+    token: new_token,
     token_type: "bearer".to_string(),
     expires_in: state.token_ttl_seconds
   }))
