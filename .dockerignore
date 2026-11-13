@@ -2,3 +2,7 @@
 /.git
 /.gitignore
 /README.md
+
+# The retired feeds remain in Git, not in default runtime images.
+/crates/fetcher/res/feeds/youtube.com
+/crates/fetcher/res/feeds/podcasts

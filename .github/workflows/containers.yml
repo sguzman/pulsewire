@@ -1,0 +1,103 @@
+name: Container packaging and smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build fetcher and server images
+        run: |
+          docker build --file crates/fetcher/Dockerfile --tag pulsewire-fetcher:ci .
+          docker build --file crates/server/Dockerfile --tag pulsewire-server:ci .
+      - name: Verify non-root images and slim catalog
+        run: |
+          set -euo pipefail
+          test "$(docker image inspect pulsewire-fetcher:ci --format '{{.Config.User}}')" = '65532:65532'
+          test "$(docker image inspect pulsewire-server:ci --format '{{.Config.User}}')" = '65532:65532'
+          mkdir -p "$RUNNER_TEMP/pulsewire-check"
+          fetcher_id="$(docker create pulsewire-fetcher:ci)"
+          docker cp "$fetcher_id:/app/res/feeds" "$RUNNER_TEMP/pulsewire-check/feeds"
+          docker rm "$fetcher_id"
+          test -f "$RUNNER_TEMP/pulsewire-check/feeds/news/nytimes.toml"
+          test ! -e "$RUNNER_TEMP/pulsewire-check/feeds/youtube.com"
+          test ! -e "$RUNNER_TEMP/pulsewire-check/feeds/podcasts"
+          server_id="$(docker create pulsewire-server:ci)"
+          docker cp "$server_id:/app/res/sql/postgres/schema.sql" "$RUNNER_TEMP/pulsewire-check/schema.sql"
+          docker rm "$server_id"
+          test -s "$RUNNER_TEMP/pulsewire-check/schema.sql"
+      - name: Smoke against disposable PostgreSQL
+        env:
+          TEST_DB_PASSWORD: 'ci-only:p@ss/word?#'
+          TEST_ADMIN_PASSWORD: 'ci-only-administrator-passphrase'
+        run: |
+          set -euo pipefail
+          cleanup() {
+            docker rm -f pulsewire-ci-server pulsewire-ci-postgres >/dev/null 2>&1 || true
+            docker network rm pulsewire-ci >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          docker network create pulsewire-ci
+          docker run -d --name pulsewire-ci-postgres --network pulsewire-ci --network-alias postgres \
+            -e POSTGRES_USER=admin -e POSTGRES_PASSWORD="$TEST_DB_PASSWORD" -e POSTGRES_DB=data \
+            postgres:16-alpine
+          for i in {1..40}; do
+            if docker exec pulsewire-ci-postgres pg_isready -U admin -d data >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          docker exec pulsewire-ci-postgres pg_isready -U admin -d data
+
+          mkdir -p "$RUNNER_TEMP/pulsewire-smoke/news"
+          cat > "$RUNNER_TEMP/pulsewire-smoke/news/ci.toml" <<'EOF'
+          [[feeds]]
+          id = "pulsewire-ci-feed"
+          url = "https://example.org/feed.xml"
+          category = "news"
+          EOF
+          docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e FEEDS_DIR=/app/smoke-feeds \
+            -v "$RUNNER_TEMP/pulsewire-smoke:/app/smoke-feeds:ro" \
+            pulsewire-fetcher:ci --ingest-benchmark 1
+          docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_BOOTSTRAP_USERNAME=owner \
+            -e PULSEWIRE_BOOTSTRAP_PASSWORD="$TEST_ADMIN_PASSWORD" \
+            pulsewire-server:ci --bootstrap-admin
+          docker run -d --name pulsewire-ci-server --network pulsewire-ci \
+            -p 127.0.0.1:18091:8091 \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            pulsewire-server:ci
+          healthy=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18091/health >/dev/null 2>&1; then healthy=1; break; fi
+            sleep 2
+          done
+          if [ "$healthy" -ne 1 ]; then
+            docker logs pulsewire-ci-server
+            exit 1
+          fi
+          code="$(curl -sS -o "$RUNNER_TEMP/login.json" -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d "{\"username\":\"owner\",\"password\":\"$TEST_ADMIN_PASSWORD\"}" \
+            http://127.0.0.1:18091/v1/auth/login)"
+          test "$code" = 200
+          grep -q '"token"' "$RUNNER_TEMP/login.json"
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d '{"username":"stranger","password":"not-an-administrator-passphrase"}' \
+            http://127.0.0.1:18091/v1/users)"
+          test "$code" = 401
+          test "$(docker port pulsewire-ci-server 8091/tcp)" = '127.0.0.1:18091'

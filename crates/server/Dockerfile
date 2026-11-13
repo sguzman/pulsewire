@@ -1,7 +1,7 @@
 FROM rust:1.91-alpine AS builder
 ARG TARGET=x86_64-unknown-linux-musl
 WORKDIR /app
-RUN apk add --no-cache musl-dev ca-certificates \
+RUN apk add --no-cache build-base binutils ca-certificates \
     && update-ca-certificates
 RUN rustup target add ${TARGET}
 COPY Cargo.toml Cargo.lock ./
@@ -19,8 +19,8 @@ COPY crates/cli/src crates/cli/src
 COPY crates/server/src crates/server/src
 COPY crates/server/res crates/server/res
 COPY crates/tui/src crates/tui/src
-RUN cargo build -p pulsewire-server --release --target ${TARGET}
-RUN strip /app/target/${TARGET}/release/pulsewire-server
+RUN cargo build --locked --release --target ${TARGET} -p pulsewire-fetcher -p pulsewire-server
+RUN strip /app/target/${TARGET}/release/pulsewire /app/target/${TARGET}/release/pulsewire-server
 
 FROM scratch
 ARG TARGET=x86_64-unknown-linux-musl
