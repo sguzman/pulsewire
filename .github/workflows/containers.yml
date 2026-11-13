@@ -284,3 +284,43 @@ jobs:
           role="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
             psql -U admin -d data -Atc "SELECT is_admin FROM server.users WHERE username = 'owner'")"
           test "$role" = t
+
+          # Exercise the real HTTP authentication throttle against PostgreSQL.
+          # Unknown usernames share the normal invalid-credentials response.
+          login_status() {
+            jq -nc --arg username "$1" --arg password "$2" \
+              '{username:$username,password:$password}' | \
+              curl -sS -o /dev/null -w '%{http_code}' \
+                -H 'Content-Type: application/json' --data-binary @- \
+                http://127.0.0.1:18091/v1/auth/login
+          }
+          for attempt in {1..4}; do
+            test "$(login_status absent-user incorrect-passphrase)" = 401
+          done
+          test "$(login_status ABSENT-USER incorrect-passphrase)" = 401
+          # A restart cannot bypass persistent, normalized account buckets.
+          docker restart pulsewire-ci-server
+          ready=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18091/health >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          test "$(login_status absent-user incorrect-passphrase)" = 429
+          # A blocked unknown account must not prevent an unrelated login.
+          test "$(login_status owner ci-new-long-password)" = 200
+          for attempt in {1..5}; do
+            test "$(login_status owner incorrect-passphrase)" = 401
+          done
+          # Even a correct password is rejected while its bucket is blocked.
+          test "$(login_status owner ci-new-long-password)" = 429
+          # Expire fixed windows deterministically without sleeping 15 minutes.
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -v ON_ERROR_STOP=1 -U admin -d data -c \
+            "UPDATE server.login_rate_limits SET window_started_at = EXTRACT(EPOCH FROM NOW())::BIGINT - 901"
+          test "$(login_status owner ci-new-long-password)" = 200
+          # Successful login removes the account bucket, allowing five new tries.
+          for attempt in {1..5}; do
+            test "$(login_status owner incorrect-passphrase)" = 401
+          done
+          test "$(login_status owner incorrect-passphrase)" = 429
