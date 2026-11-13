@@ -177,15 +177,6 @@ pub fn set_search_path(
   }
 }
 
-fn is_missing_table_error(
-  e: &sqlx::Error
-) -> bool {
-  matches!(
-      e,
-      sqlx::Error::Database(db_err) if db_err.code().as_deref() == Some("42P01")
-  )
-}
-
 pub fn quote_ident(
   name: &str
 ) -> String {
