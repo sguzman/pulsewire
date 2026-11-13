@@ -1,6 +1,6 @@
 # Pulsewire — adoption and resurrection roadmap
 
-> Canonical, scope-frozen engineering plan. Adopted 2026-11-13 on `main` at `c1b1995b13e6`. Weights denote relative full-lifecycle delivery, **not** lines of code or estimated calendar time. Current accepted source-verification credit: **33/100**; operational readiness remains **unverified**.
+> Canonical, scope-frozen engineering plan. Adopted 2026-11-13 on `main` at `c1b1995b13e6`. Weights denote relative full-lifecycle delivery, **not** lines of code or estimated calendar time. Current accepted weighted verification credit: **38/100** (33 source-inventory points, 5 CI/build-gate points); operational readiness remains **unverified**.
 
 ## Mission and acceptance contract
 
@@ -16,7 +16,7 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 
 - Source examined: Rust workspace (core, fetcher, server, CLI, schemas, TUI), Git tree, latest commits, config and original roadmap; **not yet compiled or executed here**. Last examined commit: `c1b1995b13e6c2b4d8c626cfb6166f487ed06e4b`.
 - Source-only milestone completions acknowledge substantial pre-existing implementations without claiming they run correctly. Verification of those components in reality is specifically budgeted again under operational/QA milestones.
-- **Baseline 33% (weighted):** PW-001, PW-002, PW-010, PW-011, PW-012, PW-013. All other tasks require the listed objective acceptance evidence. Since this is a new weighted adoption baseline, prior percentage is **unknown**, and no percentage-point gain is invented.
+- **Adoption baseline 33% (weighted):** PW-001, PW-002, PW-010, PW-011, PW-012, PW-013. All other tasks require the listed objective acceptance evidence. The adoption baseline had no comparable prior percentage. **Round 1 verified current: 38% (+5 pp against the newly established 33% baseline)**, after clean GitHub Actions formatting, compilation, Rust tests and Clippy. This is a weighted task ledger, not a claim of production functionality.
 - On every completed round: preserve verified evidence, weights, open blockers, current commit, and next action. Rebaseline transparently when a real scope discovery changes remaining effort.
 
 ## Priorities and status
@@ -29,7 +29,7 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 |---|---|---:|---|---|---|---|
 | PW-001 | 🧭 Source and architecture inventory | 3 | P0 | verified complete | — | Inspect repo HEAD, history, workspace, existing components, risk paths, and old roadmap; store audit evidence. Static inspection complete; runtime unverified. |
 | PW-002 | 📌 Adoption and scope contract | 3 | P0 | verified complete | PW-001 | Store canonical scope, explicit exclusions, weighted roadmap, handoff, and old roadmap; verify files committed. |
-| PW-003 | 🧪 Reproducible baseline build | 2 | P0 | blocked | PW-002 | Run the pinned toolchain from clean checkout; record check, lint, fmt, and tests with logs. Not complete until passing or an explained failure is fixed. |
+| PW-003 | 🧪 Reproducible baseline build | 2 | P0 | verified complete | PW-002 | Run the pinned toolchain from clean checkout; record check, lint, fmt, and tests with logs. Not complete until passing or an explained failure is fixed. |
 
 ### M1 — Preserve existing working architecture
 
@@ -64,7 +64,7 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 |---|---|---:|---|---|---|---|
 | PW-040 | 📦 Fix container packaging and Compose | 4 | P0 | active | PW-003 | Clean images build with all workspace manifests; Compose paths and network/DNS integration resolve; non-root runtime and resource limits proven with isolated containers. |
 | PW-041 | 🧭 Fix runtime schema and config lookup | 3 | P0 | active | PW-040 | Installed and containerized binaries resolve schemas and config from runtime paths, never stale source builds; XDG/default/override precedence tests pass. |
-| PW-042 | ✅ CI quality gates | 3 | P0 | pending | PW-003 | Main/PR GitHub Actions execute cargo fmt, check, Clippy, unit/integration tests on supported target; all green. |
+| PW-042 | ✅ CI quality gates | 3 | P0 | verified complete | PW-003 | Main/PR GitHub Actions execute cargo fmt, check, Clippy, unit/integration tests on supported target; all green. |
 | PW-043 | 💾 Migrations, retention and backup recovery | 2 | P0 | pending | PW-022 | Both DB backends migrate without loss; read-state persists across restarts; backup/restore and retention procedures validated with fixtures. |
 
 ### M5 — Correctness and runtime QA
@@ -115,7 +115,14 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 ## Session checkpoint — 2026-11-13
 
 - **Stable objective:** run safe, slim general news RSS service, not the podcast/YouTube megacatalog.
-- **Branch:** main. **Starting HEAD:** `c1b1995b13e6c2b4d8c626cfb6166f487ed06e4b`. **Weights:** 100 total, 33 static-only verified.
+- **Branch:** main. **Starting HEAD:** `c1b1995b13e6c2b4d8c626cfb6166f487ed06e4b`. **Weights:** 100 total; 33 source-inventory verified plus 5 clean-build/CI verified = 38.
 - **Current work:** category-disable control, source-skip tests, emergency account reset endpoint gating, schema path, container build inputs. No deployed service changes.
 - **Remaining:** runtime build verification; CI; audit security; integrated and GUI QA; operational acceptance.
 - **Next:** inspect CI result and resolve any compiler/test failures; ensure both disabled categories are never ingested in default configuration.
+
+## Verification ledger — 2026-11-13
+
+- Green CI: [Rust checks, run 43493864946](https://github.com/sguzman/pulsewire/actions/runs/43493864946), on source commit [`0f783889`](https://github.com/sguzman/pulsewire/commit/0f7838893e4add34831ecb942da10dc9cd521092).
+- Confirmed: `cargo fmt --all -- --check`, `cargo check --workspace --locked`, `cargo test --workspace --locked` (three Rust tests passed), and `cargo clippy --workspace --all-targets --locked -- -D warnings`.
+- The disabled-category source-skip test passed. This does **not** establish a live database migration, durable production restart, container-image build, or TUI/browser runtime functionality.
+- Weighted change against first adoption ledger: **33% → 38%, +5 percentage points** (`PW-003`, `PW-042` verified). Other items retain their prior statuses.
