@@ -84,6 +84,12 @@ File-level defaults can be set at top-level (`base_poll_seconds`, `id_prefix`,
 `category`, `provenance`, `tags`, `language`, `content_type`) and are inherited
 by feeds that omit them.
 
+PostgreSQL credentials: checked-in examples have an empty password. Set
+`PULSEWIRE_POSTGRES_PASSWORD` in the environment for both fetcher and server,
+or use a private, non-checked-in TOML config. The environment value overrides
+a configured `postgres.password`. The Docker Compose examples require this
+variable; never commit real database credentials.
+
 Server config (`crates/server/res/config.toml`):
 
 - `[app]` – `mode` and `timezone`.

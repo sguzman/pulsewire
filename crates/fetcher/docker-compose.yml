@@ -16,6 +16,7 @@ services:
       CONFIG_PATH: /app/res/docker.toml
       FEEDS_DIR: /app/res/feeds
       SCHEMAS_DIR: /app/schemas/fetcher
+      PULSEWIRE_POSTGRES_PASSWORD: ${PULSEWIRE_POSTGRES_PASSWORD:?Set PULSEWIRE_POSTGRES_PASSWORD for Pulsewire}
     volumes:
       - ./res/docker.toml:/app/res/docker.toml:ro
       - ./res/domains.toml:/app/res/domains.toml:ro

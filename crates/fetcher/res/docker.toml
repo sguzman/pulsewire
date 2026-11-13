@@ -11,7 +11,7 @@ path = "rss.db"
 [postgres]
 db       = "data"
 host     = "postgres"
-password = "admin"
+password = ""
 port     = 5432
 schema   = "fetcher"
 user     = "admin"

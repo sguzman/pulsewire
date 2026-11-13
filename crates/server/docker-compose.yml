@@ -15,6 +15,7 @@ services:
     environment:
       SERVER_CONFIG_PATH: /app/res/docker.toml
       SCHEMAS_DIR: /app/schemas/server
+      PULSEWIRE_POSTGRES_PASSWORD: ${PULSEWIRE_POSTGRES_PASSWORD:?Set PULSEWIRE_POSTGRES_PASSWORD for Pulsewire}
     volumes:
       - ./res:/app/res:ro
       - ../../crates/schemas:/app/schemas:ro

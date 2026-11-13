@@ -253,8 +253,20 @@ impl ConfigLoader {
         .as_deref()
     )?;
 
-    let postgres: PostgresConfig =
+    let mut postgres: PostgresConfig =
       parse_postgres(raw_cfg.postgres)?;
+    if let Ok(value) = env::var("PULSEWIRE_POSTGRES_PASSWORD")
+      && !value.trim().is_empty()
+    {
+      postgres.password = value;
+    }
+    if matches!(db_dialect, crate::domain::model::SqlDialect::Postgres)
+      && postgres.password.trim().is_empty()
+    {
+      return Err(ConfigError::Invalid(
+        "postgres password required: set PULSEWIRE_POSTGRES_PASSWORD or a private config password".into()
+      ));
+    }
 
     let mut domains = HashMap::new();
 

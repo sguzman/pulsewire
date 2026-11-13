@@ -136,8 +136,21 @@ impl ServerConfig {
       &path.display().to_string()
     )?;
 
-    let config: ServerConfig =
+    let mut config: ServerConfig =
       toml::from_str(&content)?;
+    if let Ok(value) = env::var("PULSEWIRE_POSTGRES_PASSWORD")
+      && !value.trim().is_empty()
+      && let Some(pg) = config.postgres.as_mut()
+    {
+      pg.password = value;
+    }
+    if config.dialect()? == SqlDialect::Postgres
+      && config.postgres.as_ref().map(|pg| pg.password.trim().is_empty()).unwrap_or(true)
+    {
+      return Err(ConfigError::Invalid(
+        "postgres password required: set PULSEWIRE_POSTGRES_PASSWORD or a private config password".into()
+      ));
+    }
 
     Ok(config)
   }

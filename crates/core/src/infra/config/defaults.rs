@@ -7,7 +7,7 @@ pub(crate) fn default_pg_user() -> String
 
 pub(crate) fn default_pg_password()
 -> String {
-  "admin".to_string()
+  String::new()
 }
 
 pub(crate) fn default_pg_host() -> String
