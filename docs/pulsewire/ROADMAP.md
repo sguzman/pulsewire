@@ -45,9 +45,9 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 | ID | Item (deliverable) | Weight | Priority | Status | Dependencies | Objective acceptance criteria |
 |---|---|---:|---|---|---|---|
 | PW-020 | 🚨 Eliminate account-reset takeover | 5 | P0 | active | PW-012 | Block unauthenticated reset-token disclosure immediately; later replace with verified out-of-band/admin recovery, rate limits, and regression tests. No reset token returned to arbitrary requester. |
-| PW-021 | 🛡️ Authenticate account lifecycle | 5 | P0 | pending | PW-020 | Secure first-admin bootstrap, registration, role/permission model, token revocation on password changes, authentication throttling and consistent unauthorized responses; negative/positive tests pass. |
-| PW-022 | 💣 Prevent destructive startup | 5 | P0 | pending | PW-011 | Production never wipes data; development reset requires explicit isolated target and force guard. Restore-from-backup and migration replay validated. |
-| PW-023 | 🔑 Secrets and network exposure | 3 | P0 | pending | PW-021 | No deployable admin/admin, checked-in DB passwords or automatic login; config uses secrets supplied at deployment; minimal listening address/firewall; no credential logs. |
+| PW-021 | 🛡️ Authenticate account lifecycle | 5 | P0 | active | PW-020 | Secure first-admin bootstrap, registration, role/permission model, token revocation on password changes, authentication throttling and consistent unauthorized responses; negative/positive tests pass. |
+| PW-022 | 💣 Prevent destructive startup | 5 | P0 | active | PW-011 | Production never wipes data; development reset requires explicit isolated target and force guard. Restore-from-backup and migration replay validated. |
+| PW-023 | 🔑 Secrets and network exposure | 3 | P0 | active | PW-021 | No deployable admin/admin, checked-in DB passwords or automatic login; config uses secrets supplied at deployment; minimal listening address/firewall; no credential logs. |
 | PW-024 | 🧱 Bound untrusted HTTP and source inputs | 2 | P0 | pending | PW-010 | Enforce download/parse limits and timeouts; validate source URLs and redirect targets; resource-limit and invalid-input tests. |
 
 ### M3 — Slim catalog and fair ingestion
@@ -126,3 +126,14 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 - Confirmed: `cargo fmt --all -- --check`, `cargo check --workspace --locked`, `cargo test --workspace --locked` (three Rust tests passed), and `cargo clippy --workspace --all-targets --locked -- -D warnings`.
 - The disabled-category source-skip test passed. This does **not** establish a live database migration, durable production restart, container-image build, or TUI/browser runtime functionality.
 - Weighted change against first adoption ledger: **33% → 38%, +5 percentage points** (`PW-003`, `PW-042` verified). Other items retain their prior statuses.
+
+## Verification ledger — 2026-11-13, round 2
+
+- **Source commit:** [`6f4545c83d61`](https://github.com/sguzman/pulsewire/commit/6f4545c83d619be3911ebcd5ae23e17f1a99012b).
+- **Validated CI:** [Rust checks run 43500736801](https://github.com/sguzman/pulsewire/actions/runs/43500736801) succeeded: `cargo fmt --all -- --check`, `cargo check --workspace --locked`, `cargo test --workspace --locked` (**10 tests passed, 0 failed**), `cargo clippy --workspace --all-targets --locked -- -D warnings`.
+- **Security changes:** account creation requires a valid administrator token; role migration defaults legacy accounts to non-admin; offline `--bootstrap-admin` requires credentials and does not bind HTTP; automatic dev account seeding removed; password updates revoke all user tokens transactionally.
+- **Data safety:** fetcher startup no longer wipes SQLite/PostgreSQL; server refuses startup configured with `dev.reset_on_start = true`; CLI clean requires `--confirm`, `app.mode=dev`, SQLite, `PULSEWIRE_ALLOW_DESTRUCTIVE_DEV_RESET=YES`, a dedicated `PULSEWIRE_DEV_DATA_DIR`, and canonical target-path containment. Files outside this directory, including symlinks escaping it, are rejected.
+- **Secrets:** checked-in sample PostgreSQL passwords changed from `admin` to empty; `PULSEWIRE_POSTGRES_PASSWORD` runtime overrides supported by fetcher and server; Compose requires it. Verify PostgreSQL connection handling with punctuation-heavy passwords before release (server still constructs a database URL).
+- **Remaining:** secure lost-password recovery, account login throttling, role-management coverage, production database/restore verification, PostgreSQL migrations, Docker image builds, runtime integrations, and local deployment remain **unverified**. Do not deploy yet.
+- **Progress:** unchanged **38% → 38% (+0 pp)**. This round made substantial verified progress *inside unfinished weighted tasks* PW-020/PW-021/PW-022/PW-023/PW-050, but none meets its full acceptance criteria yet; no partial credits are invented. These statuses are now active where touched.
+- **Next:** review and harden SQLx PostgreSQL connection handling so secret values with URL-reserved characters work; integrate automated PostgreSQL runtime tests and verify container builds without exposing the API.
