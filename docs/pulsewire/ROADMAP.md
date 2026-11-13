@@ -1,6 +1,6 @@
 # Pulsewire — adoption and resurrection roadmap
 
-> Canonical, scope-frozen engineering plan. Adopted 2026-11-13 on `main` at `c1b1995b13e6`. Weights denote relative full-lifecycle delivery, **not** lines of code or estimated calendar time. Current accepted weighted verification credit: **43/100** (33 source-inventory points, 5 CI/build-gate points); operational readiness remains **unverified**.
+> Canonical, scope-frozen engineering plan. Adopted 2026-11-13 on `main` at `c1b1995b13e6`. Weights denote relative full-lifecycle delivery, **not** lines of code or estimated calendar time. Current accepted weighted verification credit: **48/100** (33 source-inventory, 5 CI/build, 5 slim catalog, 5 destructive-startup safety); operational readiness remains **unverified**.
 
 ## Mission and acceptance contract
 
@@ -46,7 +46,7 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 |---|---|---:|---|---|---|---|
 | PW-020 | 🚨 Eliminate account-reset takeover | 5 | P0 | active | PW-012 | Block unauthenticated reset-token disclosure immediately; later replace with verified out-of-band/admin recovery, rate limits, and regression tests. No reset token returned to arbitrary requester. |
 | PW-021 | 🛡️ Authenticate account lifecycle | 5 | P0 | active | PW-020 | Secure first-admin bootstrap, registration, role/permission model, token revocation on password changes, authentication throttling and consistent unauthorized responses; negative/positive tests pass. |
-| PW-022 | 💣 Prevent destructive startup | 5 | P0 | active | PW-011 | Production never wipes data; development reset requires explicit isolated target and force guard. Restore-from-backup and migration replay validated. |
+| PW-022 | 💣 Prevent destructive startup | 5 | P0 | verified complete | PW-011 | Production never wipes data; development reset requires explicit isolated target and force guard. Restore-from-backup and migration replay validated. |
 | PW-023 | 🔑 Secrets and network exposure | 3 | P0 | active | PW-021 | No deployable admin/admin, checked-in DB passwords or automatic login; config uses secrets supplied at deployment; minimal listening address/firewall; no credential logs. |
 | PW-024 | 🧱 Bound untrusted HTTP and source inputs | 2 | P0 | pending | PW-010 | Enforce download/parse limits and timeouts; validate source URLs and redirect targets; resource-limit and invalid-input tests. |
 
@@ -171,3 +171,14 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 - **Milestone statuses:** PW-030 **verified complete**, PW-043 **active** (Postgres backup/restore verified but SQLite, migration upgrades and retention remain), PW-040 **active** (still reserving repeated upgrade/deployment QA), PW-051 **active** (TUI/real-world scenarios and both backends outstanding).
 - **Weighted completion:** **38% → 43% (+5 percentage points)**. The five points represent exactly PW-030; no partial credit for remaining milestones.
 - **Next:** exercise SQLite backup/restore and repeated upgrade migrations in isolated CI, add a restart/recovery drill for both service databases, and continue authenticating rate-limiting/reader API operations. No operator deployment authorization has been given.
+
+## Verification ledger — 2026-11-13, round 6 (SQLite recovery and safe startup)
+
+- **Source commit:** [`59e36406e286`](https://github.com/sguzman/pulsewire/commit/59e36406e286a54eb35b58804fe2228db66119f7) includes a SQLite file-backed recovery test and reader API smoke additions.
+- **Verified Rust CI:** [run 43519275262](https://github.com/sguzman/pulsewire/actions/runs/43519275262) succeeded in all steps: format, compile, workspace Rust tests, isolated PostgreSQL integration, and Clippy `-D warnings`. The new `legacy_sqlite_schema_backup_restore_preserves_reader_state` test passed.
+- **SQLite recovery evidence:** create the old `users` schema without an admin column, preserve a fixed user ID through repeated schema migrations, verify non-admin default and credential-gated promotion; create an article with authenticated read state, snapshot using SQLite `VACUUM INTO`, restore to a separate file, replay migrations twice, and retrieve the original article and read state through reader handlers. No original file was overwritten.
+- **PostgreSQL recovery evidence:** [round 5 container CI](https://github.com/sguzman/pulsewire/actions/runs/43511740725) successfully restored a new database from `pg_dump -Fc` and validated article and read-state records.
+- **Destructive-operation safety:** normal fetcher and server startup preserve data; server rejects `dev.reset_on_start`; CLI cleanup requires a designated nested development root, SQLite, explicit confirmation, and `PULSEWIRE_ALLOW_DESTRUCTIVE_DEV_RESET=YES`. Existing tests reject paths outside the root and symlink escapes. No production reset occurs on startup.
+- **PW-022 is verified complete:** the explicit startup/cleanup and two-backend restore-and-migration acceptance criteria now have passing evidence. **Weighted progress: 43% → 48% (+5 percentage points)**.
+- **Still open:** PW-043 requires retention and additional upgrade/migration recovery procedures. PW-051 needs TUI and broader reader integration. Expanded container API smoke is separately tracked by [run 43519275224](https://github.com/sguzman/pulsewire/actions/runs/43519275224); do not claim it passed before it finishes.
+- **Next:** complete the expanded API smoke and repair any errors; then cover retention and production migration repeatability, followed by remaining account abuse prevention. Continue keeping YouTube and podcast ingestion disabled.
