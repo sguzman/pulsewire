@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Pulsewire CI News</title>
+    <link>http://ci-rss/</link>
+    <description>Deterministic RSS fixture for isolated integration testing.</description>
+    <language>en</language>
+    <item>
+      <title>Pulsewire CI Story One</title>
+      <link>http://ci-rss/story-one</link>
+      <guid isPermaLink="false">pulsewire-ci-story-one</guid>
+      <pubDate>Fri, 13 Nov 2026 20:00:00 GMT</pubDate>
+      <description>The first CI story was fetched and parsed.</description>
+    </item>
+    <item>
+      <title>Pulsewire CI Story Two</title>
+      <link>http://ci-rss/story-two</link>
+      <guid isPermaLink="false">pulsewire-ci-story-two</guid>
+      <pubDate>Fri, 13 Nov 2026 20:05:00 GMT</pubDate>
+      <description>The second CI story tests multiple items.</description>
+    </item>
+  </channel>
+</rss>

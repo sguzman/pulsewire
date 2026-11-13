@@ -53,7 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           cleanup() {
-            docker rm -f pulsewire-ci-server pulsewire-ci-postgres >/dev/null 2>&1 || true
+            docker rm -f pulsewire-ci-fetcher pulsewire-ci-rss pulsewire-ci-server pulsewire-ci-postgres >/dev/null 2>&1 || true
             docker network rm pulsewire-ci >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
@@ -87,6 +87,7 @@ jobs:
             -e PULSEWIRE_BOOTSTRAP_PASSWORD="$TEST_ADMIN_PASSWORD" \
             pulsewire-server:ci --bootstrap-admin
           docker run -d --name pulsewire-ci-server --network pulsewire-ci \
+            --memory 256m --memory-swap 256m --cpus 0.25 --pids-limit 128 \
             -p 127.0.0.1:18091:8091 \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
@@ -112,3 +113,90 @@ jobs:
             http://127.0.0.1:18091/v1/users)"
           test "$code" = 401
           test "$(docker port pulsewire-ci-server 8091/tcp)" = '127.0.0.1:18091'
+# Exercise the real GET -> XML parser -> PostgreSQL -> API path using
+          # deterministic HTTP inside the isolated Docker network. No external RSS requests.
+          docker run -d --name pulsewire-ci-rss --network pulsewire-ci --network-alias ci-rss \
+            -v "$GITHUB_WORKSPACE/tests/fixtures/rss:/usr/share/nginx/html:ro" \
+            nginx:alpine
+          mkdir -p "$RUNNER_TEMP/pulsewire-real-feeds/news" \
+                   "$RUNNER_TEMP/pulsewire-real-feeds/podcasts" \
+                   "$RUNNER_TEMP/pulsewire-real-feeds/youtube.com"
+          cat > "$RUNNER_TEMP/pulsewire-real-feeds/news/ci.toml" <<'EOF'
+          [[feeds]]
+          id = "pulsewire-ci-real-rss"
+          url = "http://ci-rss/feed.xml"
+          category = "news"
+          base_poll_seconds = 1800
+          EOF
+          # These intentionally broken files prove disabled directories are
+          # skipped before reading/parsing them, not merely filtered afterward.
+          printf 'intentionally broken = [\n' > "$RUNNER_TEMP/pulsewire-real-feeds/podcasts/disabled.toml"
+          printf 'intentionally broken = [\n' > "$RUNNER_TEMP/pulsewire-real-feeds/youtube.com/disabled.toml"
+          docker run -d --name pulsewire-ci-fetcher --network pulsewire-ci \
+            --memory 512m --memory-swap 512m --cpus 0.75 --pids-limit 256 \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e FEEDS_DIR=/app/smoke-feeds \
+            -v "$RUNNER_TEMP/pulsewire-real-feeds:/app/smoke-feeds:ro" \
+            pulsewire-fetcher:ci
+          fetched=0
+          for i in {1..45}; do
+            items="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+              psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.feed_items WHERE feed_id = 'pulsewire-ci-real-rss'" 2>/dev/null || echo 0)"
+            if [ "$items" -ge 2 ]; then fetched=1; break; fi
+            if [ "$(docker inspect -f '{{.State.Running}}' pulsewire-ci-fetcher)" != true ]; then
+              docker logs pulsewire-ci-fetcher
+              exit 1
+            fi
+            sleep 2
+          done
+          if [ "$fetched" -ne 1 ]; then
+            docker logs pulsewire-ci-fetcher
+            exit 1
+          fi
+          docker stop pulsewire-ci-fetcher
+          # Verify disabled sources produced neither scheduler categories nor feed rows.
+          count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.feeds WHERE category IN ('youtube','podcasts')")"
+          test "$count" = 0
+          count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.fetch_events WHERE feed_id = 'pulsewire-ci-real-rss' AND method='GET' AND status=200")"
+          test "$count" -ge 1
+
+          token="$(jq -er '.token' "$RUNNER_TEMP/login.json")"
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?feed_id=pulsewire-ci-real-rss' \
+            > "$RUNNER_TEMP/entries.json"
+          jq -e '(.items | length) >= 2 and any(.items[]; .title == "Pulsewire CI Story One")' \
+            "$RUNNER_TEMP/entries.json"
+          item_id="$(jq -er '.items[0].id' "$RUNNER_TEMP/entries.json")"
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $token" \
+            "http://127.0.0.1:18091/v1/entries/$item_id/read")"
+          test "$code" = 204
+          docker restart pulsewire-ci-server
+          ready=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18091/health >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $token" \
+            "http://127.0.0.1:18091/v1/entries/$item_id/read")"
+          test "$code" = 204
+
+          # Backup then restore into a new database: never DROP or overwrite.
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            pg_dump -U admin -d data -Fc -f /tmp/pulsewire-ci-backup.dump
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            createdb -U admin data_restore
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            pg_restore -U admin -d data_restore --no-owner --no-acl --exit-on-error \
+            /tmp/pulsewire-ci-backup.dump
+          restored="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM fetcher.feed_items WHERE feed_id = 'pulsewire-ci-real-rss'")"
+          test "$restored" -ge 2
+          restored_reads="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.entry_states WHERE read_at IS NOT NULL")"
+          test "$restored_reads" -ge 1
