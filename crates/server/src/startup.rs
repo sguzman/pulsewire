@@ -55,6 +55,15 @@ pub async fn run()
   )
   .await?;
 
+  if config.dev.reset_on_start {
+    return Err(ConfigError::Invalid(
+      "dev.reset_on_start is \
+       unsupported: automatic \
+       database resets are not safe"
+        .into()
+    ));
+  }
+
   logging::init_tracing(&config)?;
 
   if let Some(tz) =
@@ -92,14 +101,6 @@ pub async fn run()
   )
   .await?;
 
-  if config.dev.reset_on_start {
-    return Err(ConfigError::Invalid(
-      "dev.reset_on_start is \
-       unsupported: automatic \
-       database resets are not safe"
-        .into()
-    ));
-  }
   if bootstrap_only {
     let username = std::env::var(
       "PULSEWIRE_BOOTSTRAP_USERNAME"
