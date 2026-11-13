@@ -147,46 +147,8 @@ async fn main() -> Result<(), BootError>
     );
   }
 
-  if matches!(
-    app_cfg.mode,
-    AppMode::Dev
-  ) {
-    let reset_opt_in = std::env::var("PULSEWIRE_ALLOW_DESTRUCTIVE_DEV_RESET").ok();
-    if reset_opt_in.as_deref()
-      != Some("YES")
-    {
-      return Err(BootError::Fatal(
-        "dev mode can delete database state; refuse to start without PULSEWIRE_ALLOW_DESTRUCTIVE_DEV_RESET=YES".into()
-      ));
-    }
-    match app_cfg.db_dialect {
-      | SqlDialect::Sqlite => {
-        warn!(
-            db_path = %app_cfg.sqlite_path.display(),
-            "Dev mode enabled, deleting database"
-        );
-
-        let _ = tokio::fs::remove_file(
-          &app_cfg.sqlite_path
-        )
-        .await;
-      }
-      | SqlDialect::Postgres => {
-        warn!(
-            db = %app_cfg.postgres.database,
-            host = %app_cfg.postgres.host,
-            port = app_cfg.postgres.port,
-            "Dev mode enabled, wiping database"
-        );
-
-        pulsewire_core::infra::postgres_repo::wipe_database(
-                &app_cfg.postgres,
-                &app_cfg.timezone,
-            )
-            .await
-            .map_err(BootError::Fatal)?;
-      }
-    }
+  if matches!(app_cfg.mode, AppMode::Dev) {
+    warn!("Development mode: preserving database contents on startup");
   }
 
   let repo = database::create_repo(

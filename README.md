@@ -61,7 +61,7 @@ Fetcher config resolution order: 1) CLI argument path (if provided), else 2)
 
 `config.toml` (fetcher app sections):
 
-- `[app]` – `mode` (`dev` deletes the DB on boot; `prod` leaves it intact) and
+- `[app]` – `mode` (`dev` and `prod` both preserve existing databases on boot) and
   `timezone`.
 - `[database]` – `dialect` (`sqlite` default, or `postgres`).
 - `[sqlite]` – `path` to the SQLite file.
@@ -125,8 +125,11 @@ OpenAPI docs:
   `cargo run -p pulsewire-fetcher --release -- --ingest-benchmark 50000`
 - Validate config + semantic checks:
   `cargo run -p pulsewire-cli -- validate /path/to/config.toml`
-- Clean local SQLite + logs (requires flag):
-  `cargo run -p pulsewire-cli -- clean /path/to/config.toml --confirm`
+- Clean *isolated* SQLite development files only: the configuration must have
+  `app.mode = "dev"` and `database.dialect = "sqlite"`, both targets must be
+  inside an existing dedicated `PULSEWIRE_DEV_DATA_DIR`, and the command requires
+  `--confirm` plus `PULSEWIRE_ALLOW_DESTRUCTIVE_DEV_RESET=YES`. Production data
+  cannot be cleaned through this command. No service startup performs cleanup.
 - Explicit offline administrator bootstrap (requires at least a 12-byte password;
   with an existing database, authenticate an existing account for promotion):
   `PULSEWIRE_BOOTSTRAP_USERNAME=<name> PULSEWIRE_BOOTSTRAP_PASSWORD=<passphrase> cargo run -p pulsewire-server --release -- --bootstrap-admin`
