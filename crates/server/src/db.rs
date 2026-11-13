@@ -86,9 +86,13 @@ pub async fn connect_db(
           &pg.fetcher_schema
         )?;
 
-      // Build options from structured values. Do not interpolate
-      // credentials into a URL: reserved characters are valid in passwords.
-      let options = postgres_connect_options(pg)?;
+      // Build options from structured
+      // values. Do not interpolate
+      // credentials into a URL:
+      // reserved characters are valid
+      // in passwords.
+      let options =
+        postgres_connect_options(pg)?;
 
       let pool = PgPoolOptions::new()
         .max_connections(10)
@@ -124,29 +128,48 @@ pub async fn connect_db(
   }
 }
 
-
-/// Construct PostgreSQL options without interpreting credentials as a URL.
+/// Construct PostgreSQL options without
+/// interpreting credentials as a URL.
 fn postgres_connect_options(
   pg: &crate::config::PostgresConfig
-) -> Result<PgConnectOptions, ConfigError> {
-  let ssl_mode = match pg.ssl_mode.trim().to_ascii_lowercase().as_str() {
-    "disable" => PgSslMode::Disable,
-    "prefer" => PgSslMode::Prefer,
-    "require" => PgSslMode::Require,
-    "verify-ca" => PgSslMode::VerifyCa,
-    "verify-full" => PgSslMode::VerifyFull,
-    other => return Err(ConfigError::Invalid(
-      format!("invalid postgres.ssl_mode '{other}': expected disable, prefer, require, verify-ca or verify-full")
-    ))
+) -> Result<PgConnectOptions, ConfigError>
+{
+  let ssl_mode = match pg
+    .ssl_mode
+    .trim()
+    .to_ascii_lowercase()
+    .as_str()
+  {
+    | "disable" => PgSslMode::Disable,
+    | "prefer" => PgSslMode::Prefer,
+    | "require" => PgSslMode::Require,
+    | "verify-ca" => {
+      PgSslMode::VerifyCa
+    }
+    | "verify-full" => {
+      PgSslMode::VerifyFull
+    }
+    | other => {
+      return Err(ConfigError::Invalid(
+        format!(
+          "invalid postgres.ssl_mode \
+           '{other}': expected \
+           disable, prefer, require, \
+           verify-ca or verify-full"
+        )
+      ))
+    }
   };
 
-  Ok(PgConnectOptions::new()
-    .host(&pg.host)
-    .port(pg.port)
-    .username(&pg.user)
-    .password(&pg.password)
-    .database(&pg.database)
-    .ssl_mode(ssl_mode))
+  Ok(
+    PgConnectOptions::new()
+      .host(&pg.host)
+      .port(pg.port)
+      .username(&pg.user)
+      .password(&pg.password)
+      .database(&pg.database)
+      .ssl_mode(ssl_mode)
+  )
 }
 
 #[allow(clippy::type_complexity)]
@@ -670,6 +693,10 @@ mod bootstrap_tests {
 
 #[cfg(test)]
 mod postgres_runtime_tests {
+  use axum::Json;
+  use axum::extract::State;
+  use axum::http::HeaderMap;
+
   use super::*;
   use crate::config::{
     AppConfig,
@@ -682,12 +709,19 @@ mod postgres_runtime_tests {
     PostgresConfig,
     SqliteConfig
   };
-  use crate::handlers::{auth, users};
-  use crate::models::{CreateUserRequest, LoginRequest, PasswordChangeRequest};
-  use axum::{Json, extract::State};
-  use axum::http::HeaderMap;
+  use crate::handlers::{
+    auth,
+    users
+  };
+  use crate::models::{
+    CreateUserRequest,
+    LoginRequest,
+    PasswordChangeRequest
+  };
 
-  fn postgres_fixture(password: String) -> PostgresConfig {
+  fn postgres_fixture(
+    password: String
+  ) -> PostgresConfig {
     PostgresConfig {
       host: "127.0.0.1".into(),
       port: 5432,
@@ -695,106 +729,293 @@ mod postgres_runtime_tests {
       user: "pulsewire_ci".into(),
       password,
       ssl_mode: "disable".into(),
-      schema: "pulsewire_ci_server".into(),
-      fetcher_schema: "pulsewire_ci_fetcher".into()
+      schema: "pulsewire_ci_server"
+        .into(),
+      fetcher_schema:
+        "pulsewire_ci_fetcher".into()
     }
   }
 
   #[test]
-  fn rejects_unknown_postgres_tls_mode_without_leaking_credentials() {
-    let mut config = postgres_fixture("secret@with:/?#".into());
-    config.ssl_mode = "not-a-mode".into();
-    let error = postgres_connect_options(&config).expect_err("invalid TLS option");
+  fn rejects_unknown_postgres_tls_mode_without_leaking_credentials()
+   {
+    let mut config = postgres_fixture(
+      "secret@with:/?#".into()
+    );
+    config.ssl_mode =
+      "not-a-mode".into();
+    let error =
+      postgres_connect_options(&config)
+        .expect_err(
+          "invalid TLS option"
+        );
     let printed = error.to_string();
-    assert!(printed.contains("invalid postgres.ssl_mode"));
-    assert!(!printed.contains("secret@with:/?#"));
+    assert!(printed.contains(
+      "invalid postgres.ssl_mode"
+    ));
+    assert!(
+      !printed
+        .contains("secret@with:/?#")
+    );
   }
 
-  /// Runs in a disposable GitHub Actions PostgreSQL service, never against
-  /// a workstation's real database. It is ignored in the default unit suite.
+  /// Runs in a disposable GitHub
+  /// Actions PostgreSQL service, never
+  /// against a workstation's real
+  /// database. It is ignored in the
+  /// default unit suite.
   #[tokio::test]
-  #[ignore = "requires isolated CI PostgreSQL service"]
-  async fn postgres_runtime_schemas_auth_and_password_rotation() {
+  #[ignore = "requires isolated CI \
+              PostgreSQL service"]
+  async fn postgres_runtime_schemas_auth_and_password_rotation()
+   {
     let password = std::env::var("PULSEWIRE_TEST_POSTGRES_PASSWORD")
       .expect("isolated PostgreSQL test password required");
-    assert!(password.contains('@') && password.contains('/') && password.contains('#'));
+    assert!(
+      password.contains('@')
+        && password.contains('/')
+        && password.contains('#')
+    );
 
     let pg = postgres_fixture(password);
     let pool = PgPoolOptions::new()
       .max_connections(2)
-      .connect_with(postgres_connect_options(&pg).expect("connection options"))
-      .await.expect("punctuation-heavy password must connect");
+      .connect_with(
+        postgres_connect_options(&pg)
+          .expect("connection options")
+      )
+      .await
+      .expect(
+        "punctuation-heavy password \
+         must connect"
+      );
 
-    // This job's PostgreSQL database is disposable. No destructive DROP.
-    sqlx::query("CREATE SCHEMA IF NOT EXISTS pulsewire_ci_fetcher")
-      .execute(&pool).await.expect("fetcher schema");
-    sqlx::query("CREATE SCHEMA IF NOT EXISTS pulsewire_ci_server")
-      .execute(&pool).await.expect("server schema");
-    sqlx::query("CREATE TABLE IF NOT EXISTS pulsewire_ci_fetcher.feeds (id TEXT PRIMARY KEY)")
-      .execute(&pool).await.expect("feeds");
-    sqlx::query("CREATE TABLE IF NOT EXISTS pulsewire_ci_fetcher.feed_items (id BIGINT PRIMARY KEY)")
-      .execute(&pool).await.expect("feed_items");
+    // This job's PostgreSQL database is
+    // disposable. No destructive DROP.
+    sqlx::query(
+      "CREATE SCHEMA IF NOT EXISTS \
+       pulsewire_ci_fetcher"
+    )
+    .execute(&pool)
+    .await
+    .expect("fetcher schema");
+    sqlx::query(
+      "CREATE SCHEMA IF NOT EXISTS \
+       pulsewire_ci_server"
+    )
+    .execute(&pool)
+    .await
+    .expect("server schema");
+    sqlx::query(
+      "CREATE TABLE IF NOT EXISTS \
+       pulsewire_ci_fetcher.feeds (id \
+       TEXT PRIMARY KEY)"
+    )
+    .execute(&pool)
+    .await
+    .expect("feeds");
+    sqlx::query(
+      "CREATE TABLE IF NOT EXISTS \
+       pulsewire_ci_fetcher.\
+       feed_items (id BIGINT PRIMARY \
+       KEY)"
+    )
+    .execute(&pool)
+    .await
+    .expect("feed_items");
 
-    // Simulate an existing database from before the is_admin migration.
-    sqlx::query("CREATE TABLE IF NOT EXISTS pulsewire_ci_server.users (id BIGSERIAL PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL)")
-      .execute(&pool).await.expect("legacy users");
-    let legacy_password = "existing-legacy-passphrase";
-    let hash = hash_password(legacy_password).expect("hash");
-    sqlx::query("INSERT INTO pulsewire_ci_server.users (username, password_hash, created_at) VALUES ($1, $2, NOW())")
-      .bind("existing_user").bind(hash)
-      .execute(&pool).await.expect("insert legacy user");
+    // Simulate an existing database
+    // from before the is_admin
+    // migration.
+    sqlx::query(
+      "CREATE TABLE IF NOT EXISTS \
+       pulsewire_ci_server.users (id \
+       BIGSERIAL PRIMARY KEY, \
+       username TEXT NOT NULL UNIQUE, \
+       password_hash TEXT NOT NULL, \
+       created_at TIMESTAMPTZ NOT \
+       NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("legacy users");
+    let legacy_password =
+      "existing-legacy-passphrase";
+    let hash =
+      hash_password(legacy_password)
+        .expect("hash");
+    sqlx::query(
+      "INSERT INTO \
+       pulsewire_ci_server.users \
+       (username, password_hash, \
+       created_at) VALUES ($1, $2, \
+       NOW())"
+    )
+    .bind("existing_user")
+    .bind(hash)
+    .execute(&pool)
+    .await
+    .expect("insert legacy user");
     drop(pool);
 
     let config = ServerConfig {
-      app: AppConfig {mode: AppMode::Prod, timezone: None},
-      http: HttpConfig {host: "127.0.0.1".into(), port: 8091},
-      database: DatabaseConfig {dialect: "postgres".into()},
-      sqlite: SqliteConfig {path: "unused.sqlite".into()},
+      app:      AppConfig {
+        mode:     AppMode::Prod,
+        timezone: None
+      },
+      http:     HttpConfig {
+        host: "127.0.0.1".into(),
+        port: 8091
+      },
+      database: DatabaseConfig {
+        dialect: "postgres".into()
+      },
+      sqlite:   SqliteConfig {
+        path: "unused.sqlite".into()
+      },
       postgres: Some(pg),
-      logging: LoggingConfig {level: Some("warn".into())},
-      auth: AuthConfig {token_ttl_seconds: 3600},
-      dev: DevConfig {reset_on_start: false}
+      logging:  LoggingConfig {
+        level: Some("warn".into())
+      },
+      auth:     AuthConfig {
+        token_ttl_seconds: 3600
+      },
+      dev:      DevConfig {
+        reset_on_start: false
+      }
     };
-    let config_path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/res/config.toml"));
-    let state = connect_db(&config, config_path).await.expect("server connection");
-    crate::schema::apply_server_schema(&config, &state, config_path)
-      .await.expect("apply server migrations");
-    crate::schema::apply_server_schema(&config, &state, config_path)
-      .await.expect("migrations must be repeatable");
+    let config_path =
+      Path::new(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/res/config.toml"
+      ));
+    let state =
+      connect_db(&config, config_path)
+        .await
+        .expect("server connection");
+    crate::schema::apply_server_schema(
+      &config,
+      &state,
+      config_path
+    )
+    .await
+    .expect("apply server migrations");
+    crate::schema::apply_server_schema(
+      &config,
+      &state,
+      config_path
+    )
+    .await
+    .expect(
+      "migrations must be repeatable"
+    );
 
-    let admin_before: bool = sqlx::query_scalar(
-      "SELECT is_admin FROM users WHERE username = 'existing_user'"
-    ).fetch_one(state.postgres.as_ref().expect("postgres pool")).await.expect("role migrated");
-    assert!(!admin_before, "old accounts must not become admins automatically");
+    let admin_before: bool =
+      sqlx::query_scalar(
+        "SELECT is_admin FROM users \
+         WHERE username = \
+         'existing_user'"
+      )
+      .fetch_one(
+        state
+          .postgres
+          .as_ref()
+          .expect("postgres pool")
+      )
+      .await
+      .expect("role migrated");
+    assert!(
+      !admin_before,
+      "old accounts must not become \
+       admins automatically"
+    );
 
-    assert!(bootstrap_admin(&state, "existing_user", "wrong-passphrase").await.is_err());
-    bootstrap_admin(&state, "existing_user", legacy_password)
-      .await.expect("promote only with existing credential");
+    assert!(
+      bootstrap_admin(
+        &state,
+        "existing_user",
+        "wrong-passphrase"
+      )
+      .await
+      .is_err()
+    );
+    bootstrap_admin(
+      &state,
+      "existing_user",
+      legacy_password
+    )
+    .await
+    .expect(
+      "promote only with existing \
+       credential"
+    );
 
-    let Json(token) = auth::login(State(state.clone()), Json(LoginRequest {
-      username: "existing_user".into(),
-      password: legacy_password.into()
-    })).await.expect("login");
+    let Json(token) = auth::login(
+      State(state.clone()),
+      Json(LoginRequest {
+        username: "existing_user"
+          .into(),
+        password: legacy_password
+          .into()
+      })
+    )
+    .await
+    .expect("login");
     let mut headers = HeaderMap::new();
-    headers.insert("authorization", format!("Bearer {}", token.token)
-      .parse().expect("token header"));
-    let Json(reader) = users::create_user(
+    headers.insert(
+      "authorization",
+      format!("Bearer {}", token.token)
+        .parse()
+        .expect("token header")
+    );
+    let Json(reader) =
+      users::create_user(
+        State(state.clone()),
+        headers.clone(),
+        Json(CreateUserRequest {
+          username: "new_reader".into(),
+          password:
+            "reader-passphrase-long"
+              .into()
+        })
+      )
+      .await
+      .expect("admin creates reader");
+    assert_eq!(
+      reader.username,
+      "new_reader"
+    );
+    users::change_password(
       State(state.clone()),
       headers.clone(),
-      Json(CreateUserRequest {username: "new_reader".into(), password: "reader-passphrase-long".into()})
-    ).await.expect("admin creates reader");
-    assert_eq!(reader.username, "new_reader");
-    users::change_password(
-      State(state.clone()), headers.clone(),
       Json(PasswordChangeRequest {
-        current_password: legacy_password.into(),
-        new_password: "updated-legacy-passphrase".into()
+        current_password:
+          legacy_password.into(),
+        new_password:
+          "updated-legacy-passphrase"
+            .into()
       })
-    ).await.expect("change password");
-    assert!(crate::auth::auth_user_id(&state, &headers).await.is_err());
-    auth::login(State(state.clone()), Json(LoginRequest {
-      username: "existing_user".into(),
-      password: "updated-legacy-passphrase".into()
-    })).await.expect("new password works");
+    )
+    .await
+    .expect("change password");
+    assert!(
+      crate::auth::auth_user_id(
+        &state, &headers
+      )
+      .await
+      .is_err()
+    );
+    auth::login(
+      State(state.clone()),
+      Json(LoginRequest {
+        username: "existing_user"
+          .into(),
+        password:
+          "updated-legacy-passphrase"
+            .into()
+      })
+    )
+    .await
+    .expect("new password works");
   }
 }
