@@ -1,0 +1,30 @@
+name: Rust checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: rustup show
+      - name: Rust format
+        run: cargo fmt --all -- --check
+      - name: Rust compile
+        run: cargo check --workspace --locked
+      - name: Rust tests
+        run: cargo test --workspace --locked
+      - name: Rust Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
