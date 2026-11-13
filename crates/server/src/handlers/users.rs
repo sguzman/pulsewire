@@ -135,8 +135,8 @@ pub async fn change_password(
     return Err(ServerError::new(
       StatusCode::BAD_REQUEST,
       "current_password required; \
-       new_password must be at \
-       least 12 bytes"
+       new_password must be at least \
+       12 bytes"
     ));
   }
 
