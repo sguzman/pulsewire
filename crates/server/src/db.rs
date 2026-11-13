@@ -760,6 +760,53 @@ mod bootstrap_tests {
       .expect("tokens");
     assert_eq!(tokens, 0);
   }
+
+  #[tokio::test]
+  async fn offline_recovery_rotates_password_and_revokes_both_token_types() {
+    use crate::auth::{hash_token, verify_password};
+    let pool = SqlitePoolOptions::new().max_connections(1)
+      .connect("sqlite::memory:").await.expect("sqlite");
+    sqlx::query("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, is_admin INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)")
+      .execute(&pool).await.expect("users");
+    sqlx::query("CREATE TABLE user_tokens (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, token_hash TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL)")
+      .execute(&pool).await.expect("tokens");
+    sqlx::query("CREATE TABLE user_password_resets (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, token_hash TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL)")
+      .execute(&pool).await.expect("reset tokens");
+    let old_hash = hash_password("old-long-passphrase").expect("hash");
+    sqlx::query("INSERT INTO users (id,username,password_hash,is_admin,created_at) VALUES (7,'reader',?1,0,'2026-01-01')")
+      .bind(old_hash).execute(&pool).await.expect("user");
+    sqlx::query("INSERT INTO user_tokens (user_id,token_hash,expires_at,created_at) VALUES (7,?1,'2099-01-01','2026-01-01')")
+      .bind(hash_token("old-session")).execute(&pool).await.expect("session");
+    sqlx::query("INSERT INTO user_password_resets (user_id,token_hash,expires_at,created_at) VALUES (7,'old-reset','2099-01-01','2026-01-01')")
+      .execute(&pool).await.expect("reset token");
+
+    let state = AppState {
+      sqlite: Some(pool.clone()), postgres: None,
+      fetcher_schema: None, token_ttl_seconds: 3600
+    };
+    assert!(recover_user_password(&state, "missing", "new-long-passphrase").await.is_err());
+    assert!(recover_user_password(&state, "reader", "short").await.is_err());
+    let token_before: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM user_tokens")
+      .fetch_one(&pool).await.expect("session still present");
+    assert_eq!(token_before, 1);
+    recover_user_password(&state, "reader", "new-long-passphrase")
+      .await.expect("operator password recovery");
+
+    let (id, role, hash): (i64, i64, String) = sqlx::query_as(
+      "SELECT id, is_admin, password_hash FROM users WHERE username = 'reader'"
+    ).fetch_one(&pool).await.expect("recovered account");
+    assert_eq!(id, 7);
+    assert_eq!(role, 0, "recovery must never promote privileges");
+    assert!(verify_password(&hash, "old-long-passphrase").is_err());
+    verify_password(&hash, "new-long-passphrase").expect("new password valid");
+    for table in ["user_tokens", "user_password_resets"] {
+      let query = format!("SELECT COUNT(*) FROM {table}");
+      let count: i64 = sqlx::query_scalar(&query)
+        .fetch_one(&pool).await.expect("revoked tokens");
+      assert_eq!(count, 0);
+    }
+  }
+
 }
 
 #[cfg(test)]
@@ -1091,50 +1138,5 @@ mod postgres_runtime_tests {
     assert!(!fresh.token.is_empty());
   }
 
-  #[tokio::test]
-  async fn offline_recovery_rotates_password_and_revokes_both_token_types() {
-    use crate::auth::{hash_token, verify_password};
-    let pool = SqlitePoolOptions::new().max_connections(1)
-      .connect("sqlite::memory:").await.expect("sqlite");
-    sqlx::query("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, is_admin INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)")
-      .execute(&pool).await.expect("users");
-    sqlx::query("CREATE TABLE user_tokens (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, token_hash TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL)")
-      .execute(&pool).await.expect("tokens");
-    sqlx::query("CREATE TABLE user_password_resets (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, token_hash TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL)")
-      .execute(&pool).await.expect("reset tokens");
-    let old_hash = hash_password("old-long-passphrase").expect("hash");
-    sqlx::query("INSERT INTO users (id,username,password_hash,is_admin,created_at) VALUES (7,'reader',?1,0,'2026-01-01')")
-      .bind(old_hash).execute(&pool).await.expect("user");
-    sqlx::query("INSERT INTO user_tokens (user_id,token_hash,expires_at,created_at) VALUES (7,?1,'2099-01-01','2026-01-01')")
-      .bind(hash_token("old-session")).execute(&pool).await.expect("session");
-    sqlx::query("INSERT INTO user_password_resets (user_id,token_hash,expires_at,created_at) VALUES (7,'old-reset','2099-01-01','2026-01-01')")
-      .execute(&pool).await.expect("reset token");
-
-    let state = AppState {
-      sqlite: Some(pool.clone()), postgres: None,
-      fetcher_schema: None, token_ttl_seconds: 3600
-    };
-    assert!(recover_user_password(&state, "missing", "new-long-passphrase").await.is_err());
-    assert!(recover_user_password(&state, "reader", "short").await.is_err());
-    let token_before: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM user_tokens")
-      .fetch_one(&pool).await.expect("session still present");
-    assert_eq!(token_before, 1);
-    recover_user_password(&state, "reader", "new-long-passphrase")
-      .await.expect("operator password recovery");
-
-    let (id, role, hash): (i64, i64, String) = sqlx::query_as(
-      "SELECT id, is_admin, password_hash FROM users WHERE username = 'reader'"
-    ).fetch_one(&pool).await.expect("recovered account");
-    assert_eq!(id, 7);
-    assert_eq!(role, 0, "recovery must never promote privileges");
-    assert!(verify_password(&hash, "old-long-passphrase").is_err());
-    verify_password(&hash, "new-long-passphrase").expect("new password valid");
-    for table in ["user_tokens", "user_password_resets"] {
-      let query = format!("SELECT COUNT(*) FROM {table}");
-      let count: i64 = sqlx::query_scalar(&query)
-        .fetch_one(&pool).await.expect("revoked tokens");
-      assert_eq!(count, 0);
-    }
-  }
 
 }
