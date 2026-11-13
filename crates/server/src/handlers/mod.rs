@@ -44,8 +44,9 @@ pub fn router(
         .route("/v1/folders/:folder_id/unread/counts", get(folders::folder_feed_unread_counts))
         .route("/v1/users", post(users::create_user))
         .route("/v1/users/me", delete(users::delete_user))
-        .route("/v1/users/password-reset/request", post(users::request_password_reset))
-        .route("/v1/users/password-reset/confirm", post(users::confirm_password_reset))
+        // Password reset routes are disabled pending a verified
+        // out-of-band recovery flow. Previously, an unauthenticated
+        // request received a usable reset token directly.
         .route("/v1/users/password", post(users::change_password))
         .route("/v1/auth/login", post(auth::login))
         .route("/v1/auth/logout", post(auth::logout))

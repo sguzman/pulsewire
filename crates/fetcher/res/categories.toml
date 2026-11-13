@@ -5,6 +5,7 @@ domains = [
   "youtube.com",
 ]
 name = "youtube"
+enabled = false
 
 [[categories]]
 domains = [
@@ -93,6 +94,7 @@ domains = [
   "www.theguardian.com",
 ]
 name = "podcasts"
+enabled = false
 
 [[categories]]
 domains = [

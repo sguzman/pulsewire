@@ -234,7 +234,8 @@ pub(crate) struct RawCategoriesFile {
 #[derive(Debug, Deserialize)]
 pub(crate) struct RawCategoryEntry {
   pub name:    String,
-  pub domains: Vec<String>
+  pub domains: Vec<String>,
+  pub enabled: Option<bool>
 }
 
 #[derive(Debug, Deserialize)]

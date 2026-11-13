@@ -6,11 +6,13 @@ RUN apk add --no-cache musl-dev ca-certificates \
 RUN rustup target add ${TARGET}
 COPY Cargo.toml Cargo.lock ./
 COPY crates/core/Cargo.toml crates/core/Cargo.toml
+COPY crates/schemas/Cargo.toml crates/schemas/Cargo.toml
 COPY crates/fetcher/Cargo.toml crates/fetcher/Cargo.toml
 COPY crates/cli/Cargo.toml crates/cli/Cargo.toml
 COPY crates/server/Cargo.toml crates/server/Cargo.toml
 COPY crates/tui/Cargo.toml crates/tui/Cargo.toml
 COPY crates/core/src crates/core/src
+COPY crates/schemas/src crates/schemas/src
 COPY crates/core/res/sql crates/core/res/sql
 COPY crates/fetcher/src crates/fetcher/src
 COPY crates/cli/src crates/cli/src

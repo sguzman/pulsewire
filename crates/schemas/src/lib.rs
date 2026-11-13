@@ -11,5 +11,8 @@ pub const SCHEMAS_ROOT: &str =
 pub fn schema_dir(
   service: &str
 ) -> String {
-  format!("{SCHEMAS_ROOT}/{service}")
+  std::env::var("SCHEMAS_DIR")
+    .ok()
+    .filter(|path| !path.trim().is_empty())
+    .unwrap_or_else(|| format!("{SCHEMAS_ROOT}/{service}"))
 }

@@ -62,7 +62,8 @@ pub struct LoadedConfig {
   pub app:        AppConfig,
   pub feeds:      Vec<FeedConfig>,
   pub watches:    Vec<WatchConfig>,
-  pub categories: Vec<CategoryConfig>
+  pub categories: Vec<CategoryConfig>,
+  pub disabled_categories: HashSet<String>
 }
 
 impl ConfigLoader {
@@ -183,13 +184,6 @@ impl ConfigLoader {
     let raw_categories: RawCategoriesFile =
       toml::from_str(&categories_content)?;
 
-    let raw_feeds = load_all_feeds(
-      &feeds_dir,
-      &feeds_schema,
-      &global_schema
-    )
-    .await?;
-
     let mode = parse_mode(
       raw_cfg.app.mode.as_deref()
     )?;
@@ -273,6 +267,9 @@ impl ConfigLoader {
       );
     }
 
+    let mut disabled_categories = HashSet::new();
+    let mut disabled_feed_directories = HashSet::new();
+
     let mut category_names =
       HashSet::new();
 
@@ -306,6 +303,12 @@ impl ConfigLoader {
             )
           )
         );
+      }
+
+      let disabled = c.enabled == Some(false);
+      if disabled {
+        disabled_categories.insert(name.clone());
+        disabled_feed_directories.insert(name.clone());
       }
 
       let mut domains_vec = Vec::new();
@@ -343,6 +346,9 @@ impl ConfigLoader {
           );
         }
 
+        if disabled {
+          disabled_feed_directories.insert(domain.clone());
+        }
         domains_vec.push(domain);
       }
 
@@ -359,6 +365,15 @@ impl ConfigLoader {
           .into()
       ));
     }
+
+    // Skip disabled source catalogs before parsing the large TOML files.
+    let raw_feeds = load_all_feeds(
+      &feeds_dir,
+      &feeds_schema,
+      &global_schema,
+      &disabled_feed_directories
+    )
+    .await?;
 
     let history_sample_rate = raw_cfg
       .state_history
@@ -400,6 +415,10 @@ impl ConfigLoader {
         &category_names,
         &domain_to_category
       )?;
+
+      if disabled_categories.contains(&category) {
+        continue;
+      }
 
       if !source_ids
         .insert(f.id.clone())
@@ -453,6 +472,10 @@ impl ConfigLoader {
         &domain_to_category
       )?;
 
+      if disabled_categories.contains(&watch.category) {
+        continue;
+      }
+
       if !source_ids
         .insert(watch.id.clone())
       {
@@ -479,6 +502,7 @@ impl ConfigLoader {
       });
 
     Ok(LoadedConfig {
+      disabled_categories,
       app: AppConfig {
         db_dialect,
         sqlite_path: db_path,

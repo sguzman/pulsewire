@@ -68,7 +68,8 @@ async fn main() -> Result<(), BootError>
     app: app_cfg,
     feeds,
     watches,
-    categories
+    categories,
+    disabled_categories
   } = ConfigLoader::load(&cfg_path)
     .await
     .map_err(|e| {
@@ -200,6 +201,7 @@ async fn main() -> Result<(), BootError>
   let category_names: Vec<String> =
     categories
       .iter()
+      .filter(|c| !disabled_categories.contains(&c.name))
       .map(|c| c.name.clone())
       .collect();
 
