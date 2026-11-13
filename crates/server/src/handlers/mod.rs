@@ -1,4 +1,4 @@
-mod auth;
+pub(crate) mod auth;
 mod docs;
 mod entries;
 mod favorites;
@@ -6,7 +6,7 @@ mod feeds;
 mod folders;
 mod health;
 mod subscriptions;
-mod users;
+pub(crate) mod users;
 
 use axum::Router;
 use axum::routing::{
