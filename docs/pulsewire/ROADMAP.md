@@ -1,6 +1,6 @@
 # Pulsewire — adoption and resurrection roadmap
 
-> Canonical, scope-frozen engineering plan. Adopted 2026-11-13 on `main` at `c1b1995b13e6`. Weights denote relative full-lifecycle delivery, **not** lines of code or estimated calendar time. Current accepted weighted verification credit: **38/100** (33 source-inventory points, 5 CI/build-gate points); operational readiness remains **unverified**.
+> Canonical, scope-frozen engineering plan. Adopted 2026-11-13 on `main` at `c1b1995b13e6`. Weights denote relative full-lifecycle delivery, **not** lines of code or estimated calendar time. Current accepted weighted verification credit: **43/100** (33 source-inventory points, 5 CI/build-gate points); operational readiness remains **unverified**.
 
 ## Mission and acceptance contract
 
@@ -54,7 +54,7 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 
 | ID | Item (deliverable) | Weight | Priority | Status | Dependencies | Objective acceptance criteria |
 |---|---|---:|---|---|---|---|
-| PW-030 | 🚫 Disable YouTube and podcasts by default | 5 | P0 | active | PW-010 | New install skips the two catalogs before parsing, never schedules them or ingests them; all other categories stay enabled, existing definitions/data are preserved; tests and smoke run prove it. |
+| PW-030 | 🚫 Disable YouTube and podcasts by default | 5 | P0 | verified complete | PW-010 | New install skips the two catalogs before parsing, never schedules them or ingests them; all other categories stay enabled, existing definitions/data are preserved; tests and smoke run prove it. |
 | PW-031 | ⏲️ Fair bounded scheduling | 5 | P1 | pending | PW-030 | One category cannot starve others; due-queue paging, domain budgets and retries behave under slow/failing feeds; simulated load tests prove behavior. |
 | PW-032 | 📉 Realistic resource envelope | 2 | P1 | pending | PW-031 | Measure CPU, memory, DB growth, poll latency and backlog for the slim news/government/journals catalog; document sustainable bounds on target server. |
 
@@ -65,7 +65,7 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 | PW-040 | 📦 Fix container packaging and Compose | 4 | P0 | active | PW-003 | Clean images build with all workspace manifests; Compose paths and network/DNS integration resolve; non-root runtime and resource limits proven with isolated containers. |
 | PW-041 | 🧭 Fix runtime schema and config lookup | 3 | P0 | active | PW-040 | Installed and containerized binaries resolve schemas and config from runtime paths, never stale source builds; XDG/default/override precedence tests pass. |
 | PW-042 | ✅ CI quality gates | 3 | P0 | verified complete | PW-003 | Main/PR GitHub Actions execute cargo fmt, check, Clippy, unit/integration tests on supported target; all green. |
-| PW-043 | 💾 Migrations, retention and backup recovery | 2 | P0 | pending | PW-022 | Both DB backends migrate without loss; read-state persists across restarts; backup/restore and retention procedures validated with fixtures. |
+| PW-043 | 💾 Migrations, retention and backup recovery | 2 | P0 | active | PW-022 | Both DB backends migrate without loss; read-state persists across restarts; backup/restore and retention procedures validated with fixtures. |
 
 ### M5 — Correctness and runtime QA
 
@@ -159,3 +159,15 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 - **Acceptance still open:** PW-040 requires runtime testing under the Compose CPU/memory caps and a repeatable real upgrade; PW-041 requires native installed-binary/XDG path QA; PW-030 requires a live scheduler proof with disabled directories mounted; PW-043/PW-051 require persistence, backup/restore, real RSS fetch → API/TUI, and broader data checks. The current smoke test's synthetic benchmark is **not** evidence of real feed retrieval.
 - **Progress ledger:** **38% → 38% (+0 percentage points)**. PW-030, PW-040, PW-041 and PW-051 advanced with passing evidence, but none has met its full definition of done; do not invent partial weighted completion.
 - **Next:** isolated real-RSS fixture through fetcher → PostgreSQL → API, verify disabled categories don't ingest even when mounted, exercise Docker CPU/memory constraints, and add reversible SQLite/PostgreSQL backup/restore fixtures. Continue to exclude podcasts and YouTube by default.
+
+## Verification ledger — 2026-11-13, round 5 (live RSS and recovery)
+
+- **Source test:** [`6702fafd8eca`](https://github.com/sguzman/pulsewire/commit/6702fafd8ecada0c56a39b07482e138c7cc08afa), with a workflow YAML indentation correction [`23f60e0cbbef`](https://github.com/sguzman/pulsewire/commit/23f60e0cbbefa3a644b425b38d91587a24589ccc).
+- **Passing CI:** [Rust check suite 43511740707](https://github.com/sguzman/pulsewire/actions/runs/43511740707) and [container pipeline 43511740725](https://github.com/sguzman/pulsewire/actions/runs/43511740725) both completed successfully.
+- **Real RSS integration:** disposable `nginx:alpine` served checked-in `tests/fixtures/rss/feed.xml` inside the isolated CI Docker network. The actual live Pulsewire fetcher, under 512 MiB memory/0.75 CPU/pid limits, scheduled an initial HTTP GET, parsed two RSS stories, and persisted their data in PostgreSQL; the authenticated server's `GET /v1/entries?feed_id=...` returned them. This replaces the earlier benchmark-only evidence; the fixture is local/deterministic and does not access news websites.
+- **Disabled-category acceptance:** Pulsewire's built image excludes both retired source directories; a separate mounted feed tree included deliberately malformed TOML under `youtube.com` and `podcasts`. The live fetcher parsed the news feed and stored articles successfully despite those malformed disabled files; no feeds in the disabled categories were inserted. Original catalog files stay in Git and no purge occurs. This plus source loader/scheduler exclusion and the earlier Rust unit test satisfies **PW-030**.
+- **Durability evidence:** API-marked article read state survived a server restart. The job used `pg_dump -Fc` to capture the disposable PostgreSQL database, created **new** `data_restore`, ran `pg_restore --exit-on-error`, and verified both fetched articles and read-state records in the restored database. Source `data` was not dropped/overwritten.
+- **Resource envelope:** both images were built from scratch, operated as numeric non-root UID/GID 65532, and both live service containers ran under their defined CPU/RAM/pid caps; ports stayed loopback-bound. Clean builds, Compose syntax and runtime hostname override were previously green.
+- **Milestone statuses:** PW-030 **verified complete**, PW-043 **active** (Postgres backup/restore verified but SQLite, migration upgrades and retention remain), PW-040 **active** (still reserving repeated upgrade/deployment QA), PW-051 **active** (TUI/real-world scenarios and both backends outstanding).
+- **Weighted completion:** **38% → 43% (+5 percentage points)**. The five points represent exactly PW-030; no partial credit for remaining milestones.
+- **Next:** exercise SQLite backup/restore and repeated upgrade migrations in isolated CI, add a restart/recovery drill for both service databases, and continue authenticating rate-limiting/reader API operations. No operator deployment authorization has been given.
