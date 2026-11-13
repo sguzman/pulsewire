@@ -72,7 +72,7 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 | ID | Item (deliverable) | Weight | Priority | Status | Dependencies | Objective acceptance criteria |
 |---|---|---:|---|---|---|---|
 | PW-050 | 🧬 Targeted unit and regression tests | 4 | P0 | active | PW-020,PW-030 | Reproduce fixed security, category suppression, change detection, scheduling, malformed feeds, quota and auth edge cases; deterministic offline tests pass. |
-| PW-051 | 🔄 End-to-end operational checks | 4 | P0 | pending | PW-040,PW-050 | Real fetch → parse → DB → API → TUI, restart persistence, folder/subscription/read state and schema integration pass under SQLite and PostgreSQL. |
+| PW-051 | 🔄 End-to-end operational checks | 4 | P0 | active | PW-040,PW-050 | Real fetch → parse → DB → API → TUI, restart persistence, folder/subscription/read state and schema integration pass under SQLite and PostgreSQL. |
 | PW-052 | 🩺 Service health and Prometheus | 2 | P1 | pending | PW-051 | Valid metrics HTTP response and successful Prometheus scrape; readiness checks DB/scheduler as applicable; shutdown and failures visible. |
 | PW-053 | 🕸️ HTML-watch change detection | 2 | P1 | pending | PW-024 | Persist comparison hashes; respect CSS extraction/emit modes, body limits, disabled watches and noisy-content suppression; regression tests pass. |
 
@@ -137,3 +137,13 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 - **Remaining:** secure lost-password recovery, account login throttling, role-management coverage, production database/restore verification, PostgreSQL migrations, Docker image builds, runtime integrations, and local deployment remain **unverified**. Do not deploy yet.
 - **Progress:** unchanged **38% → 38% (+0 pp)**. This round made substantial verified progress *inside unfinished weighted tasks* PW-020/PW-021/PW-022/PW-023/PW-050, but none meets its full acceptance criteria yet; no partial credits are invented. These statuses are now active where touched.
 - **Next:** review and harden SQLx PostgreSQL connection handling so secret values with URL-reserved characters work; integrate automated PostgreSQL runtime tests and verify container builds without exposing the API.
+
+## Verification ledger — 2026-11-13, round 3 (PostgreSQL runtime)
+
+- **Verified source:** [`35551a5ab285`](https://github.com/sguzman/pulsewire/commit/35551a5ab285d43418540424f6f386459d759234).
+- **CI evidence:** [successful GitHub Actions run 43505774415](https://github.com/sguzman/pulsewire/actions/runs/43505774415). Rust formatting, workspace compilation, unit tests, isolated PostgreSQL 16 integration, and Clippy with `-D warnings` all passed. The regular suite had **11 passing tests plus one deliberately ignored container-only test**, which ran separately and passed (**12 executed tests, 0 failures**).
+- **Connection safety:** the server now uses SQLx `PgConnectOptions` with separate host, port, user, password, database and SSL-mode fields; it never embeds raw credentials into a connection URL. The fetcher already used structured SQLx options. Unsupported TLS modes are rejected explicitly.
+- **PostgreSQL test:** exercised a disposable PostgreSQL service with reserved characters in the password, the prior-to-admin-role `users` schema, repeatable server schema migration, preservation of legacy user IDs and non-admin status, password-verified administrator promotion, authenticated reader creation, and password rotation that invalidates the old session and issues a fresh token.
+- **Safety boundary:** the CI database is disposable and isolated. The test does not access any home PostgreSQL instance or real credentials. Production PostgreSQL backups, deployability, and actual LAN service behavior are **not** yet demonstrated.
+- **Task accounting:** PW-051 is now **active**, not complete; migrations, persistence through restart, other API/TUI flows, and both storage backends still require dedicated evidence. PW-041, PW-043 and PW-050 also have remaining work. **Weighted overall unchanged at 38% (+0 percentage points)** because no whole milestone item met its full acceptance criteria.
+- **Next verified priorities:** validate clean container image builds; add isolated SQLite and PostgreSQL restart/backup/restore tests; check secure operator bootstrap and remaining authentication abuse protections. Keep YouTube/podcasts disabled and catalogs preserved.
