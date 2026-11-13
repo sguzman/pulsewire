@@ -237,7 +237,7 @@ jobs:
           restored_favorites="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
             psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.favorites WHERE feed_id = 'pulsewire-ci-real-rss'")"
           test "$restored_favorites" -ge 1
-# Offline operator recovery: invalid confirmation does not connect
+          # Offline operator recovery: invalid confirmation does not connect
           # or mutate the database. A successful recovery kills old sessions.
           prior_hash="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
             psql -U admin -d data -Atc "SELECT password_hash FROM server.users WHERE username = 'owner'")"
