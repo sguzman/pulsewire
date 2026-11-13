@@ -94,14 +94,14 @@ Server config (`crates/server/res/config.toml`):
   `fetcher_schema`.
 - `[logging]` – `level`.
 - `[auth]` – `token_ttl_seconds`.
-- `[dev]` – `reset_on_start` (clears server-only tables).
-  - In dev mode, the server seeds the user from `[seed]` if it does not exist
-    (defaults to `admin/admin`).
+- `[dev]` – `reset_on_start` is deprecated; enabling it is rejected to prevent data loss.
+  Legacy `[seed]` values are ignored. Pulsewire never seeds `admin/admin` automatically.
 
 ## HTTP Server API (high Level)
 
 - Auth: login/logout, rotate token, list/revoke tokens.
-- Users: create user, change password, delete account. Self-service password
+- Users: administrators create accounts; users can change their own password and
+  delete their account. Self-service password
   reset is intentionally unavailable until a secure recovery flow is added.
 - Feeds: list feeds, feed detail, list feed entries.
 - Entries: list, detail, read/unread, batch read/unread, unread counts, search.
@@ -127,6 +127,11 @@ OpenAPI docs:
   `cargo run -p pulsewire-cli -- validate /path/to/config.toml`
 - Clean local SQLite + logs (requires flag):
   `cargo run -p pulsewire-cli -- clean /path/to/config.toml --confirm`
+- Explicit offline administrator bootstrap (requires at least a 12-byte password;
+  with an existing database, authenticate an existing account for promotion):
+  `PULSEWIRE_BOOTSTRAP_USERNAME=<name> PULSEWIRE_BOOTSTRAP_PASSWORD=<passphrase> cargo run -p pulsewire-server --release -- --bootstrap-admin`
+  The bootstrap command does not open an HTTP listener. Remove bootstrap credentials
+  from the environment afterward. `POST /v1/users` requires an admin bearer token.
 - Run server (default config): `cargo run -p pulsewire-server --release`
 - Run server with explicit config:
   `SERVER_CONFIG_PATH=/path/to/config.toml cargo run -p pulsewire-server --release`

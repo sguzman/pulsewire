@@ -10,8 +10,7 @@
     "sqlite",
     "logging",
     "dev",
-    "auth",
-    "seed"
+    "auth"
   ],
   "properties": {
     "app": {

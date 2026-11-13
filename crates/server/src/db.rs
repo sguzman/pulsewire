@@ -4,7 +4,10 @@ use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
 
 use crate::app_state::AppState;
-use crate::auth::hash_password;
+use crate::auth::{
+  hash_password,
+  verify_password
+};
 use crate::config::{
   ConfigError,
   ServerConfig,
@@ -124,117 +127,6 @@ pub async fn connect_db(
   }
 }
 
-pub async fn reset_server_data(
-  config: &ServerConfig,
-  state: &AppState
-) -> Result<(), ConfigError> {
-  let tables = [
-    "user_tokens",
-    "user_password_resets",
-    "favorites",
-    "entry_states",
-    "folder_feeds",
-    "folders",
-    "subscriptions",
-    "users"
-  ];
-
-  match config.dialect()? {
-    | SqlDialect::Sqlite => {
-      let pool = state
-        .sqlite
-        .as_ref()
-        .ok_or_else(|| {
-          ConfigError::Invalid(
-            "sqlite pool missing"
-              .into()
-          )
-        })?;
-
-      for table in tables {
-        let query = format!(
-          "DELETE FROM {table}"
-        );
-
-        if let Err(e) =
-          sqlx::query(&query)
-            .execute(pool)
-            .await
-          && !is_missing_table_error(&e)
-        {
-          return Err(
-            ConfigError::Invalid(
-              format!(
-                "cleanup {table} \
-                 failed: {e}"
-              )
-            )
-          );
-        }
-      }
-    }
-    | SqlDialect::Postgres => {
-      let pool = state
-        .postgres
-        .as_ref()
-        .ok_or_else(|| {
-          ConfigError::Invalid(
-            "postgres pool missing"
-              .into()
-          )
-        })?;
-
-      let schema = config
-        .postgres
-        .as_ref()
-        .ok_or_else(|| {
-          ConfigError::Invalid(
-            "postgres section missing"
-              .into()
-          )
-        })?
-        .schema
-        .as_str();
-
-      let schema =
-        validate_schema_name(schema)?;
-
-      let table_list = tables
-        .iter()
-        .map(|t| {
-          format!(
-            "{}.{}",
-            quote_ident(&schema),
-            quote_ident(t)
-          )
-        })
-        .collect::<Vec<_>>()
-        .join(", ");
-
-      let stmt = format!(
-        "TRUNCATE TABLE {table_list} \
-         RESTART IDENTITY CASCADE"
-      );
-
-      if let Err(e) = sqlx::query(&stmt)
-        .execute(pool)
-        .await
-        && !is_missing_table_error(&e)
-      {
-        return Err(
-          ConfigError::Invalid(
-            format!(
-              "cleanup failed: {e}"
-            )
-          )
-        );
-      }
-    }
-  }
-
-  Ok(())
-}
-
 #[allow(clippy::type_complexity)]
 pub fn set_search_path(
   schema: String
@@ -303,95 +195,88 @@ pub fn quote_ident(
   )
 }
 
-pub async fn ensure_default_user(
-  config: &ServerConfig,
+pub async fn bootstrap_admin(
   state: &AppState,
   username: &str,
   password: &str
 ) -> Result<(), ConfigError> {
-  let password_hash = hash_password(
-    password
-  )
-  .map_err(|e| {
-    ConfigError::Invalid(format!(
-      "hash password: {e}"
-    ))
-  })?;
-
-  match config.dialect()? {
-    | SqlDialect::Sqlite => {
-      let pool = state
-        .sqlite
-        .as_ref()
-        .ok_or_else(|| {
-          ConfigError::Invalid(
-            "sqlite pool missing"
-              .into()
-          )
-        })?;
-
-      let result = sqlx::query(
-        "INSERT OR IGNORE INTO users \
-         (username, password_hash, \
-         created_at) VALUES (?1, ?2, \
-         datetime('now'))"
-      )
-      .bind(username)
-      .bind(password_hash)
-      .execute(pool)
-      .await
-      .map_err(|e| {
-        ConfigError::Invalid(format!(
-          "default user insert \
-           failed: {e}"
-        ))
-      })?;
-
-      if result.rows_affected() > 0 {
-        tracing::info!(
-          username,
-          "default user created"
-        );
-      }
-    }
-    | SqlDialect::Postgres => {
-      let pool = state
-        .postgres
-        .as_ref()
-        .ok_or_else(|| {
-          ConfigError::Invalid(
-            "postgres pool missing"
-              .into()
-          )
-        })?;
-
-      let result = sqlx::query(
-        "INSERT INTO users (username, \
-         password_hash, created_at) \
-         VALUES ($1, $2, NOW()) ON \
-         CONFLICT (username) DO \
-         NOTHING"
-      )
-      .bind(username)
-      .bind(password_hash)
-      .execute(pool)
-      .await
-      .map_err(|e| {
-        ConfigError::Invalid(format!(
-          "default user insert \
-           failed: {e}"
-        ))
-      })?;
-
-      if result.rows_affected() > 0 {
-        tracing::info!(
-          username,
-          "default user created"
-        );
-      }
-    }
+  if username.trim().is_empty() || password.len() < 12 {
+    return Err(ConfigError::Invalid(
+      "bootstrap requires username and password at least 12 bytes long".into()
+    ));
   }
-
+  if let Some(pool) = &state.postgres {
+    let mut tx = pool.begin().await
+      .map_err(|e| ConfigError::Invalid(format!("bootstrap begin: {e}")))?;
+    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+      .fetch_one(&mut *tx).await
+      .map_err(|e| ConfigError::Invalid(format!("bootstrap count: {e}")))?;
+    if count == 0 {
+      let hash = hash_password(password).map_err(ConfigError::Invalid)?;
+      sqlx::query("INSERT INTO users (username, password_hash, is_admin, created_at) VALUES ($1, $2, TRUE, NOW())")
+        .bind(username).bind(hash).execute(&mut *tx).await
+        .map_err(|e| ConfigError::Invalid(format!("bootstrap insert: {e}")))?;
+    } else {
+      let row = sqlx::query_as::<_, (i64, String, bool)>(
+        "SELECT id, password_hash, is_admin FROM users WHERE username = $1"
+      ).bind(username).fetch_optional(&mut *tx).await
+        .map_err(|e| ConfigError::Invalid(format!("bootstrap lookup: {e}")))?;
+      let Some((id, hash, admin)) = row else {
+        return Err(ConfigError::Invalid(
+          "database already contains users; select an existing account for bootstrap".into()
+        ));
+      };
+      if admin { return Err(ConfigError::Invalid("account is already an administrator".into())); }
+      verify_password(&hash, password).map_err(|_| ConfigError::Invalid(
+        "existing account credentials do not match".into()
+      ))?;
+      sqlx::query("UPDATE users SET is_admin = TRUE WHERE id = $1")
+        .bind(id).execute(&mut *tx).await
+        .map_err(|e| ConfigError::Invalid(format!("bootstrap promote: {e}")))?;
+      sqlx::query("DELETE FROM user_tokens WHERE user_id = $1")
+        .bind(id).execute(&mut *tx).await
+        .map_err(|e| ConfigError::Invalid(format!("bootstrap revoke: {e}")))?;
+    }
+    tx.commit().await
+      .map_err(|e| ConfigError::Invalid(format!("bootstrap commit: {e}")))?;
+    return Ok(());
+  }
+  let pool = state.sqlite.as_ref().ok_or_else(|| {
+    ConfigError::Invalid("sqlite pool missing".into())
+  })?;
+  let mut tx = pool.begin().await
+    .map_err(|e| ConfigError::Invalid(format!("bootstrap begin: {e}")))?;
+  let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+    .fetch_one(&mut *tx).await
+    .map_err(|e| ConfigError::Invalid(format!("bootstrap count: {e}")))?;
+  if count == 0 {
+    let hash = hash_password(password).map_err(ConfigError::Invalid)?;
+    sqlx::query("INSERT INTO users (username, password_hash, is_admin, created_at) VALUES (?1, ?2, 1, datetime('now'))")
+      .bind(username).bind(hash).execute(&mut *tx).await
+      .map_err(|e| ConfigError::Invalid(format!("bootstrap insert: {e}")))?;
+  } else {
+    let row = sqlx::query_as::<_, (i64, String, i64)>(
+      "SELECT id, password_hash, is_admin FROM users WHERE username = ?1"
+    ).bind(username).fetch_optional(&mut *tx).await
+      .map_err(|e| ConfigError::Invalid(format!("bootstrap lookup: {e}")))?;
+    let Some((id, hash, admin)) = row else {
+      return Err(ConfigError::Invalid(
+        "database already contains users; select an existing account for bootstrap".into()
+      ));
+    };
+    if admin != 0 { return Err(ConfigError::Invalid("account is already an administrator".into())); }
+    verify_password(&hash, password).map_err(|_| ConfigError::Invalid(
+      "existing account credentials do not match".into()
+    ))?;
+    sqlx::query("UPDATE users SET is_admin = 1 WHERE id = ?1")
+      .bind(id).execute(&mut *tx).await
+      .map_err(|e| ConfigError::Invalid(format!("bootstrap promote: {e}")))?;
+    sqlx::query("DELETE FROM user_tokens WHERE user_id = ?1")
+      .bind(id).execute(&mut *tx).await
+      .map_err(|e| ConfigError::Invalid(format!("bootstrap revoke: {e}")))?;
+  }
+  tx.commit().await
+    .map_err(|e| ConfigError::Invalid(format!("bootstrap commit: {e}")))?;
   Ok(())
 }
 

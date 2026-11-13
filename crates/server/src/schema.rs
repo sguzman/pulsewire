@@ -62,6 +62,7 @@ pub async fn apply_server_schema(
         pool, &content
       )
       .await?;
+      ensure_admin_role_sqlite(pool).await?;
     }
     | SqlDialect::Postgres => {
       let pool = state
@@ -117,6 +118,9 @@ pub async fn apply_server_schema(
         &fetcher_schema
       )
       .await?;
+      sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE")
+        .execute(pool).await
+        .map_err(|e| ConfigError::Invalid(format!("admin role migration failed: {e}")))?;
     }
   }
 
@@ -194,5 +198,21 @@ async fn execute_schema_postgres(
       })?;
   }
 
+  Ok(())
+}
+
+async fn ensure_admin_role_sqlite(
+  pool: &Pool<Sqlite>
+) -> Result<(), ConfigError> {
+  let exists = sqlx::query_scalar::<_, i64>(
+    "SELECT 1 FROM pragma_table_info('users') WHERE name = 'is_admin' LIMIT 1"
+  )
+    .fetch_optional(pool).await
+    .map_err(|e| ConfigError::Invalid(format!("admin role lookup failed: {e}")))?;
+  if exists.is_none() {
+    sqlx::query("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0")
+      .execute(pool).await
+      .map_err(|e| ConfigError::Invalid(format!("admin role migration failed: {e}")))?;
+  }
   Ok(())
 }

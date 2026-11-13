@@ -31,6 +31,3 @@ token_ttl_seconds = 86400
 [dev]
 reset_on_start = false
 
-[seed]
-password = "admin"
-username = "admin"

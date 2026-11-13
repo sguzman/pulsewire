@@ -6,6 +6,7 @@ use crate::app_state::AppState;
 use crate::auth::{
   auth_user_id,
   hash_password,
+  require_admin,
   verify_password
 };
 use crate::errors::{
@@ -20,6 +21,7 @@ use crate::models::{
 
 pub async fn create_user(
   State(state): State<AppState>,
+  headers: axum::http::HeaderMap,
   Json(payload): Json<
     CreateUserRequest
   >
@@ -27,6 +29,8 @@ pub async fn create_user(
   Json<UserResponse>,
   ServerError
 > {
+  require_admin(&state, &headers).await?;
+
   let username =
     payload.username.trim();
 
@@ -34,11 +38,11 @@ pub async fn create_user(
     payload.password.trim();
 
   if username.is_empty()
-    || password.is_empty()
+    || password.len() < 12
   {
     return Err(ServerError::new(
       StatusCode::BAD_REQUEST,
-      "username and password required"
+      "username required; password must be at least 12 bytes"
     ));
   }
 
@@ -179,24 +183,32 @@ pub async fn change_password(
       })?;
 
   if let Some(pool) = &state.postgres {
+    let mut tx = pool.begin().await
+      .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     sqlx::query("UPDATE users SET password_hash = $1 WHERE id = $2")
-            .bind(&new_hash)
-            .bind(user_id)
-            .execute(pool)
-            .await
-            .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+      .bind(&new_hash).bind(user_id).execute(&mut *tx).await
+      .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    sqlx::query("DELETE FROM user_tokens WHERE user_id = $1")
+      .bind(user_id).execute(&mut *tx).await
+      .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    tx.commit().await
+      .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
   } else {
     let pool = state
             .sqlite
             .as_ref()
             .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
 
+    let mut tx = pool.begin().await
+      .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     sqlx::query("UPDATE users SET password_hash = ?1 WHERE id = ?2")
-            .bind(&new_hash)
-            .bind(user_id)
-            .execute(pool)
-            .await
-            .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+      .bind(&new_hash).bind(user_id).execute(&mut *tx).await
+      .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    sqlx::query("DELETE FROM user_tokens WHERE user_id = ?1")
+      .bind(user_id).execute(&mut *tx).await
+      .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    tx.commit().await
+      .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
   }
 
   Ok(StatusCode::NO_CONTENT)
