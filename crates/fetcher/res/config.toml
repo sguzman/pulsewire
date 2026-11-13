@@ -1,5 +1,5 @@
 [app]
-mode     = "dev"
+mode     = "prod"
 timezone = "America/Mexico_City"
 
 [database]

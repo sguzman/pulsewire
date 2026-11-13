@@ -1,7 +1,7 @@
 [auth]
-auto_login = true
-password   = "admin"
-username   = "admin"
+auto_login = false
+password   = ""
+username   = ""
 
 [keybindings]
 clear_filters         = "x"

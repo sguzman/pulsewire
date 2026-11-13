@@ -151,6 +151,12 @@ async fn main() -> Result<(), BootError>
     app_cfg.mode,
     AppMode::Dev
   ) {
+    let reset_opt_in = std::env::var("PULSEWIRE_ALLOW_DESTRUCTIVE_DEV_RESET").ok();
+    if reset_opt_in.as_deref() != Some("YES") {
+      return Err(BootError::Fatal(
+        "dev mode can delete database state; refuse to start without PULSEWIRE_ALLOW_DESTRUCTIVE_DEV_RESET=YES".into()
+      ));
+    }
     match app_cfg.db_dialect {
       | SqlDialect::Sqlite => {
         warn!(
