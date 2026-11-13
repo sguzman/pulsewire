@@ -152,7 +152,9 @@ async fn main() -> Result<(), BootError>
     AppMode::Dev
   ) {
     let reset_opt_in = std::env::var("PULSEWIRE_ALLOW_DESTRUCTIVE_DEV_RESET").ok();
-    if reset_opt_in.as_deref() != Some("YES") {
+    if reset_opt_in.as_deref()
+      != Some("YES")
+    {
       return Err(BootError::Fatal(
         "dev mode can delete database state; refuse to start without PULSEWIRE_ALLOW_DESTRUCTIVE_DEV_RESET=YES".into()
       ));
@@ -207,7 +209,10 @@ async fn main() -> Result<(), BootError>
   let category_names: Vec<String> =
     categories
       .iter()
-      .filter(|c| !disabled_categories.contains(&c.name))
+      .filter(|c| {
+        !disabled_categories
+          .contains(&c.name)
+      })
       .map(|c| c.name.clone())
       .collect();
 

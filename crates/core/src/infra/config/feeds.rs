@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{
+  HashMap,
+  HashSet
+};
 use std::path::{
   Path,
   PathBuf
@@ -19,11 +22,15 @@ pub(crate) async fn load_all_feeds(
   feeds_dir: &Path,
   feeds_schema: &str,
   global_schema: &str,
-  disabled_directories: &HashSet<String>
+  disabled_directories: &HashSet<
+    String
+  >
 ) -> Result<RawFeedsFile, ConfigError> {
-  let files =
-    collect_feed_files(feeds_dir, disabled_directories)
-      .await?;
+  let files = collect_feed_files(
+    feeds_dir,
+    disabled_directories
+  )
+  .await?;
 
   if files.is_empty() {
     return Err(ConfigError::Invalid(
@@ -197,7 +204,9 @@ pub(crate) async fn load_all_feeds(
 
 async fn collect_feed_files(
   feeds_dir: &Path,
-  disabled_directories: &HashSet<String>
+  disabled_directories: &HashSet<
+    String
+  >
 ) -> Result<Vec<PathBuf>, ConfigError> {
   let mut entries =
     fs::read_dir(feeds_dir)
@@ -225,8 +234,13 @@ async fn collect_feed_files(
     {
       files.push(p);
     } else if ty.is_dir() {
-      let dir_name = p.file_name().and_then(|n| n.to_str()).unwrap_or_default();
-      if disabled_directories.contains(dir_name) {
+      let dir_name = p
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or_default();
+      if disabled_directories
+        .contains(dir_name)
+      {
         continue;
       }
       let mut sub_entries =
@@ -1233,40 +1247,69 @@ fn validate_id_prefix(
   Ok(trimmed.to_string())
 }
 
-
 #[cfg(test)]
 mod disabled_category_tests {
+  use std::time::{
+    SystemTime,
+    UNIX_EPOCH
+  };
+
   use super::*;
-  use std::time::{SystemTime, UNIX_EPOCH};
 
   #[tokio::test]
-  async fn skip_disabled_directories_before_loading_catalogs() {
+  async fn skip_disabled_directories_before_loading_catalogs()
+   {
     let stamp = SystemTime::now()
       .duration_since(UNIX_EPOCH)
       .expect("time")
       .as_nanos();
     let root = std::env::temp_dir()
-      .join(format!("pulsewire-categories-{}-{stamp}", std::process::id()));
+      .join(format!(
+      "pulsewire-categories-{}-{stamp}",
+      std::process::id()
+    ));
     let news = root.join("news");
-    let podcasts = root.join("podcasts");
-    let youtube = root.join("youtube.com");
-    for path in [&news, &podcasts, &youtube] {
-      std::fs::create_dir_all(path).expect("create test directory");
+    let podcasts =
+      root.join("podcasts");
+    let youtube =
+      root.join("youtube.com");
+    for path in
+      [&news, &podcasts, &youtube]
+    {
+      std::fs::create_dir_all(path)
+        .expect(
+          "create test directory"
+        );
       std::fs::write(path.join("sample.toml"), "[[feeds]]\nid = \"sample\"\nurl = \"https://example.com/rss\"\n")
         .expect("write test catalog");
     }
 
     let disabled = HashSet::from([
       "podcasts".to_string(),
-      "youtube.com".to_string(),
+      "youtube.com".to_string()
     ]);
-    let enabled_files = collect_feed_files(&root, &disabled).await.expect("scan");
+    let enabled_files =
+      collect_feed_files(
+        &root, &disabled
+      )
+      .await
+      .expect("scan");
     assert_eq!(enabled_files.len(), 1);
-    assert_eq!(enabled_files[0], news.join("sample.toml"));
+    assert_eq!(
+      enabled_files[0],
+      news.join("sample.toml")
+    );
 
-    let original_files = collect_feed_files(&root, &HashSet::new()).await.expect("scan all");
+    let original_files =
+      collect_feed_files(
+        &root,
+        &HashSet::new()
+      )
+      .await
+      .expect("scan all");
     assert_eq!(original_files.len(), 3);
 
-    std::fs::remove_dir_all(root).expect("remove test directory");
+    std::fs::remove_dir_all(root)
+      .expect("remove test directory");
   }
 }

@@ -59,11 +59,12 @@ use crate::domain::model::{
 pub struct ConfigLoader;
 
 pub struct LoadedConfig {
-  pub app:        AppConfig,
-  pub feeds:      Vec<FeedConfig>,
-  pub watches:    Vec<WatchConfig>,
+  pub app:                 AppConfig,
+  pub feeds: Vec<FeedConfig>,
+  pub watches: Vec<WatchConfig>,
   pub categories: Vec<CategoryConfig>,
-  pub disabled_categories: HashSet<String>
+  pub disabled_categories:
+    HashSet<String>
 }
 
 impl ConfigLoader {
@@ -267,8 +268,10 @@ impl ConfigLoader {
       );
     }
 
-    let mut disabled_categories = HashSet::new();
-    let mut disabled_feed_directories = HashSet::new();
+    let mut disabled_categories =
+      HashSet::new();
+    let mut disabled_feed_directories =
+      HashSet::new();
 
     let mut category_names =
       HashSet::new();
@@ -305,10 +308,13 @@ impl ConfigLoader {
         );
       }
 
-      let disabled = c.enabled == Some(false);
+      let disabled =
+        c.enabled == Some(false);
       if disabled {
-        disabled_categories.insert(name.clone());
-        disabled_feed_directories.insert(name.clone());
+        disabled_categories
+          .insert(name.clone());
+        disabled_feed_directories
+          .insert(name.clone());
       }
 
       let mut domains_vec = Vec::new();
@@ -347,7 +353,8 @@ impl ConfigLoader {
         }
 
         if disabled {
-          disabled_feed_directories.insert(domain.clone());
+          disabled_feed_directories
+            .insert(domain.clone());
         }
         domains_vec.push(domain);
       }
@@ -366,7 +373,9 @@ impl ConfigLoader {
       ));
     }
 
-    // Skip disabled source catalogs before parsing the large TOML files.
+    // Skip disabled source catalogs
+    // before parsing the large TOML
+    // files.
     let raw_feeds = load_all_feeds(
       &feeds_dir,
       &feeds_schema,
@@ -416,7 +425,9 @@ impl ConfigLoader {
         &domain_to_category
       )?;
 
-      if disabled_categories.contains(&category) {
+      if disabled_categories
+        .contains(&category)
+      {
         continue;
       }
 
@@ -472,7 +483,9 @@ impl ConfigLoader {
         &domain_to_category
       )?;
 
-      if disabled_categories.contains(&watch.category) {
+      if disabled_categories
+        .contains(&watch.category)
+      {
         continue;
       }
 
