@@ -130,12 +130,13 @@ pub async fn change_password(
     payload.new_password.trim();
 
   if current_password.is_empty()
-    || new_password.is_empty()
+    || new_password.len() < 12
   {
     return Err(ServerError::new(
       StatusCode::BAD_REQUEST,
-      "current_password and \
-       new_password required"
+      "current_password required; \
+       new_password must be at \
+       least 12 bytes"
     ));
   }
 
