@@ -142,8 +142,12 @@ pub async fn require_admin(
   state: &AppState,
   headers: &HeaderMap
 ) -> Result<i64, ServerError> {
-  let user_id = auth_user_id(state, headers).await?;
-  let admin = if let Some(pool) = &state.postgres {
+  let user_id =
+    auth_user_id(state, headers)
+      .await?;
+  let admin = if let Some(pool) =
+    &state.postgres
+  {
     sqlx::query_scalar::<_, bool>("SELECT is_admin FROM users WHERE id = $1")
       .bind(user_id).fetch_optional(pool).await
       .map_err(|e| ServerError::new(axum::http::StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
@@ -158,7 +162,11 @@ pub async fn require_admin(
       .unwrap_or(0) != 0
   };
   if !admin {
-    return Err(ServerError::new(axum::http::StatusCode::FORBIDDEN, "administrator privileges required"));
+    return Err(ServerError::new(
+      axum::http::StatusCode::FORBIDDEN,
+      "administrator privileges \
+       required"
+    ));
   }
   Ok(user_id)
 }

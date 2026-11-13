@@ -62,7 +62,8 @@ pub async fn apply_server_schema(
         pool, &content
       )
       .await?;
-      ensure_admin_role_sqlite(pool).await?;
+      ensure_admin_role_sqlite(pool)
+        .await?;
     }
     | SqlDialect::Postgres => {
       let pool = state
@@ -118,9 +119,20 @@ pub async fn apply_server_schema(
         &fetcher_schema
       )
       .await?;
-      sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE")
-        .execute(pool).await
-        .map_err(|e| ConfigError::Invalid(format!("admin role migration failed: {e}")))?;
+      sqlx::query(
+        "ALTER TABLE users ADD COLUMN \
+         IF NOT EXISTS is_admin \
+         BOOLEAN NOT NULL DEFAULT \
+         FALSE"
+      )
+      .execute(pool)
+      .await
+      .map_err(|e| {
+        ConfigError::Invalid(format!(
+          "admin role migration \
+           failed: {e}"
+        ))
+      })?;
     }
   }
 
@@ -204,36 +216,84 @@ async fn execute_schema_postgres(
 async fn ensure_admin_role_sqlite(
   pool: &Pool<Sqlite>
 ) -> Result<(), ConfigError> {
-  let exists = sqlx::query_scalar::<_, i64>(
-    "SELECT 1 FROM pragma_table_info('users') WHERE name = 'is_admin' LIMIT 1"
-  )
-    .fetch_optional(pool).await
-    .map_err(|e| ConfigError::Invalid(format!("admin role lookup failed: {e}")))?;
+  let exists =
+    sqlx::query_scalar::<_, i64>(
+      "SELECT 1 FROM \
+       pragma_table_info('users') \
+       WHERE name = 'is_admin' LIMIT 1"
+    )
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| {
+      ConfigError::Invalid(format!(
+        "admin role lookup failed: {e}"
+      ))
+    })?;
   if exists.is_none() {
-    sqlx::query("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0")
-      .execute(pool).await
-      .map_err(|e| ConfigError::Invalid(format!("admin role migration failed: {e}")))?;
+    sqlx::query(
+      "ALTER TABLE users ADD COLUMN \
+       is_admin INTEGER NOT NULL \
+       DEFAULT 0"
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+      ConfigError::Invalid(format!(
+        "admin role migration failed: \
+         {e}"
+      ))
+    })?;
   }
   Ok(())
 }
 
 #[cfg(test)]
 mod schema_security_tests {
-  use super::*;
   use sqlx::sqlite::SqlitePoolOptions;
 
+  use super::*;
+
   #[tokio::test]
-  async fn existing_sqlite_users_are_migrated_without_role_escalation() {
-    let pool = SqlitePoolOptions::new().max_connections(1)
-      .connect("sqlite::memory:").await.expect("sqlite");
-    sqlx::query("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT NOT NULL, password_hash TEXT NOT NULL, created_at TEXT NOT NULL)")
-      .execute(&pool).await.expect("legacy table");
-    sqlx::query("INSERT INTO users (id,username,password_hash,created_at) VALUES (9,'legacy','hash','2026-01-01')")
-      .execute(&pool).await.expect("legacy user");
-    ensure_admin_role_sqlite(&pool).await.expect("migrate once");
-    ensure_admin_role_sqlite(&pool).await.expect("migrate twice");
-    let (id, admin): (i64, i64) = sqlx::query_as("SELECT id, is_admin FROM users WHERE username='legacy'")
-      .fetch_one(&pool).await.expect("existing user");
+  async fn existing_sqlite_users_are_migrated_without_role_escalation()
+   {
+    let pool = SqlitePoolOptions::new()
+      .max_connections(1)
+      .connect("sqlite::memory:")
+      .await
+      .expect("sqlite");
+    sqlx::query(
+      "CREATE TABLE users (id INTEGER \
+       PRIMARY KEY, username TEXT NOT \
+       NULL, password_hash TEXT NOT \
+       NULL, created_at TEXT NOT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("legacy table");
+    sqlx::query(
+      "INSERT INTO users \
+       (id,username,password_hash,\
+       created_at) VALUES \
+       (9,'legacy','hash','2026-01-01'\
+       )"
+    )
+    .execute(&pool)
+    .await
+    .expect("legacy user");
+    ensure_admin_role_sqlite(&pool)
+      .await
+      .expect("migrate once");
+    ensure_admin_role_sqlite(&pool)
+      .await
+      .expect("migrate twice");
+    let (id, admin): (i64, i64) =
+      sqlx::query_as(
+        "SELECT id, is_admin FROM \
+         users WHERE username='legacy'"
+      )
+      .fetch_one(&pool)
+      .await
+      .expect("existing user");
     assert_eq!(id, 9);
     assert_eq!(admin, 0);
   }

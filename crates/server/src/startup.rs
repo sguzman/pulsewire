@@ -16,11 +16,25 @@ use crate::{
 
 pub async fn run()
 -> Result<(), ConfigError> {
-  let args: Vec<String> = std::env::args().skip(1).collect();
-  let bootstrap_only = match args.as_slice() {
-    [] => false,
-    [flag] if flag == "--bootstrap-admin" => true,
-    _ => return Err(ConfigError::Invalid("usage: pulsewire-server [--bootstrap-admin]".into()))
+  let args: Vec<String> =
+    std::env::args().skip(1).collect();
+  let bootstrap_only = match args
+    .as_slice()
+  {
+    | [] => false,
+    | [flag]
+      if flag
+        == "--bootstrap-admin" =>
+    {
+      true
+    }
+    | _ => {
+      return Err(ConfigError::Invalid(
+        "usage: pulsewire-server \
+         [--bootstrap-admin]"
+          .into()
+      ))
+    }
   };
   let config_path =
     std::env::var("SERVER_CONFIG_PATH")
@@ -80,16 +94,41 @@ pub async fn run()
 
   if config.dev.reset_on_start {
     return Err(ConfigError::Invalid(
-      "dev.reset_on_start is unsupported: automatic database resets are not safe".into()
+      "dev.reset_on_start is \
+       unsupported: automatic \
+       database resets are not safe"
+        .into()
     ));
   }
   if bootstrap_only {
-    let username = std::env::var("PULSEWIRE_BOOTSTRAP_USERNAME")
-      .map_err(|_| ConfigError::Invalid("PULSEWIRE_BOOTSTRAP_USERNAME required".into()))?;
-    let password = std::env::var("PULSEWIRE_BOOTSTRAP_PASSWORD")
-      .map_err(|_| ConfigError::Invalid("PULSEWIRE_BOOTSTRAP_PASSWORD required".into()))?;
-    db::bootstrap_admin(&state, &username, &password).await?;
-    tracing::info!("administrator bootstrapped; server not started");
+    let username = std::env::var(
+      "PULSEWIRE_BOOTSTRAP_USERNAME"
+    )
+    .map_err(|_| {
+      ConfigError::Invalid(
+        "PULSEWIRE_BOOTSTRAP_USERNAME \
+         required"
+          .into()
+      )
+    })?;
+    let password = std::env::var(
+      "PULSEWIRE_BOOTSTRAP_PASSWORD"
+    )
+    .map_err(|_| {
+      ConfigError::Invalid(
+        "PULSEWIRE_BOOTSTRAP_PASSWORD \
+         required"
+          .into()
+      )
+    })?;
+    db::bootstrap_admin(
+      &state, &username, &password
+    )
+    .await?;
+    tracing::info!(
+      "administrator bootstrapped; \
+       server not started"
+    );
     return Ok(());
   }
 
