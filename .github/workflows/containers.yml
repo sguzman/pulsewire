@@ -169,11 +169,42 @@ jobs:
             > "$RUNNER_TEMP/entries.json"
           jq -e '(.items | length) >= 2 and any(.items[]; .title == "Pulsewire CI Story One")' \
             "$RUNNER_TEMP/entries.json"
+          # Reader API: authentication, subscriptions, favorites and search.
+          unauth="$(curl -sS -o /dev/null -w '%{http_code}' \
+            'http://127.0.0.1:18091/v1/entries?feed_id=pulsewire-ci-real-rss')"
+          test "$unauth" = 401
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $token" \
+            -H 'Content-Type: application/json' \
+            -d '{"feed_id":"pulsewire-ci-real-rss"}' \
+            http://127.0.0.1:18091/v1/subscriptions)"
+          test "$code" = 201
+          curl -fsS -H "Authorization: Bearer $token" \
+            http://127.0.0.1:18091/v1/subscriptions \
+            | jq -e 'any(.[]; .feed_id == "pulsewire-ci-real-rss")'
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $token" \
+            -H 'Content-Type: application/json' \
+            -d '{"feed_id":"pulsewire-ci-real-rss"}' \
+            http://127.0.0.1:18091/v1/favorites)"
+          test "$code" = 201
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries/search?q=Pulsewire%20CI%20Story' \
+            | jq -e '(.items | length) == 2'
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?read=unread&feed_id=pulsewire-ci-real-rss' \
+            | jq -e '(.items | length) == 2'
           item_id="$(jq -er '.items[0].id' "$RUNNER_TEMP/entries.json")"
           code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
             -H "Authorization: Bearer $token" \
             "http://127.0.0.1:18091/v1/entries/$item_id/read")"
           test "$code" = 204
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?read=read&feed_id=pulsewire-ci-real-rss' \
+            | jq -e '(.items | length) == 1 and .items[0].is_read'
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?read=unread&feed_id=pulsewire-ci-real-rss' \
+            | jq -e '(.items | length) == 1'
           docker restart pulsewire-ci-server
           ready=0
           for i in {1..30}; do
@@ -200,3 +231,9 @@ jobs:
           restored_reads="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
             psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.entry_states WHERE read_at IS NOT NULL")"
           test "$restored_reads" -ge 1
+          restored_subscriptions="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.subscriptions WHERE feed_id = 'pulsewire-ci-real-rss'")"
+          test "$restored_subscriptions" -ge 1
+          restored_favorites="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.favorites WHERE feed_id = 'pulsewire-ci-real-rss'")"
+          test "$restored_favorites" -ge 1
