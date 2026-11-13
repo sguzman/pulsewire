@@ -50,8 +50,12 @@ impl IntoResponse for ServerError {
       }
     };
 
-    let mut response = (self.status, axum::Json(body)).into_response();
-    if self.status == StatusCode::TOO_MANY_REQUESTS {
+    let mut response =
+      (self.status, axum::Json(body))
+        .into_response();
+    if self.status
+      == StatusCode::TOO_MANY_REQUESTS
+    {
       response.headers_mut().insert(
         axum::http::header::RETRY_AFTER,
         axum::http::HeaderValue::from_static("900")

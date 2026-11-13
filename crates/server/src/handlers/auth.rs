@@ -45,7 +45,10 @@ pub async fn login(
     ));
   }
 
-  login_throttle::reserve_attempt(&state, username).await?;
+  login_throttle::reserve_attempt(
+    &state, username
+  )
+  .await?;
 
   let (user_id, password_hash) =
     if let Some(pool) = &state.postgres
@@ -119,7 +122,10 @@ pub async fn login(
         .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
   }
 
-  login_throttle::clear_attempts(&state, username).await?;
+  login_throttle::clear_attempts(
+    &state, username
+  )
+  .await?;
 
   Ok(Json(TokenResponse {
     token,

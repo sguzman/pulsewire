@@ -296,8 +296,16 @@ mod security_tests {
     .execute(&pool)
     .await
     .expect("tokens table");
-    sqlx::query("CREATE TABLE login_rate_limits (username_key TEXT PRIMARY KEY, attempt_count INTEGER NOT NULL, window_started_at INTEGER NOT NULL)")
-      .execute(&pool).await.expect("login throttle table");
+    sqlx::query(
+      "CREATE TABLE login_rate_limits \
+       (username_key TEXT PRIMARY \
+       KEY, attempt_count INTEGER NOT \
+       NULL, window_started_at \
+       INTEGER NOT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("login throttle table");
     AppState {
       sqlite:            Some(pool),
       postgres:          None,
@@ -544,37 +552,92 @@ mod security_tests {
   }
 
   #[tokio::test]
-  async fn login_throttling_rejects_unknown_and_known_names_uniformly() {
+  async fn login_throttling_rejects_unknown_and_known_names_uniformly()
+   {
     let state = setup().await;
-    crate::db::bootstrap_admin(&state, "owner", "owner-long-passphrase")
-      .await.expect("bootstrap");
-    for username in ["nonexistent", "owner"] {
+    crate::db::bootstrap_admin(
+      &state,
+      "owner",
+      "owner-long-passphrase"
+    )
+    .await
+    .expect("bootstrap");
+    for username in
+      ["nonexistent", "owner"]
+    {
       for _ in 0..crate::login_throttle::MAX_ATTEMPTS {
         let err = auth::login(State(state.clone()), Json(LoginRequest {
           username: username.into(), password: "wrong-passphrase".into()
         })).await.expect_err("wrong credentials must fail");
         assert_eq!(err.into_response().status(), StatusCode::UNAUTHORIZED);
       }
-      let err = auth::login(State(state.clone()), Json(LoginRequest {
-        username: username.into(), password: "wrong-passphrase".into()
-      })).await.expect_err("sixth attempt blocked");
-      let response = err.into_response();
-      assert_eq!(response.status(), StatusCode::TOO_MANY_REQUESTS);
+      let err = auth::login(
+        State(state.clone()),
+        Json(LoginRequest {
+          username: username.into(),
+          password: "wrong-passphrase"
+            .into()
+        })
+      )
+      .await
+      .expect_err(
+        "sixth attempt blocked"
+      );
+      let response =
+        err.into_response();
+      assert_eq!(
+        response.status(),
+        StatusCode::TOO_MANY_REQUESTS
+      );
       assert_eq!(response.headers().get(axum::http::header::RETRY_AFTER).expect("retry header"), "900");
     }
-    let locked = auth::login(State(state.clone()), Json(LoginRequest {
-      username: "owner".into(), password: "owner-long-passphrase".into()
-    })).await.expect_err("correct password also respects the window");
-    assert_eq!(locked.into_response().status(), StatusCode::TOO_MANY_REQUESTS);
-    let pool = state.sqlite.as_ref().expect("sqlite");
-    sqlx::query("UPDATE login_rate_limits SET window_started_at = unixepoch() - 901")
-      .execute(pool).await.expect("expire buckets");
-    let _fresh = login_headers(&state, "owner", "owner-long-passphrase").await;
-    let key = crate::auth::hash_token("owner");
-    let existing: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM login_rate_limits WHERE username_key = ?1"
-    ).bind(key).fetch_one(pool).await.expect("cleared");
+    let locked = auth::login(
+      State(state.clone()),
+      Json(LoginRequest {
+        username: "owner".into(),
+        password:
+          "owner-long-passphrase".into()
+      })
+    )
+    .await
+    .expect_err(
+      "correct password also respects \
+       the window"
+    );
+    assert_eq!(
+      locked.into_response().status(),
+      StatusCode::TOO_MANY_REQUESTS
+    );
+    let pool = state
+      .sqlite
+      .as_ref()
+      .expect("sqlite");
+    sqlx::query(
+      "UPDATE login_rate_limits SET \
+       window_started_at = \
+       unixepoch() - 901"
+    )
+    .execute(pool)
+    .await
+    .expect("expire buckets");
+    let _fresh = login_headers(
+      &state,
+      "owner",
+      "owner-long-passphrase"
+    )
+    .await;
+    let key =
+      crate::auth::hash_token("owner");
+    let existing: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM \
+         login_rate_limits WHERE \
+         username_key = ?1"
+      )
+      .bind(key)
+      .fetch_one(pool)
+      .await
+      .expect("cleared");
     assert_eq!(existing, 0);
   }
-
 }

@@ -1491,8 +1491,10 @@ mod postgres_runtime_tests {
     .expect("login after recovery");
     assert!(!relogin.token.is_empty());
 
-    // Atomic PostgreSQL reservations across concurrent connections and
-    // shared unknown-account buckets. No password hashes are logged.
+    // Atomic PostgreSQL reservations
+    // across concurrent connections and
+    // shared unknown-account buckets.
+    // No password hashes are logged.
     let mut handles = Vec::new();
     for _ in 0..12 {
       let cloned = state.clone();
@@ -1503,9 +1505,12 @@ mod postgres_runtime_tests {
     let mut admitted = 0;
     let mut denied = 0;
     for handle in handles {
-      match handle.await.expect("join concurrent login") {
-        Ok(()) => admitted += 1,
-        Err(err) => {
+      match handle
+        .await
+        .expect("join concurrent login")
+      {
+        | Ok(()) => admitted += 1,
+        | Err(err) => {
           assert_eq!(
             axum::response::IntoResponse::into_response(err).status(),
             axum::http::StatusCode::TOO_MANY_REQUESTS
