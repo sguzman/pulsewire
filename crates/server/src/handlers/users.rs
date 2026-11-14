@@ -1059,7 +1059,7 @@ mod security_tests {
       "owner-long-passphrase"
     )
     .await;
-    create_user(
+    let _ = create_user(
       State(state.clone()),
       owner.clone(),
       Json(CreateUserRequest {
