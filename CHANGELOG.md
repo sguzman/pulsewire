@@ -19,6 +19,10 @@
 - Prove with a delayed HTTP GET regression that one slow feed cannot hold up another category's fetches; Rust and disposable-container CI green (PR #16).
 - Add stable feed-ID ordering for tied due times in SQLite and PostgreSQL, with an in-memory SQLite paging/deferral/error-filter regression (PR #15).
 
+- Verify real PostgreSQL and SQLite 1,101-feed due-queue pagination, deferral and error exclusion with disposable SQL fixtures (PRs #17 and #21).
+- Confirm timeout isolation, retry deadlines and recovery, and repeated 3,225-feed synthetic load across three categories (PRs #18, #19 and #20). CI measured peak three concurrent HTTP requests under a limit of four; not a real-host capacity result.
+- Accept PW-031 fair bounded scheduling under combined Rust and disposable-container CI, with a source-linked verification report (PR #22).
+
 ### ⚙️ Miscellaneous
 - Tech words ([74a4d7a](https://github.com/sguzman/pulsewire/commit/74a4d7a8bc0989fe29eb01c149d9f18acd1b409d))
 - Format to alpha ([3d70722](https://github.com/sguzman/pulsewire/commit/3d707226423a06a57ecbabbe9bda51522ecdd7f2))## [0.1.24] - 2026-01-14
