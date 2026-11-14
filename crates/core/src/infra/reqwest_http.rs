@@ -415,3 +415,135 @@ impl Http for ReqwestHttp {
     .await
   }
 }
+
+#[cfg(test)]
+mod hardened_fetch_tests {
+  use std::io::{
+    Read,
+    Write
+  };
+  use std::net::TcpListener;
+
+  use super::*;
+
+  fn test_server(
+    response: Vec<u8>
+  ) -> String {
+    let server = TcpListener::bind(
+      "127.0.0.1:0"
+    )
+    .expect("bind isolated test server");
+    let address = server.local_addr()
+      .expect("test server address");
+    std::thread::spawn(move || {
+      let (mut client, _) = server.accept()
+        .expect("test request");
+      client.set_read_timeout(Some(
+        Duration::from_secs(5)
+      )).expect("read timeout");
+      let mut request = [0u8; 2048];
+      let _ = client.read(&mut request);
+      client.write_all(&response)
+        .expect("send test response");
+    });
+    format!("http://{address}/feed")
+  }
+
+  fn chunked(
+    body: &[u8]
+  ) -> Vec<u8> {
+    let mut out = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n".to_vec();
+    out.extend_from_slice(
+      format!("{:X}\r\n", body.len()).as_bytes()
+    );
+    out.extend_from_slice(body);
+    out.extend_from_slice(b"\r\n0\r\n\r\n");
+    out
+  }
+
+  #[tokio::test]
+  async fn permits_body_at_exact_limit() {
+    let http = ReqwestHttp::new_with_policy(
+      "pulsewire-test/1".into(), true
+    ).expect("client");
+    let url = test_server(
+      chunked(&vec![b'x'; 64])
+    );
+    let result = http.get_with_limit(
+      &url, None, None, 64
+    ).await;
+    assert_eq!(result.status, Some(200));
+    assert_eq!(
+      result.body.as_deref(),
+      Some(vec![b'x'; 64].as_slice())
+    );
+    assert!(result.error.is_none());
+  }
+
+  #[tokio::test]
+  async fn refuses_undeclared_stream_overflow() {
+    let http = ReqwestHttp::new_with_policy(
+      "pulsewire-test/1".into(), true
+    ).expect("client");
+    let url = test_server(
+      chunked(&vec![b'y'; 65])
+    );
+    let result = http.get_with_limit(
+      &url, None, None, 64
+    ).await;
+    assert_eq!(result.status, Some(200));
+    assert!(result.body.is_none());
+    assert_eq!(
+      result.error,
+      Some(ErrorKind::Unexpected)
+    );
+  }
+
+  #[tokio::test]
+  async fn rejects_advertised_oversize_body() {
+    let http = ReqwestHttp::new_with_policy(
+      "pulsewire-test/1".into(), true
+    ).expect("client");
+    let response = b"HTTP/1.1 200 OK\r\nContent-Length: 99999999\r\nConnection: close\r\n\r\n".to_vec();
+    let url = test_server(response);
+    let result = http.get_with_limit(
+      &url, None, None, 64
+    ).await;
+    assert_eq!(result.status, Some(200));
+    assert!(result.body.is_none());
+    assert_eq!(
+      result.error,
+      Some(ErrorKind::Unexpected)
+    );
+  }
+
+  #[tokio::test]
+  async fn rejects_redirect_to_other_host() {
+    let http = ReqwestHttp::new_with_policy(
+      "pulsewire-test/1".into(), true
+    ).expect("client");
+    let response = b"HTTP/1.1 302 Found\r\nLocation: http://example.org/secret\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".to_vec();
+    let url = test_server(response);
+    let result = http.get(
+      &url, Some("authorization=test"), None
+    ).await;
+    assert!(result.body.is_none());
+    assert!(result.error.is_some());
+  }
+
+  #[tokio::test]
+  async fn rejects_direct_local_target_by_default() {
+    let http = ReqwestHttp::new(
+      "pulsewire-test/1".into()
+    ).expect("client");
+    let result = http.get(
+      "http://127.0.0.1:12345/", None, None
+    ).await;
+    assert!(result.status.is_none());
+    assert!(result.body.is_none());
+    assert_eq!(
+      result.error,
+      Some(ErrorKind::Unexpected)
+    );
+  }
+}
