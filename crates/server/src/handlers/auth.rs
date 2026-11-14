@@ -1,11 +1,20 @@
+use std::net::SocketAddr;
+
 use axum::Json;
+use axum::extract::connect_info::ConnectInfo;
 use axum::extract::{
   Path as AxumPath,
+  Request,
   State
 };
 use axum::http::{
   HeaderMap,
   StatusCode
+};
+use axum::middleware::Next;
+use axum::response::{
+  IntoResponse,
+  Response
 };
 
 use crate::app_state::AppState;
@@ -21,6 +30,24 @@ use crate::models::{
   TokenResponse,
   TokenSummary
 };
+
+/// Protect /v1/auth/login from sprays
+/// across usernames using the actual
+/// TCP peer IP.
+pub async fn throttle_login_source(
+  State(state): State<AppState>,
+  request: Request,
+  next: Next
+) -> Response {
+  let peer = request
+    .extensions()
+    .get::<ConnectInfo<SocketAddr>>()
+    .map(|info| info.0.ip());
+  match login_throttle::reserve_source_attempt(&state, peer).await {
+    Ok(()) => next.run(request).await,
+    Err(err) => err.into_response()
+  }
+}
 
 pub async fn login(
   State(state): State<AppState>,

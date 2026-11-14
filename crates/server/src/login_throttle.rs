@@ -14,9 +14,14 @@
 //! A deliberate trade-off is that an
 //! attacker who knows a username can
 //! temporarily block that account.
-//! Host/network throttling is a
-//! separate deployment protection and
-//! is not replaced by this mechanism.
+//! A second rate limit now counts
+//! attempts per directly connected TCP
+//! peer, across distinct usernames.
+//! Reverse proxies require their own
+//! client-IP limits; forwarded IP
+//! headers are not trusted.
+
+use std::net::IpAddr;
 
 use axum::http::StatusCode;
 
@@ -25,6 +30,9 @@ use crate::auth::hash_token;
 use crate::errors::ServerError;
 
 pub const MAX_ATTEMPTS: i64 = 5;
+/// Per TCP peer, across all usernames,
+/// in the same window.
+pub const MAX_SOURCE_ATTEMPTS: i64 = 60;
 pub const WINDOW_SECONDS: i64 = 15 * 60;
 const RETENTION_SECONDS: i64 =
   24 * 60 * 60;
@@ -59,7 +67,46 @@ pub async fn reserve_attempt(
   state: &AppState,
   username: &str
 ) -> Result<(), ServerError> {
-  let key = username_key(username);
+  reserve_key(
+    state,
+    username_key(username),
+    MAX_ATTEMPTS
+  )
+  .await
+}
+
+/// Count every request from a TCP peer,
+/// independent of the attempted
+/// username. Never trust
+/// X-Forwarded-For. Missing peer
+/// metadata shares a conservative
+/// fallback bucket rather than silently
+/// bypassing the limit.
+pub async fn reserve_source_attempt(
+  state: &AppState,
+  peer: Option<IpAddr>
+) -> Result<(), ServerError> {
+  let source = peer
+    .map(|ip| ip.to_string())
+    .unwrap_or_else(|| {
+      "unknown-peer".to_string()
+    });
+  let key = hash_token(&format!(
+    "login-source:{source}"
+  ));
+  reserve_key(
+    state,
+    key,
+    MAX_SOURCE_ATTEMPTS
+  )
+  .await
+}
+
+async fn reserve_key(
+  state: &AppState,
+  key: String,
+  max_attempts: i64
+) -> Result<(), ServerError> {
   let count = if let Some(pool) =
     &state.postgres
   {
@@ -144,7 +191,7 @@ pub async fn reserve_attempt(
     .map_err(failed)?
   };
 
-  if count > MAX_ATTEMPTS {
+  if count > max_attempts {
     return Err(ServerError::new(
       StatusCode::TOO_MANY_REQUESTS,
       "too many login attempts; try \
@@ -310,5 +357,83 @@ mod tests {
     .await
     .expect("no rows");
     assert_eq!(left, 0);
+  }
+
+  #[tokio::test]
+  async fn source_limit_blocks_username_sprays_not_other_peers()
+   {
+    let state = fixture().await;
+    let source = Some(
+      "192.0.2.10"
+        .parse()
+        .expect("source IP")
+    );
+    for _ in 0..MAX_SOURCE_ATTEMPTS {
+      reserve_source_attempt(
+        &state, source
+      )
+      .await
+      .expect("source under limit");
+    }
+    let denied =
+      reserve_source_attempt(
+        &state, source
+      )
+      .await
+      .expect_err(
+        "source quota exhausted"
+      );
+    assert_eq!(
+      denied.into_response().status(),
+      StatusCode::TOO_MANY_REQUESTS
+    );
+    // Username success cannot reset the
+    // source quota.
+    clear_attempts(
+      &state,
+      "different-account"
+    )
+    .await
+    .expect("clear username only");
+    assert!(
+      reserve_source_attempt(
+        &state, source
+      )
+      .await
+      .is_err()
+    );
+    reserve_source_attempt(
+      &state,
+      Some(
+        "192.0.2.11"
+          .parse()
+          .expect("other IP")
+      )
+    )
+    .await
+    .expect(
+      "separate peer not blocked"
+    );
+    reserve_source_attempt(
+      &state, None
+    )
+    .await
+    .expect(
+      "missing source uses fallback \
+       quota"
+    );
+    let pool = state
+      .sqlite
+      .as_ref()
+      .expect("pool");
+    let remaining: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM \
+         login_rate_limits"
+      )
+      .fetch_one(pool)
+      .await
+      .expect("source buckets");
+    assert_eq!(remaining, 3);
   }
 }
