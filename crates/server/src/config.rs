@@ -73,7 +73,7 @@ pub struct SqliteConfig {
   pub path: String
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct PostgresConfig {
   pub host:           String,
   pub port:           u16,
@@ -83,6 +83,29 @@ pub struct PostgresConfig {
   pub ssl_mode:       String,
   pub schema:         String,
   pub fetcher_schema: String
+}
+
+impl std::fmt::Debug
+  for PostgresConfig
+{
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
+    f.debug_struct("PostgresConfig")
+      .field("host", &self.host)
+      .field("port", &self.port)
+      .field("database", &self.database)
+      .field("user", &self.user)
+      .field("password", &"<redacted>")
+      .field("ssl_mode", &self.ssl_mode)
+      .field("schema", &self.schema)
+      .field(
+        "fetcher_schema",
+        &self.fetcher_schema
+      )
+      .finish()
+  }
 }
 
 #[derive(Debug, Deserialize)]
@@ -326,4 +349,33 @@ pub(crate) fn validate_schema_name(
   }
 
   Ok(trimmed.to_string())
+}
+
+#[cfg(test)]
+mod secret_debug_tests {
+  use super::*;
+
+  #[test]
+  fn server_postgres_debug_never_displays_password()
+   {
+    let config = PostgresConfig {
+      host:           "db".into(),
+      port:           5432,
+      database:       "pulsewire"
+        .into(),
+      user:           "example".into(),
+      password:
+        "sensitive-debug-marker".into(),
+      ssl_mode:       "disable".into(),
+      schema:         "server".into(),
+      fetcher_schema: "fetcher".into()
+    };
+    let printed = format!("{config:?}");
+    assert!(
+      printed.contains("<redacted>")
+    );
+    assert!(!printed.contains(
+      "sensitive-debug-marker"
+    ));
+  }
 }

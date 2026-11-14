@@ -216,7 +216,7 @@ pub enum SqlDialect {
   Postgres
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct PostgresConfig {
   pub user:     String,
   pub password: String,
@@ -224,6 +224,26 @@ pub struct PostgresConfig {
   pub port:     u16,
   pub database: String,
   pub schema:   String
+}
+
+// Prevent accidental credential leakage
+// through Debug logs.
+impl std::fmt::Debug
+  for PostgresConfig
+{
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
+    f.debug_struct("PostgresConfig")
+      .field("user", &self.user)
+      .field("password", &"<redacted>")
+      .field("host", &self.host)
+      .field("port", &self.port)
+      .field("database", &self.database)
+      .field("schema", &self.schema)
+      .finish()
+  }
 }
 
 #[derive(
@@ -258,4 +278,30 @@ pub struct GetResult {
   pub error: Option<ErrorKind>,
   pub latency_ms:         u64,
   pub set_cookie_headers: Vec<String>
+}
+
+#[cfg(test)]
+mod secret_debug_tests {
+  use super::*;
+
+  #[test]
+  fn postgres_debug_never_displays_password()
+   {
+    let config = PostgresConfig {
+      user:     "example".into(),
+      password:
+        "sensitive-debug-marker".into(),
+      host:     "db".into(),
+      port:     5432,
+      database: "pulsewire".into(),
+      schema:   "fetcher".into()
+    };
+    let printed = format!("{config:?}");
+    assert!(
+      printed.contains("<redacted>")
+    );
+    assert!(!printed.contains(
+      "sensitive-debug-marker"
+    ));
+  }
 }

@@ -64,9 +64,7 @@ pub(crate) struct RawSqlite {
   pub path: String
 }
 
-#[derive(
-  Debug, Deserialize, Default,
-)]
+#[derive(Deserialize, Default)]
 pub(crate) struct RawPostgres {
   #[serde(default = "default_pg_user")]
   pub user:     String,
@@ -86,6 +84,22 @@ pub(crate) struct RawPostgres {
     default = "default_pg_schema"
   )]
   pub schema:   String
+}
+
+impl std::fmt::Debug for RawPostgres {
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
+    f.debug_struct("RawPostgres")
+      .field("user", &self.user)
+      .field("password", &"<redacted>")
+      .field("host", &self.host)
+      .field("port", &self.port)
+      .field("db", &self.db)
+      .field("schema", &self.schema)
+      .finish()
+  }
 }
 
 #[derive(Debug, Deserialize)]
@@ -349,4 +363,26 @@ pub(crate) struct RawWatch {
   pub emit_title: Option<String>,
   pub min_item_count_change:
     Option<u64>
+}
+
+#[cfg(test)]
+mod secret_debug_tests {
+  use super::*;
+
+  #[test]
+  fn raw_postgres_debug_redacts_password()
+   {
+    let config = RawPostgres {
+      password:
+        "sensitive-debug-marker".into(),
+      ..RawPostgres::default()
+    };
+    let printed = format!("{config:?}");
+    assert!(
+      printed.contains("<redacted>")
+    );
+    assert!(!printed.contains(
+      "sensitive-debug-marker"
+    ));
+  }
 }
