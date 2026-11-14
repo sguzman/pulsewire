@@ -28,7 +28,7 @@
 - Retry and recovery state-machine checks: [Rust](https://github.com/sguzman/pulsewire/actions/runs/43608460798), [container](https://github.com/sguzman/pulsewire/actions/runs/43608460788) — passed.
 - SQLite 1,101-feed queue: [Rust](https://github.com/sguzman/pulsewire/actions/runs/43609386798), [container](https://github.com/sguzman/pulsewire/actions/runs/43609386787) — passed.
 
-A final integration PR containing this ledger must pass both repository workflows after **all** code changes are merged; that run is the final acceptance gate for the PW-031 score.
+**Final integrated acceptance passed:** [PR #22](https://github.com/sguzman/pulsewire/pull/22) merged as [63dc19b](https://github.com/sguzman/pulsewire/commit/63dc19bd07343746d0096f6ed2c3fa3396181cca). Both [Rust checks 43610317767](https://github.com/sguzman/pulsewire/actions/runs/43610317767) and [container packaging and smoke 43610317718](https://github.com/sguzman/pulsewire/actions/runs/43610317718) succeeded on the integrated source, including the PostgreSQL due-queue and synthetic-load checks. PW-031 is verified complete: **5/5 weighted points**, raising the roadmap total **60/100 to 65/100**.
 
 ## Reproducible synthetic measurement
 
