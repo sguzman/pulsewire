@@ -106,31 +106,10 @@ pub(crate) fn parse_mode(
 pub(crate) fn url_host(
   url: &str
 ) -> Option<String> {
-  // Minimal, dependency-free host
-  // extraction. If you prefer
-  // stricter parsing, add `url = "2"`
-  // and use `Url::parse`.
-  let u = url.trim();
-
-  let after_scheme =
-    u.split("://").nth(1)?;
-
-  let host_port =
-    after_scheme.split('/').next()?;
-
-  let host = host_port
-    .split('@')
-    .next_back()
-    .unwrap_or(host_port);
-
-  let host = host
-    .split(':')
-    .next()
-    .unwrap_or(host);
-
-  if host.is_empty() {
-    None
-  } else {
-    Some(host.to_string())
-  }
+  crate::infra::http_policy::parse_source_url(
+    url, false
+  )
+  .ok()?
+  .host_str()
+  .map(str::to_string)
 }

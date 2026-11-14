@@ -193,13 +193,25 @@ where
 
   tracing::debug!(feed_id = %feed.id, url = %feed.url, watch = watch.is_some(), "GET request start");
 
-  let res = http
-    .get(
+  let cap = watch
+    .and_then(|w| w.max_body_bytes)
+    .and_then(|n| usize::try_from(n).ok())
+    .unwrap_or(crate::infra::http_policy::MAX_RESPONSE_BODY_BYTES)
+    .min(crate::infra::http_policy::MAX_RESPONSE_BODY_BYTES);
+
+  let mut res = http
+    .get_with_limit(
       &feed.url,
       cookie_header,
-      extra_headers
+      extra_headers,
+      cap
     )
     .await;
+  // Defense-in-depth for injected/test Http adapters.
+  if res.body.as_ref().is_some_and(|b| b.len() > cap) {
+    res.body = None;
+    res.error = Some(crate::domain::model::ErrorKind::Unexpected);
+  }
 
   metrics::record_http_result(
     "get",

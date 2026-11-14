@@ -38,6 +38,11 @@ pub struct ParsedFeed {
 pub fn parse(
   bytes: &[u8]
 ) -> Result<ParsedFeed, String> {
+  if bytes.len()
+    > crate::infra::http_policy::MAX_RESPONSE_BODY_BYTES
+  {
+    return Err("feed exceeds maximum response size".into());
+  }
   let feed =
     feed_rs::parser::parse(bytes)
       .map_err(|e| {
