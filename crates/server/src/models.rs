@@ -23,7 +23,9 @@ pub struct CreateUserRequest {
   pub password: String
 }
 
-impl std::fmt::Debug for CreateUserRequest {
+impl std::fmt::Debug
+  for CreateUserRequest
+{
   fn fmt(
     &self,
     f: &mut std::fmt::Formatter<'_>
@@ -256,15 +258,25 @@ pub struct PasswordChangeRequest {
   pub new_password:     String
 }
 
-impl std::fmt::Debug for PasswordChangeRequest {
+impl std::fmt::Debug
+  for PasswordChangeRequest
+{
   fn fmt(
     &self,
     f: &mut std::fmt::Formatter<'_>
   ) -> std::fmt::Result {
-    f.debug_struct("PasswordChangeRequest")
-      .field("current_password", &"<redacted>")
-      .field("new_password", &"<redacted>")
-      .finish()
+    f.debug_struct(
+      "PasswordChangeRequest"
+    )
+    .field(
+      "current_password",
+      &"<redacted>"
+    )
+    .field(
+      "new_password",
+      &"<redacted>"
+    )
+    .finish()
   }
 }
 
@@ -293,8 +305,14 @@ impl std::fmt::Debug for TokenResponse {
   ) -> std::fmt::Result {
     f.debug_struct("TokenResponse")
       .field("token", &"<redacted>")
-      .field("token_type", &self.token_type)
-      .field("expires_in", &self.expires_in)
+      .field(
+        "token_type",
+        &self.token_type
+      )
+      .field(
+        "expires_in",
+        &self.expires_in
+      )
       .finish()
   }
 }
@@ -318,8 +336,10 @@ mod auth_debug_redaction_tests {
   use super::*;
 
   #[test]
-  fn never_debug_print_passwords_or_bearer_tokens() {
-    let secret = "pw023-secret-debug-sentinel";
+  fn never_debug_print_passwords_or_bearer_tokens()
+   {
+    let secret =
+      "pw023-secret-debug-sentinel";
     let create = CreateUserRequest {
       username: "reader".to_string(),
       password: secret.to_string()
@@ -328,12 +348,15 @@ mod auth_debug_redaction_tests {
       username: "reader".to_string(),
       password: secret.to_string()
     };
-    let change = PasswordChangeRequest {
-      current_password: secret.to_string(),
-      new_password: secret.to_string()
-    };
+    let change =
+      PasswordChangeRequest {
+        current_password: secret
+          .to_string(),
+        new_password:     secret
+          .to_string()
+      };
     let token = TokenResponse {
-      token: secret.to_string(),
+      token:      secret.to_string(),
       token_type: "bearer".to_string(),
       expires_in: 3600
     };
@@ -343,10 +366,20 @@ mod auth_debug_redaction_tests {
       format!("{change:?}"),
       format!("{token:?}")
     ] {
-      assert!(printed.contains("<redacted>"));
-      assert!(!printed.contains(secret));
+      assert!(
+        printed.contains("<redacted>")
+      );
+      assert!(
+        !printed.contains(secret)
+      );
     }
-    assert!(format!("{login:?}").contains("reader"));
-    assert!(format!("{token:?}").contains("bearer"));
+    assert!(
+      format!("{login:?}")
+        .contains("reader")
+    );
+    assert!(
+      format!("{token:?}")
+        .contains("bearer")
+    );
   }
 }
