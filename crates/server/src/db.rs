@@ -255,6 +255,20 @@ pub async fn bootstrap_admin(
           "bootstrap begin: {e}"
         ))
       })?;
+    // Serialize all offline bootstrap attempts across
+    // processes before testing whether the database is empty.
+    // A plain COUNT under READ COMMITTED races with another
+    // initializer and can otherwise create two first admins.
+    sqlx::query(
+      "SELECT pg_advisory_xact_lock(7076850677139622995)"
+    )
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| {
+      ConfigError::Invalid(format!(
+        "bootstrap lock: {e}"
+      ))
+    })?;
     let count: i64 =
       sqlx::query_scalar(
         "SELECT COUNT(*) FROM users"
@@ -1154,6 +1168,61 @@ mod postgres_runtime_tests {
     .execute(&pool)
     .await
     .expect("feed_items");
+
+    // Separate disposable schema: concurrent offline first-admin
+    // bootstraps must not both succeed on an empty instance.
+    sqlx::query(
+      "CREATE SCHEMA IF NOT EXISTS pulsewire_ci_bootstrap_race"
+    )
+    .execute(&pool)
+    .await
+    .expect("bootstrap race schema");
+    sqlx::query(
+      "CREATE TABLE pulsewire_ci_bootstrap_race.users (\
+       id BIGSERIAL PRIMARY KEY, username TEXT NOT NULL UNIQUE,\
+       password_hash TEXT NOT NULL, is_admin BOOLEAN NOT NULL DEFAULT FALSE,\
+       created_at TIMESTAMPTZ NOT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("bootstrap race users");
+    let race_pool = PgPoolOptions::new()
+      .max_connections(4)
+      .after_connect(set_search_path(
+        "pulsewire_ci_bootstrap_race".to_string()
+      ))
+      .connect_with(
+        postgres_connect_options(&pg).expect("pg connection options")
+      )
+      .await
+      .expect("bootstrap race pool");
+    let race_state = AppState {
+      sqlite: None,
+      postgres: Some(race_pool.clone()),
+      fetcher_schema: None,
+      token_ttl_seconds: 3600
+    };
+    let (first, second) = tokio::join!(
+      bootstrap_admin(
+        &race_state, "first_admin", "first-admin-long-passphrase"
+      ),
+      bootstrap_admin(
+        &race_state, "second_admin", "second-admin-long-passphrase"
+      )
+    );
+    assert_eq!(
+      usize::from(first.is_ok()) + usize::from(second.is_ok()),
+      1,
+      "exactly one initial administrator is permitted"
+    );
+    let count: i64 = sqlx::query_scalar(
+      "SELECT COUNT(*) FROM users WHERE is_admin = TRUE"
+    )
+    .fetch_one(&race_pool)
+    .await
+    .expect("bootstrap race admin count");
+    assert_eq!(count, 1);
+    race_pool.close().await;
 
     // Simulate an existing database
     // from before the is_admin
