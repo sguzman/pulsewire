@@ -116,6 +116,15 @@ impl PermitPair {
     global: Option<Arc<Semaphore>>,
     domain: Arc<Semaphore>
   ) -> Self {
+    // A busy domain must not hold an
+    // idle global request slot.
+    let d = domain
+      .acquire_owned()
+      .await
+      .expect(
+        "domain semaphore closed"
+      );
+
     let g = match global {
       | Some(s) => {
         Some(
@@ -128,13 +137,6 @@ impl PermitPair {
       }
       | None => None
     };
-
-    let d = domain
-      .acquire_owned()
-      .await
-      .expect(
-        "domain semaphore closed"
-      );
 
     Self {
       _g: g, _d: d
@@ -204,4 +206,51 @@ mod global_budget_tests {
       1
     );
   }
+  #[tokio::test]
+  async fn busy_domain_never_occupies_global_budget()
+   {
+    let global =
+      Arc::new(Semaphore::new(1));
+    let busy =
+      Arc::new(Semaphore::new(1));
+    let other =
+      Arc::new(Semaphore::new(1));
+    let held = busy
+      .clone()
+      .acquire_owned()
+      .await
+      .expect("hold busy domain");
+
+    let blocked = PermitPair::acquire(
+      Some(global.clone()),
+      busy
+    );
+    let ready = PermitPair::acquire(
+      Some(global.clone()),
+      other
+    );
+    tokio::pin!(blocked);
+    tokio::pin!(ready);
+
+    let advanced = tokio::time::timeout(
+      std::time::Duration::from_secs(1),
+      async {
+        tokio::select! {
+          biased;
+          _ = &mut blocked => false,
+          _ = &mut ready => true,
+        }
+      }
+    )
+    .await
+    .expect("unrelated domain must run");
+
+    assert!(advanced);
+    assert_eq!(
+      global.available_permits(),
+      1
+    );
+    drop(held);
+  }
+
 }
