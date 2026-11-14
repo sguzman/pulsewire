@@ -16,6 +16,7 @@
 ### ⏲️ Scheduler
 - Run category ticks and retries independently with a shared global request budget and domain limits; busy domains do not hold global capacity while waiting (PR #12).
 - Add deterministic offline scheduler regressions for blocked/failed category queries and bounded 1,101-feed backlog draining (PR #13).
+- Prove with a delayed HTTP GET regression that one slow feed cannot hold up another category's fetches; Rust and disposable-container CI green (PR #16).
 - Add stable feed-ID ordering for tied due times in SQLite and PostgreSQL, with an in-memory SQLite paging/deferral/error-filter regression (PR #15).
 
 ### ⚙️ Miscellaneous
