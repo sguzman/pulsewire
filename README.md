@@ -53,15 +53,19 @@ Pulsewire is a time-aware ingestion engine for the open web: RSS/Atom feeds toda
   `openapi.json`, `openapi.html`).
 - `branding/` – logo/banner/icon assets.
 
-Login protection: the HTTP server persists an atomic per-username attempt
-counter in its selected SQLite/PostgreSQL database. The first five login
-attempts in a 15-minute window are evaluated; subsequent attempts receive
-HTTP 429 and `Retry-After: 900`. Successful login removes that username's
-counter; expired windows reset automatically. Unknown and known usernames
-return the same invalid-credentials response for failed attempts. This is
-**not** a substitute for network-level request throttling: targeted attempts
-may temporarily block the target username. Keep the listener restricted to
-trusted networks or behind a trusted reverse proxy.
+Login protection: the HTTP server persists atomic per-username and per-TCP-peer
+attempt counters in its selected SQLite/PostgreSQL database. A username gets
+five evaluated attempts per 15-minute window; the connected TCP peer gets
+60 attempts across all usernames in the same window. Further attempts receive
+HTTP 429 and `Retry-After: 900`. Successful login clears only the username
+counter; source quotas continue to apply. Expired windows reset automatically.
+Known and unknown usernames share generic invalid-credentials responses.
+Caller-supplied `X-Forwarded-For` and similar headers are **never** trusted as
+source identity. A reverse proxy or NAT can cause multiple users to share one
+peer quota, and targeted attempts may temporarily block an account. Enforce
+per-real-client limits at a separately trusted reverse proxy, restrict network
+access, and follow the [deployment security runbook](docs/pulsewire/DEPLOYMENT.md)
+before exposing the server.
 
 ## Configuration
 Fetcher config resolution order: 1) CLI argument path (if provided), else 2)
