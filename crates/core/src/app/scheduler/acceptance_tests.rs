@@ -1,5 +1,7 @@
-//! Deterministic, offline acceptance exercises for scheduler category
-//! isolation and bounded due-feed batching.
+//! Deterministic, offline acceptance
+//! exercises for scheduler category
+//! isolation and bounded due-feed
+//! batching.
 
 use std::collections::{
   HashMap,
@@ -22,9 +24,9 @@ use tokio::sync::{
   Notify
 };
 
+use super::Scheduler;
 use super::concurrency::ConcurrencyGuards;
 use super::processing::run_tick;
-use super::Scheduler;
 use crate::app::context::AppContext;
 use crate::domain::link_state::LinkState;
 use crate::domain::model::{
@@ -49,14 +51,14 @@ use crate::ports::repo::{
 };
 
 struct FakeRepo {
-  feeds: Vec<FeedConfig>,
+  feeds:           Vec<FeedConfig>,
   completed: Mutex<HashSet<String>>,
-  page_sizes: Mutex<Vec<usize>>,
+  page_sizes:      Mutex<Vec<usize>>,
   blocked_entered: Arc<Notify>,
   blocked_release: Arc<Notify>,
-  healthy_seen: Arc<Notify>,
-  block_slow: bool,
-  fail_slow: bool
+  healthy_seen:    Arc<Notify>,
+  block_slow:      bool,
+  fail_slow:       bool
 }
 
 impl FakeRepo {
@@ -67,11 +69,19 @@ impl FakeRepo {
   ) -> Self {
     Self {
       feeds,
-      completed: Mutex::new(HashSet::new()),
+      completed: Mutex::new(
+        HashSet::new()
+      ),
       page_sizes: Mutex::new(Vec::new()),
-      blocked_entered: Arc::new(Notify::new()),
-      blocked_release: Arc::new(Notify::new()),
-      healthy_seen: Arc::new(Notify::new()),
+      blocked_entered: Arc::new(
+        Notify::new()
+      ),
+      blocked_release: Arc::new(
+        Notify::new()
+      ),
+      healthy_seen: Arc::new(
+        Notify::new()
+      ),
       block_slow,
       fail_slow
     }
@@ -109,7 +119,8 @@ impl Repo for FakeRepo {
   async fn latest_state(
     &self,
     _feed_id: &str
-  ) -> Result<Option<StateRow>, String> {
+  ) -> Result<Option<StateRow>, String>
+  {
     Ok(None)
   }
 
@@ -118,14 +129,21 @@ impl Repo for FakeRepo {
     category: &str,
     _now_ms: i64,
     limit: i64
-  ) -> Result<Vec<FeedConfig>, String> {
+  ) -> Result<Vec<FeedConfig>, String>
+  {
     if category == "slow" {
       self.blocked_entered.notify_one();
       if self.fail_slow {
-        return Err("synthetic due-query error".into());
+        return Err(
+          "synthetic due-query error"
+            .into()
+        );
       }
       if self.block_slow {
-        self.blocked_release.notified().await;
+        self
+          .blocked_release
+          .notified()
+          .await;
       }
     }
 
@@ -133,20 +151,26 @@ impl Repo for FakeRepo {
       self.healthy_seen.notify_one();
     }
 
-    let completed = self.completed.lock().await;
+    let completed =
+      self.completed.lock().await;
     let due: Vec<_> = self
       .feeds
       .iter()
       .filter(|feed| {
         feed.category == category
-          && !completed.contains(&feed.id)
+          && !completed
+            .contains(&feed.id)
       })
       .take(limit.max(0) as usize)
       .cloned()
       .collect();
     drop(completed);
 
-    self.page_sizes.lock().await.push(due.len());
+    self
+      .page_sizes
+      .lock()
+      .await
+      .push(due.len());
     Ok(due)
   }
 
@@ -157,9 +181,11 @@ impl Repo for FakeRepo {
     _zone: &Tz,
     _record_history: bool
   ) -> Result<(), String> {
-    self.completed.lock().await.insert(
-      state.feed_id.clone()
-    );
+    self
+      .completed
+      .lock()
+      .await
+      .insert(state.feed_id.clone());
     Ok(())
   }
 
@@ -206,7 +232,8 @@ impl Repo for FakeRepo {
   async fn latest_cookie_header(
     &self,
     _feed_id: &str
-  ) -> Result<Option<String>, String> {
+  ) -> Result<Option<String>, String>
+  {
     Ok(None)
   }
 
@@ -224,7 +251,7 @@ impl Repo for FakeRepo {
 #[derive(Default)]
 struct FakeHttp {
   inflight: AtomicUsize,
-  peak: AtomicUsize
+  peak:     AtomicUsize
 }
 
 #[async_trait::async_trait]
@@ -233,29 +260,45 @@ impl Http for FakeHttp {
     &self,
     _url: &str,
     _cookie_header: Option<&str>,
-    _extra_headers: Option<&HashMap<String, String>>
+    _extra_headers: Option<
+      &HashMap<String, String>
+    >
   ) -> HeadResult {
-    panic!("fixture feeds start with GET")
+    panic!(
+      "fixture feeds start with GET"
+    )
   }
 
   async fn get(
     &self,
     _url: &str,
     _cookie_header: Option<&str>,
-    _extra_headers: Option<&HashMap<String, String>>
+    _extra_headers: Option<
+      &HashMap<String, String>
+    >
   ) -> GetResult {
-    let concurrent =
-      self.inflight.fetch_add(1, Ordering::SeqCst) + 1;
-    self.peak.fetch_max(concurrent, Ordering::SeqCst);
-    tokio::time::sleep(Duration::from_millis(1)).await;
-    self.inflight.fetch_sub(1, Ordering::SeqCst);
+    let concurrent = self
+      .inflight
+      .fetch_add(1, Ordering::SeqCst)
+      + 1;
+    self.peak.fetch_max(
+      concurrent,
+      Ordering::SeqCst
+    );
+    tokio::time::sleep(
+      Duration::from_millis(1)
+    )
+    .await;
+    self
+      .inflight
+      .fetch_sub(1, Ordering::SeqCst);
     GetResult {
-      status: Some(200),
-      body: None,
-      etag: None,
-      last_modified: None,
-      error: None,
-      latency_ms: 1,
+      status:             Some(200),
+      body:               None,
+      etag:               None,
+      last_modified:      None,
+      error:              None,
+      latency_ms:         1,
       set_cookie_headers: Vec::new()
     }
   }
@@ -279,10 +322,17 @@ impl RandomSource for FakeRandom {
   }
 }
 
-type TestContext =
-  AppContext<FakeRepo, FakeHttp, FakeClock, FakeRandom>;
+type TestContext = AppContext<
+  FakeRepo,
+  FakeHttp,
+  FakeClock,
+  FakeRandom
+>;
 
-fn fixture(repo: Arc<FakeRepo>, http: Arc<FakeHttp>) -> TestContext {
+fn fixture(
+  repo: Arc<FakeRepo>,
+  http: Arc<FakeHttp>
+) -> TestContext {
   let mut domains = HashMap::new();
   domains.insert(
     "example.test".to_string(),
@@ -292,29 +342,37 @@ fn fixture(repo: Arc<FakeRepo>, http: Arc<FakeHttp>) -> TestContext {
   );
   let cfg = AppConfig {
     db_dialect: SqlDialect::Sqlite,
-    sqlite_path: PathBuf::from(":memory:"),
+    sqlite_path: PathBuf::from(
+      ":memory:"
+    ),
     postgres: PostgresConfig {
-      user: "test".into(),
+      user:     "test".into(),
       password: "not-used".into(),
-      host: "127.0.0.1".into(),
-      port: 5432,
+      host:     "127.0.0.1".into(),
+      port:     5432,
       database: "test".into(),
-      schema: "public".into()
+      schema:   "public".into()
     },
     default_poll_seconds: 60,
     max_poll_seconds: 3600,
     error_backoff_base_seconds: 2,
     max_error_backoff_seconds: 60,
     max_consecutive_errors: 5,
-    immediate_error_statuses: Vec::new(),
+    immediate_error_statuses: Vec::new(
+    ),
     jitter_fraction: 0.0,
-    global_max_concurrent_requests: Some(4),
-    user_agent: "pulsewire-offline-test".into(),
+    global_max_concurrent_requests:
+      Some(4),
+    user_agent:
+      "pulsewire-offline-test".into(),
     log_level: "error".into(),
     log_file_enabled: false,
     log_file_level: "error".into(),
-    log_file_directory: PathBuf::from("/tmp"),
-    log_file_name: "scheduler-test.log".into(),
+    log_file_directory: PathBuf::from(
+      "/tmp"
+    ),
+    log_file_name: "scheduler-test.log"
+      .into(),
     log_file_rotation: "never".into(),
     log_tick_warn_seconds: 0,
     log_feed_timing_enabled: false,
@@ -323,7 +381,7 @@ fn fixture(repo: Arc<FakeRepo>, http: Arc<FakeHttp>) -> TestContext {
     log_feed_timing_log_all: false,
     metrics: MetricsConfig {
       enabled: false,
-      bind: "127.0.0.1:0".into()
+      bind:    "127.0.0.1:0".into()
     },
     mode: AppMode::Dev,
     timezone: chrono_tz::UTC,
@@ -337,24 +395,42 @@ fn fixture(repo: Arc<FakeRepo>, http: Arc<FakeHttp>) -> TestContext {
     http,
     clock: Arc::new(FakeClock),
     rng: Arc::new(FakeRandom),
-    watches_by_id: Arc::new(HashMap::new()),
-    cookie_header_by_id: Arc::new(HashMap::new()),
-    extra_headers_by_id: Arc::new(HashMap::new())
+    watches_by_id: Arc::new(
+      HashMap::new()
+    ),
+    cookie_header_by_id: Arc::new(
+      HashMap::new()
+    ),
+    extra_headers_by_id: Arc::new(
+      HashMap::new()
+    )
   }
 }
 
 #[tokio::test]
-async fn slow_due_query_does_not_block_healthy_category() {
-  let repo = Arc::new(FakeRepo::new(Vec::new(), true, false));
-  let slow = repo.blocked_entered.clone();
-  let healthy = repo.healthy_seen.clone();
-  let ctx = fixture(repo, Arc::new(FakeHttp::default()));
-  let worker = tokio::spawn(async move {
-    Scheduler::run_forever_by_category(
+async fn slow_due_query_does_not_block_healthy_category()
+ {
+  let repo = Arc::new(FakeRepo::new(
+    Vec::new(),
+    true,
+    false
+  ));
+  let slow =
+    repo.blocked_entered.clone();
+  let healthy =
+    repo.healthy_seen.clone();
+  let ctx = fixture(
+    repo,
+    Arc::new(FakeHttp::default())
+  );
+  let worker = tokio::spawn(
+    async move {
+      Scheduler::run_forever_by_category(
       ctx,
       vec!["slow".into(), "healthy".into()]
     ).await
-  });
+    }
+  );
 
   let observed = tokio::time::timeout(
     Duration::from_secs(2),
@@ -362,75 +438,132 @@ async fn slow_due_query_does_not_block_healthy_category() {
       slow.notified().await;
       healthy.notified().await;
     }
-  ).await;
+  )
+  .await;
   worker.abort();
   let _ = worker.await;
   assert!(
     observed.is_ok(),
-    "healthy category must advance while slow query is blocked"
+    "healthy category must advance \
+     while slow query is blocked"
   );
 }
 
 #[tokio::test]
-async fn failing_category_retries_without_stalling_healthy() {
-  let repo = Arc::new(FakeRepo::new(Vec::new(), false, true));
-  let healthy = repo.healthy_seen.clone();
-  let ctx = fixture(repo, Arc::new(FakeHttp::default()));
-  let worker = tokio::spawn(async move {
-    Scheduler::run_forever_by_category(
+async fn failing_category_retries_without_stalling_healthy()
+ {
+  let repo = Arc::new(FakeRepo::new(
+    Vec::new(),
+    false,
+    true
+  ));
+  let healthy =
+    repo.healthy_seen.clone();
+  let ctx = fixture(
+    repo,
+    Arc::new(FakeHttp::default())
+  );
+  let worker = tokio::spawn(
+    async move {
+      Scheduler::run_forever_by_category(
       ctx,
       vec!["slow".into(), "healthy".into()]
     ).await
-  });
+    }
+  );
 
   let observed = tokio::time::timeout(
     Duration::from_secs(2),
     healthy.notified()
-  ).await;
+  )
+  .await;
   worker.abort();
   let _ = worker.await;
   assert!(
     observed.is_ok(),
-    "a failing category must not delay independent scheduling"
+    "a failing category must not \
+     delay independent scheduling"
   );
 }
 
 #[tokio::test]
-async fn backlog_pages_are_bounded_and_drain_without_repeats() {
-  let feeds: Vec<FeedConfig> = (0..1101)
-    .map(|i| FeedConfig {
-      id: format!("feed-{i:04}"),
-      url: format!("https://example.test/{i}"),
-      domain: "example.test".into(),
-      category: "bulk".into(),
-      base_poll_seconds: 60,
-      provenance: None,
-      tags: None,
-      language: None,
-      content_type: None,
-      cookie_path: None,
-      headers_path: None,
-      headers: None
+async fn backlog_pages_are_bounded_and_drain_without_repeats()
+ {
+  let feeds: Vec<FeedConfig> = (0
+    ..1101)
+    .map(|i| {
+      FeedConfig {
+        id:                format!(
+          "feed-{i:04}"
+        ),
+        url:               format!(
+          "https://example.test/{i}"
+        ),
+        domain:
+          "example.test".into(),
+        category:          "bulk"
+          .into(),
+        base_poll_seconds: 60,
+        provenance:        None,
+        tags:              None,
+        language:          None,
+        content_type:      None,
+        cookie_path:       None,
+        headers_path:      None,
+        headers:           None
+      }
     })
     .collect();
-  let repo = Arc::new(FakeRepo::new(feeds, false, false));
-  let http = Arc::new(FakeHttp::default());
-  let ctx = fixture(repo.clone(), http.clone());
-  let guards = ConcurrencyGuards::new(ctx.cfg.clone());
+  let repo = Arc::new(FakeRepo::new(
+    feeds, false, false
+  ));
+  let http =
+    Arc::new(FakeHttp::default());
+  let ctx =
+    fixture(repo.clone(), http.clone());
+  let guards = ConcurrencyGuards::new(
+    ctx.cfg.clone()
+  );
 
-  run_tick(&ctx, &guards, Instant::now(), "bulk", 4)
-    .await
-    .expect("first due batch");
-  assert_eq!(repo.completed.lock().await.len(), 1000);
+  run_tick(
+    &ctx,
+    &guards,
+    Instant::now(),
+    "bulk",
+    4
+  )
+  .await
+  .expect("first due batch");
+  assert_eq!(
+    repo.completed.lock().await.len(),
+    1000
+  );
 
-  run_tick(&ctx, &guards, Instant::now(), "bulk", 4)
-    .await
-    .expect("second due batch");
-  assert_eq!(repo.completed.lock().await.len(), 1101);
+  run_tick(
+    &ctx,
+    &guards,
+    Instant::now(),
+    "bulk",
+    4
+  )
+  .await
+  .expect("second due batch");
+  assert_eq!(
+    repo.completed.lock().await.len(),
+    1101
+  );
   assert_eq!(
     *repo.page_sizes.lock().await,
     vec![1000, 101]
   );
-  assert!(http.peak.load(Ordering::SeqCst) <= 4);
-  assert_eq!(http.inflight.load(Ordering::SeqCst), 0);
+  assert!(
+    http.peak.load(Ordering::SeqCst)
+      <= 4
+  );
+  assert_eq!(
+    http
+      .inflight
+      .load(Ordering::SeqCst),
+    0
+  );
 }
