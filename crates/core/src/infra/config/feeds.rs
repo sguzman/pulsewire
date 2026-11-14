@@ -1319,19 +1319,23 @@ mod suppressed_catalog_tests {
   use super::*;
 
   #[tokio::test]
-  async fn disabled_catalogs_are_skipped_before_toml_parse() {
+  async fn disabled_catalogs_are_skipped_before_toml_parse()
+   {
     let root = std::env::temp_dir()
       .join(format!(
         "pulsewire-disabled-catalog-{}",
         std::process::id()
       ));
-    let _ = fs::remove_dir_all(&root).await;
-    for name in [
-      "news", "podcasts", "youtube"
-    ] {
-      fs::create_dir_all(root.join(name))
-        .await
-        .expect("create fixture catalog");
+    let _ =
+      fs::remove_dir_all(&root).await;
+    for name in
+      ["news", "podcasts", "youtube"]
+    {
+      fs::create_dir_all(
+        root.join(name)
+      )
+      .await
+      .expect("create fixture catalog");
     }
 
     fs::write(
@@ -1340,14 +1344,15 @@ mod suppressed_catalog_tests {
     )
     .await
     .expect("enabled fixture");
-    for category in [
-      "podcasts", "youtube"
-    ] {
+    for category in
+      ["podcasts", "youtube"]
+    {
       fs::write(
-        root.join(category).join(
-          "invalid.toml"
-        ),
-        "this is intentionally malformed [["
+        root
+          .join(category)
+          .join("invalid.toml"),
+        "this is intentionally \
+         malformed [["
       )
       .await
       .expect("disabled fixture");
@@ -1364,29 +1369,26 @@ mod suppressed_catalog_tests {
       "youtube".to_string()
     ]);
     let files = collect_feed_files(
-      &root,
-      &disabled
+      &root, &disabled
     )
     .await
     .expect("collect active catalog");
-    assert_eq!(
-      files,
-      vec![root.join("news/valid.toml")]
-    );
+    assert_eq!(files, vec![
+      root.join("news/valid.toml")
+    ]);
 
     // A permissive JSON schema isolates
     // TOML selection from schema rules.
-    // If disabled directories were read,
-    // the deliberately invalid TOML
-    // would fail this load.
+    // If disabled directories were
+    // read, the deliberately invalid
+    // TOML would fail this load.
     let loaded = load_all_feeds(
-      &root,
-      "{}",
-      "{}",
-      &disabled
+      &root, "{}", "{}", &disabled
     )
     .await
-    .expect("load enabled catalogs only");
+    .expect(
+      "load enabled catalogs only"
+    );
     assert_eq!(loaded.feeds.len(), 1);
     assert_eq!(
       loaded.feeds[0].id,
