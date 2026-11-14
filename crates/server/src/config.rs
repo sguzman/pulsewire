@@ -20,8 +20,11 @@ pub enum ConfigError {
   Invalid(String)
 }
 
-// Do not retain a TOML error whose source contains credential text.
-impl From<toml::de::Error> for ConfigError {
+// Do not retain a TOML error whose
+// source contains credential text.
+impl From<toml::de::Error>
+  for ConfigError
+{
   fn from(_: toml::de::Error) -> Self {
     Self::Parse
   }

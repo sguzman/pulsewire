@@ -11,9 +11,13 @@ pub enum ConfigError {
   Invalid(String)
 }
 
-// Discard the parser error: it may contain source snippets and
-// must not survive via Error::source() or diagnostic formatting.
-impl From<toml::de::Error> for ConfigError {
+// Discard the parser error: it may
+// contain source snippets and
+// must not survive via Error::source()
+// or diagnostic formatting.
+impl From<toml::de::Error>
+  for ConfigError
+{
   fn from(_: toml::de::Error) -> Self {
     Self::Toml
   }
