@@ -294,6 +294,21 @@ jobs:
           restored_favorites="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
             psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.favorites WHERE feed_id = 'pulsewire-ci-real-rss'")"
           test "$restored_favorites" -ge 1
+          # Reconcile every preserved table's row count with the
+          # original disposable DB: a successful pg_restore is not
+          # sufficient if an operational table was silently omitted.
+          for table in \
+            fetcher.categories fetcher.feeds fetcher.feed_payloads \
+            fetcher.feed_items fetcher.feed_state_current \
+            fetcher.feed_state_history fetcher.fetch_events \
+            server.users server.subscriptions server.entry_states \
+            server.favorites server.folders server.folder_feeds; do
+            original_count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+              psql -v ON_ERROR_STOP=1 -U admin -d data -Atc "SELECT COUNT(*) FROM $table")"
+            restored_count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+              psql -v ON_ERROR_STOP=1 -U admin -d data_restore -Atc "SELECT COUNT(*) FROM $table")"
+            test "$original_count" = "$restored_count"
+          done
           # Offline operator recovery: invalid confirmation does not connect
           # or mutate the database. A successful recovery kills old sessions.
           prior_hash="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \

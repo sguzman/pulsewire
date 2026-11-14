@@ -674,6 +674,34 @@ mod sqlite_recovery_tests {
     .await
     .expect("feed item");
 
+    // Conservative retention: archived
+    // payload, event and state history
+    // must survive migrations and
+    // restore.
+    for sql in [
+      "INSERT INTO feed_state_history \
+       (feed_id, recorded_at_ms, \
+       phase, backoff_index, \
+       base_poll_seconds, \
+       next_action_at_ms, \
+       jitter_seconds) VALUES \
+       ('fixture', 100, 'NeedsHead', \
+       0, 3600, 200, 0)",
+      "INSERT INTO fetch_events \
+       (feed_id, event_time_ms, \
+       method, status, backoff_index, \
+       scheduled_next_action_at_ms) \
+       VALUES ('fixture', 100, 'GET', \
+       200, 0, 200)"
+    ] {
+      sqlx::query(sql)
+        .execute(&pool)
+        .await
+        .expect(
+          "seed retained history"
+        );
+    }
+
     crate::db::bootstrap_admin(
       &initial,
       "old_reader",
@@ -684,6 +712,37 @@ mod sqlite_recovery_tests {
       "promote existing account only \
        after credential proof"
     );
+
+    // A restored reader must retain its
+    // subscriptions, favorites and
+    // folder membership, not only read
+    // state.
+    for sql in [
+      "INSERT INTO subscriptions \
+       (user_id, feed_id, created_at) \
+       VALUES (7, 'fixture', \
+       '2026-01-01')",
+      "INSERT INTO favorites \
+       (user_id, feed_id, created_at) \
+       VALUES (7, 'fixture', \
+       '2026-01-01')",
+      "INSERT INTO folders (id, \
+       user_id, name, created_at) \
+       VALUES (3, 7, 'News', \
+       '2026-01-01')",
+      "INSERT INTO folder_feeds \
+       (folder_id, feed_id, \
+       created_at) VALUES (3, \
+       'fixture', '2026-01-01')"
+    ] {
+      sqlx::query(sql)
+        .execute(&pool)
+        .await
+        .expect(
+          "seed reader relationship"
+        );
+    }
+
     let Json(login) = auth::login(
       State(initial.clone()),
       Json(LoginRequest {
@@ -839,6 +898,78 @@ mod sqlite_recovery_tests {
       .await
       .expect("role survives restore");
     assert_eq!(admin_after, 1);
+
+    // Historical payloads, fetch events
+    // and link-state history are
+    // retained; no implicit prune may
+    // erase them.
+    for table in [
+      "feed_payloads",
+      "feed_state_history",
+      "fetch_events"
+    ] {
+      let count: i64 =
+        sqlx::query_scalar(&format!(
+          "SELECT COUNT(*) FROM \
+           {table} WHERE feed_id = \
+           'fixture'"
+        ))
+        .fetch_one(&recovered_pool)
+        .await
+        .expect(
+          "restored historical data"
+        );
+      assert_eq!(
+        count, 1,
+        "{table} must survive restore"
+      );
+    }
+
+    // Verify all four relationships
+    // after restoring to an independent
+    // SQLite database and replaying
+    // migrations.
+    for (name, sql) in [
+      (
+        "subscriptions",
+        "SELECT COUNT(*) FROM \
+         subscriptions WHERE user_id \
+         = 7 AND feed_id = 'fixture'"
+      ),
+      (
+        "favorites",
+        "SELECT COUNT(*) FROM \
+         favorites WHERE user_id = 7 \
+         AND feed_id = 'fixture'"
+      ),
+      (
+        "folders",
+        "SELECT COUNT(*) FROM folders \
+         WHERE id = 3 AND user_id = 7 \
+         AND name = 'News'"
+      ),
+      (
+        "folder_feeds",
+        "SELECT COUNT(*) FROM \
+         folder_feeds WHERE folder_id \
+         = 3 AND feed_id = 'fixture'"
+      )
+    ] {
+      let count: i64 =
+        sqlx::query_scalar(sql)
+          .fetch_one(&recovered_pool)
+          .await
+          .expect(
+            "restored reader \
+             relationship"
+          );
+      assert_eq!(
+        count, 1,
+        "{name} must survive backup \
+         and restore"
+      );
+    }
+
     recovered_pool.close().await;
     std::fs::remove_dir_all(root)
       .expect(
