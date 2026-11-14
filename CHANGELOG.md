@@ -13,6 +13,11 @@
 - Reject password changes that would weaken the existing minimum 12-byte password policy.
 - Keep public password reset disabled; serialize login, rotation and password changes with offline recovery on SQLite and PostgreSQL, so stale hashes and revoked tokens cannot mint new sessions.
 
+### ⏲️ Scheduler
+- Run category ticks and retries independently with a shared global request budget and domain limits; busy domains do not hold global capacity while waiting (PR #12).
+- Add deterministic offline scheduler regressions for blocked/failed category queries and bounded 1,101-feed backlog draining (PR #13).
+- Add stable feed-ID ordering for tied due times in SQLite and PostgreSQL, with an in-memory SQLite paging/deferral/error-filter regression (PR #15).
+
 ### ⚙️ Miscellaneous
 - Tech words ([74a4d7a](https://github.com/sguzman/pulsewire/commit/74a4d7a8bc0989fe29eb01c149d9f18acd1b409d))
 - Format to alpha ([3d70722](https://github.com/sguzman/pulsewire/commit/3d707226423a06a57ecbabbe9bda51522ecdd7f2))## [0.1.24] - 2026-01-14
