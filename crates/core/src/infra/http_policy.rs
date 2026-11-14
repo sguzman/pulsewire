@@ -20,12 +20,17 @@ pub const MAX_RESPONSE_BODY_BYTES:
 
 pub const MAX_REDIRECTS: usize = 5;
 
-/// Explicit trusted-operator opt-in for private feed networks.
-/// Strict egress is the default.
-pub fn allow_private_feed_networks() -> bool {
-  std::env::var("PULSEWIRE_ALLOW_PRIVATE_FEEDS")
-    .ok()
-    .as_deref() == Some("1")
+/// Explicit trusted-operator opt-in for
+/// private feed networks. Strict egress
+/// is the default.
+pub fn allow_private_feed_networks()
+-> bool {
+  std::env::var(
+    "PULSEWIRE_ALLOW_PRIVATE_FEEDS"
+  )
+  .ok()
+  .as_deref()
+    == Some("1")
 }
 
 fn blocked_ipv4(ip: Ipv4Addr) -> bool {
@@ -45,10 +50,18 @@ fn blocked_ipv4(ip: Ipv4Addr) -> bool {
       && a[2] == 0)
     || (a[0] == 198
       && (18..=19).contains(&a[1]))
-    || (a[0] == 192 && a[1] == 0 && a[2] == 2)
-    || (a[0] == 198 && a[1] == 51 && a[2] == 100)
-    || (a[0] == 203 && a[1] == 0 && a[2] == 113)
-    || (a[0] == 192 && a[1] == 88 && a[2] == 99)
+    || (a[0] == 192
+      && a[1] == 0
+      && a[2] == 2)
+    || (a[0] == 198
+      && a[1] == 51
+      && a[2] == 100)
+    || (a[0] == 203
+      && a[1] == 0
+      && a[2] == 113)
+    || (a[0] == 192
+      && a[1] == 88
+      && a[2] == 99)
 }
 
 fn blocked_ipv6(ip: Ipv6Addr) -> bool {
@@ -65,11 +78,14 @@ fn blocked_ipv6(ip: Ipv6Addr) -> bool {
     || ip.segments()[0] == 0x2002
 }
 
-/// Shared by literal URL and connection-time DNS validation.
-pub(crate) fn blocked_ip(ip: IpAddr) -> bool {
+/// Shared by literal URL and
+/// connection-time DNS validation.
+pub(crate) fn blocked_ip(
+  ip: IpAddr
+) -> bool {
   match ip {
-    IpAddr::V4(a) => blocked_ipv4(a),
-    IpAddr::V6(a) => blocked_ipv6(a)
+    | IpAddr::V4(a) => blocked_ipv4(a),
+    | IpAddr::V6(a) => blocked_ipv6(a)
   }
 }
 
