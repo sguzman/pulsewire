@@ -86,10 +86,7 @@ mod redaction_tests {
   fn schema_errors_do_not_echo_password_values()
    {
     let schema = r#"{"type":"object","properties":{"password":{"type":"integer"}}}"#;
-    let input =
-      "password = \
-       \"pw023-config-secret-sentinel\\
-       "";
+    let input = r#"password = "pw023-config-secret-sentinel""#;
     let err = validate_toml(
       schema, input, "test"
     )
