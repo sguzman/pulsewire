@@ -16,18 +16,42 @@ pub struct FeedSummary {
   pub tags: Option<Vec<String>>
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 
 pub struct CreateUserRequest {
   pub username: String,
   pub password: String
 }
 
-#[derive(Debug, Deserialize)]
+impl std::fmt::Debug for CreateUserRequest {
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
+    f.debug_struct("CreateUserRequest")
+      .field("username", &self.username)
+      .field("password", &"<redacted>")
+      .finish()
+  }
+}
+
+#[derive(Deserialize)]
 
 pub struct LoginRequest {
   pub username: String,
   pub password: String
+}
+
+impl std::fmt::Debug for LoginRequest {
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
+    f.debug_struct("LoginRequest")
+      .field("username", &self.username)
+      .field("password", &"<redacted>")
+      .finish()
+  }
 }
 
 #[derive(
@@ -225,11 +249,23 @@ pub struct FavoriteListQuery {
   pub offset: Option<u32>
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 
 pub struct PasswordChangeRequest {
   pub current_password: String,
   pub new_password:     String
+}
+
+impl std::fmt::Debug for PasswordChangeRequest {
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
+    f.debug_struct("PasswordChangeRequest")
+      .field("current_password", &"<redacted>")
+      .field("new_password", &"<redacted>")
+      .finish()
+  }
 }
 
 #[derive(
@@ -242,12 +278,25 @@ pub struct TokenSummary {
   pub created_at: String
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Serialize)]
 
 pub struct TokenResponse {
   pub token:      String,
   pub token_type: String,
   pub expires_in: u64
+}
+
+impl std::fmt::Debug for TokenResponse {
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
+    f.debug_struct("TokenResponse")
+      .field("token", &"<redacted>")
+      .field("token_type", &self.token_type)
+      .field("expires_in", &self.expires_in)
+      .finish()
+  }
 }
 
 #[derive(Debug, Deserialize)]
@@ -262,4 +311,42 @@ pub struct SubscriptionRequest {
 
 pub struct SubscriptionRow {
   pub feed_id: String
+}
+
+#[cfg(test)]
+mod auth_debug_redaction_tests {
+  use super::*;
+
+  #[test]
+  fn never_debug_print_passwords_or_bearer_tokens() {
+    let secret = "pw023-secret-debug-sentinel";
+    let create = CreateUserRequest {
+      username: "reader".to_string(),
+      password: secret.to_string()
+    };
+    let login = LoginRequest {
+      username: "reader".to_string(),
+      password: secret.to_string()
+    };
+    let change = PasswordChangeRequest {
+      current_password: secret.to_string(),
+      new_password: secret.to_string()
+    };
+    let token = TokenResponse {
+      token: secret.to_string(),
+      token_type: "bearer".to_string(),
+      expires_in: 3600
+    };
+    for printed in [
+      format!("{create:?}"),
+      format!("{login:?}"),
+      format!("{change:?}"),
+      format!("{token:?}")
+    ] {
+      assert!(printed.contains("<redacted>"));
+      assert!(!printed.contains(secret));
+    }
+    assert!(format!("{login:?}").contains("reader"));
+    assert!(format!("{token:?}").contains("bearer"));
+  }
 }
