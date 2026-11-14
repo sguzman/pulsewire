@@ -11,12 +11,12 @@ pub const SCHEMAS_ROOT: &str =
   env!("CARGO_MANIFEST_DIR");
 
 mod config_paths;
-pub use config_paths::config_path;
-
 use std::path::{
   Path,
   PathBuf
 };
+
+pub use config_paths::config_path;
 
 /// Locate a service's schema directory.
 ///
