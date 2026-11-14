@@ -98,6 +98,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/pulsewire-installed-schemas"
           cp -R crates/schemas/fetcher "$RUNNER_TEMP/pulsewire-installed-schemas/fetcher"
           cp -R crates/schemas/server "$RUNNER_TEMP/pulsewire-installed-schemas/server"
+          # Server SQL migrations also belong to the installed runtime
+          # schema tree, not the directory containing config.toml.
+          cp -R crates/server/res/sql "$RUNNER_TEMP/pulsewire-installed-schemas/server/sql"
           mkdir -p "$RUNNER_TEMP/pulsewire-smoke/news"
           cat > "$RUNNER_TEMP/pulsewire-smoke/news/ci.toml" <<'EOF'
           [[feeds]]
