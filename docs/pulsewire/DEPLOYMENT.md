@@ -32,6 +32,22 @@ The disposable smoke uses it for its `ci-rss` fixture. The resolver checks
 are not a network sandbox: enforce independent container/firewall egress
 rules, trusted DNS and proxy controls before real-host deployment.
 
+## Authentication and inbound proxy safety
+
+The server keeps a persistent per-username login throttle (**five requests in
+15 minutes**) and a separate quota of **60 login requests per 15 minutes**
+from the actual connected TCP peer, shared across attempted usernames. Both
+quotas use hashed database keys; neither stores raw passwords or attempted
+source IPs. A blocked client receives HTTP 429 and a Retry-After header.
+
+**Important when using a reverse proxy:** the server sees the proxy's TCP
+address, not each internet client's address. All clients behind that proxy
+share Pulsewire's peer quota. Configure a separately verified per-real-client
+rate limit at the trusted proxy; do not expose the app directly to public
+traffic without trusted ingress controls. Pulsewire deliberately does **not**
+accept untrusted `X-Forwarded-For` claims as source identity. A shared NAT
+can also aggregate clients into one quota; account lockout is possible.
+
 ## Requirements before starting on any host
 
 1. Decide which **existing Docker network** can resolve the intended PostgreSQL

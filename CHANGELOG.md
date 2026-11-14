@@ -2,6 +2,8 @@
 ## [Unreleased]
 
 ### 🔐 Security
+- Serialize first-administrator bootstrap on PostgreSQL/SQLite, prevent last-admin self-deletion, revoke account sessions/resets on deletion, preserve exact password bytes and redact HTTP 500 diagnostics.
+- Rate-limit login sprays across distinct usernames by the actual TCP peer (60 requests per 15 minutes) in addition to the persistent per-account throttle; ignore untrusted forwarding headers. Verify both SQLite/PostgreSQL and real HTTP smoke.
 - Block non-public resolved feed destinations at the Reqwest connection-time DNS boundary (including mixed public/private DNS answers), disable ambient proxies, and require explicit `PULSEWIRE_ALLOW_PRIVATE_FEEDS=1` opt-in for trusted internal sources; verified with Rust and container CI.
 - Bound accepted feed response bodies to 8 MiB (with smaller watch-specific limits), validate outbound HTTP(S) source URLs, and restrict redirects to the same origin or same-host HTTP-to-HTTPS upgrades; add isolated HTTP rejection and streaming tests.
 - Add persistent per-account login throttling shared across SQLite/PostgreSQL processes, including HTTP 429 responses and restart/concurrency regression coverage.
