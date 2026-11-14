@@ -226,9 +226,15 @@ pub struct PostgresConfig {
   pub schema:   String
 }
 
-// Prevent accidental credential leakage through Debug logs.
-impl std::fmt::Debug for PostgresConfig {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+// Prevent accidental credential leakage
+// through Debug logs.
+impl std::fmt::Debug
+  for PostgresConfig
+{
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
     f.debug_struct("PostgresConfig")
       .field("user", &self.user)
       .field("password", &"<redacted>")
@@ -279,17 +285,23 @@ mod secret_debug_tests {
   use super::*;
 
   #[test]
-  fn postgres_debug_never_displays_password() {
+  fn postgres_debug_never_displays_password()
+   {
     let config = PostgresConfig {
-      user: "example".into(),
-      password: "sensitive-debug-marker".into(),
-      host: "db".into(),
-      port: 5432,
+      user:     "example".into(),
+      password:
+        "sensitive-debug-marker".into(),
+      host:     "db".into(),
+      port:     5432,
       database: "pulsewire".into(),
-      schema: "fetcher".into()
+      schema:   "fetcher".into()
     };
     let printed = format!("{config:?}");
-    assert!(printed.contains("<redacted>"));
-    assert!(!printed.contains("sensitive-debug-marker"));
+    assert!(
+      printed.contains("<redacted>")
+    );
+    assert!(!printed.contains(
+      "sensitive-debug-marker"
+    ));
   }
 }

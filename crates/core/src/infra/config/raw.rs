@@ -87,7 +87,10 @@ pub(crate) struct RawPostgres {
 }
 
 impl std::fmt::Debug for RawPostgres {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
     f.debug_struct("RawPostgres")
       .field("user", &self.user)
       .field("password", &"<redacted>")
@@ -367,13 +370,19 @@ mod secret_debug_tests {
   use super::*;
 
   #[test]
-  fn raw_postgres_debug_redacts_password() {
+  fn raw_postgres_debug_redacts_password()
+   {
     let config = RawPostgres {
-      password: "sensitive-debug-marker".into(),
+      password:
+        "sensitive-debug-marker".into(),
       ..RawPostgres::default()
     };
     let printed = format!("{config:?}");
-    assert!(printed.contains("<redacted>"));
-    assert!(!printed.contains("sensitive-debug-marker"));
+    assert!(
+      printed.contains("<redacted>")
+    );
+    assert!(!printed.contains(
+      "sensitive-debug-marker"
+    ));
   }
 }
