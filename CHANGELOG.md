@@ -2,6 +2,7 @@
 ## [Unreleased]
 
 ### 🔐 Security
+- Test the real HTTP login route against forged `X-Forwarded-For`, `X-Real-IP` and `Forwarded` headers; a blocked TCP peer remains rate-limited despite header spoofing (PR #11).
 - Redact secret-bearing TOML/schema validation diagnostics and disable default published fetcher metrics; cover config error redaction and Compose loopback/metrics defaults in CI (PR #10).
 - Redact password-bearing API request models and bearer-token responses in Rust Debug output, with synthetic secret-marker tests; do not treat this as production network exposure approval.
 - Serialize first-administrator bootstrap on PostgreSQL/SQLite, prevent last-admin self-deletion, revoke account sessions/resets on deletion, preserve exact password bytes and redact HTTP 500 diagnostics.
