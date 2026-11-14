@@ -611,3 +611,97 @@ mod scheduler_retry_tests {
     ));
   }
 }
+
+#[cfg(test)]
+mod head_validator_regressions {
+  use super::*;
+
+  fn initial_with_validators() -> LinkState {
+    let mut state = LinkState::initial(
+      "rss-head-validators".into(),
+      5,
+      60,
+      0.0,
+      1_000
+    );
+    state.phase = LinkPhase::NeedsHead;
+    state.last_head_status = Some(200);
+    state.etag = Some("etag-v1".into());
+    state.last_modified_ms = Some(100);
+    state
+  }
+
+  fn head(
+    status: u16,
+    etag: &str,
+    last_modified: i64
+  ) -> HeadResult {
+    HeadResult {
+      status: Some(status),
+      etag: Some(etag.into()),
+      last_modified: Some(last_modified),
+      error: None,
+      latency_ms: 1,
+      set_cookie_headers: Vec::new()
+    }
+  }
+
+  #[test]
+  fn unchanged_validators_do_not_trigger_get() {
+    let state = initial_with_validators();
+    let after = LinkState::apply_head_result(
+      state,
+      head(304, "etag-v1", 100),
+      2_000,
+      0.5
+    );
+    assert_eq!(
+      after.phase,
+      LinkPhase::Sleeping
+    );
+    assert_eq!(
+      after.note.as_deref(),
+      Some("head-not-modified")
+    );
+  }
+
+  #[test]
+  fn changed_etag_or_last_modified_triggers_get() {
+    for (etag, modified) in [
+      ("etag-v2", 100),
+      ("etag-v1", 200)
+    ] {
+      let after = LinkState::apply_head_result(
+        initial_with_validators(),
+        head(200, etag, modified),
+        2_000,
+        0.5
+      );
+      assert_eq!(
+        after.phase,
+        LinkPhase::NeedsGet
+      );
+      assert_eq!(
+        after.note.as_deref(),
+        Some("head-modified")
+      );
+    }
+  }
+
+  #[test]
+  fn recovery_from_not_modified_to_ok_triggers_get() {
+    let mut state =
+      initial_with_validators();
+    state.last_head_status = Some(304);
+    let after = LinkState::apply_head_result(
+      state,
+      head(200, "etag-v1", 100),
+      2_000,
+      0.5
+    );
+    assert_eq!(
+      after.phase,
+      LinkPhase::NeedsGet
+    );
+  }
+}
