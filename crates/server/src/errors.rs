@@ -129,10 +129,11 @@ mod tests {
   #[tokio::test]
   async fn internal_errors_never_expose_database_details()
    {
+    let internal_details =
+      "INTERNAL_DIAGNOSTIC_SENTINEL";
     let response = ServerError::new(
       StatusCode::INTERNAL_SERVER_ERROR,
-      "db connection: \
-       ***"
+      internal_details
     )
     .into_response();
     assert_eq!(
@@ -158,7 +159,7 @@ mod tests {
     );
     assert!(
       !String::from_utf8_lossy(&body)
-        .contains("secret")
+        .contains(internal_details)
     );
   }
 }
