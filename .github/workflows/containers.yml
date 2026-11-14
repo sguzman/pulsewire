@@ -354,3 +354,15 @@ jobs:
             -H "Authorization: Bearer $rotated_bearer" \
             http://127.0.0.1:18091/v1/entries)"
           test "$code" = 200
+
+          # Different usernames from the same TCP peer share one quota.
+          # Run this last because the source quota intentionally blocks
+          # later logins until its fixed time window expires.
+          source_blocked=0
+          for attempt in {1..75}; do
+            status="$(login_status "ci-spray-$attempt" incorrect-passphrase)"
+            if [ "$status" = 429 ]; then source_blocked=1; break; fi
+            test "$status" = 401
+          done
+          test "$source_blocked" = 1
+          test "$(login_status ci-spray-after-limit incorrect-passphrase)" = 429
