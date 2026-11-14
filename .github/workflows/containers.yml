@@ -300,6 +300,7 @@ jobs:
           for table in \
             fetcher.categories fetcher.feeds fetcher.feed_payloads \
             fetcher.feed_items fetcher.feed_state_current \
+            fetcher.feed_state_history fetcher.fetch_events \
             server.users server.subscriptions server.entry_states \
             server.favorites server.folders server.folder_feeds; do
             original_count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
