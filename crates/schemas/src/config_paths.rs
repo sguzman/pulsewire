@@ -1,8 +1,12 @@
-//! Find Pulsewire configuration at runtime.
-//! Explicit paths win; installation and
-//! development locations are fallbacks.
+//! Find Pulsewire configuration at
+//! runtime. Explicit paths win;
+//! installation and development
+//! locations are fallbacks.
 
-use std::path::{Path, PathBuf};
+use std::path::{
+  Path,
+  PathBuf
+};
 
 /// A CLI override, then an environment
 /// override, then an installed/user
@@ -12,18 +16,20 @@ pub fn config_path(
   cli: Option<&str>,
   environment_name: &str
 ) -> PathBuf {
-  let environment = std::env::var(
-    environment_name
-  ).ok();
-  let xdg = std::env::var(
-    "XDG_CONFIG_HOME"
-  ).ok().map(PathBuf::from);
-  let home = std::env::var(
-    "HOME"
-  ).ok().map(PathBuf::from);
+  let environment =
+    std::env::var(environment_name)
+      .ok();
+  let xdg =
+    std::env::var("XDG_CONFIG_HOME")
+      .ok()
+      .map(PathBuf::from);
+  let home = std::env::var("HOME")
+    .ok()
+    .map(PathBuf::from);
   let executable =
     std::env::current_exe().ok();
-  let cwd = std::env::current_dir().ok();
+  let cwd =
+    std::env::current_dir().ok();
 
   resolve_config_path(
     service,
@@ -45,10 +51,11 @@ fn resolve_config_path(
   executable: Option<&Path>,
   cwd: Option<&Path>
 ) -> PathBuf {
-  // User-provided paths are authoritative
-  // even if they do not exist. A typo
-  // must fail rather than silently
-  // selecting another configuration.
+  // User-provided paths are
+  // authoritative even if they do not
+  // exist. A typo must fail rather than
+  // silently selecting another
+  // configuration.
   if let Some(path) = cli {
     return PathBuf::from(path);
   }
@@ -87,7 +94,9 @@ fn resolve_config_path(
   {
     candidates.push(
       bin_dir
-        .join("../share/pulsewire/config")
+        .join(
+          "../share/pulsewire/config"
+        )
         .join(service)
         .join("config.toml")
     );
@@ -116,26 +125,25 @@ fn resolve_config_path(
     );
 
     if service == "fetcher" {
-      candidates.push(
-        cwd.join(
-          "src/main/resources/config/config.toml"
-        )
-      );
+      candidates.push(cwd.join(
+        "src/main/resources/config/\
+         config.toml"
+      ));
     }
   }
 
-  if let Some(existing) =
-    candidates.iter().find(|path| {
-      path.is_file()
-    })
+  if let Some(existing) = candidates
+    .iter()
+    .find(|path| path.is_file())
   {
     return existing.clone();
   }
 
   // Give an installed binary a useful
-  // missing-config destination; preserve
-  // the historic development fallback
-  // if HOME/XDG are unavailable.
+  // missing-config destination;
+  // preserve the historic development
+  // fallback if HOME/XDG are
+  // unavailable.
   candidates
     .into_iter()
     .next()
@@ -194,7 +202,8 @@ mod tests {
       ),
       cli
     );
-    let _ = std::fs::remove_dir_all(root);
+    let _ =
+      std::fs::remove_dir_all(root);
   }
 
   #[test]
@@ -224,12 +233,12 @@ mod tests {
       ),
       env_path
     );
-    let _ = std::fs::remove_dir_all(root);
+    let _ =
+      std::fs::remove_dir_all(root);
   }
 
   #[test]
-  fn xdg_and_home_precede_checkout()
-   {
+  fn xdg_and_home_precede_checkout() {
     let root = fixture_root("xdg");
     let xdg = root.join("xdg");
     let home = root.join("home");
@@ -239,7 +248,8 @@ mod tests {
       "pulsewire/fetcher/config.toml"
     );
     let home_path = home.join(
-      ".config/pulsewire/fetcher/config.toml"
+      ".config/pulsewire/fetcher/\
+       config.toml"
     );
     let workspace = checkout.join(
       "crates/fetcher/res/config.toml"
@@ -273,18 +283,20 @@ mod tests {
       ),
       home_path
     );
-    let _ = std::fs::remove_dir_all(root);
+    let _ =
+      std::fs::remove_dir_all(root);
   }
 
   #[test]
   fn installed_share_precedes_checkout()
-   {
+  {
     let root = fixture_root("share");
     let bin = root.join("bin");
     let exe =
       bin.join("pulsewire-server");
     let share = bin.join(
-      "../share/pulsewire/config/server/config.toml"
+      "../share/pulsewire/config/\
+       server/config.toml"
     );
     let checkout =
       root.join("checkout");
@@ -304,7 +316,8 @@ mod tests {
       ),
       share
     );
-    let _ = std::fs::remove_dir_all(root);
+    let _ =
+      std::fs::remove_dir_all(root);
   }
 
   #[test]
@@ -327,6 +340,7 @@ mod tests {
       ),
       expected
     );
-    let _ = std::fs::remove_dir_all(root);
+    let _ =
+      std::fs::remove_dir_all(root);
   }
 }
