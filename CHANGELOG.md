@@ -2,6 +2,7 @@
 ## [Unreleased]
 
 ### 🔐 Security
+- Bound accepted feed response bodies to 8 MiB (with smaller watch-specific limits), validate outbound HTTP(S) source URLs, and restrict redirects to the same origin or same-host HTTP-to-HTTPS upgrades; add isolated HTTP rejection and streaming tests.
 - Add persistent per-account login throttling shared across SQLite/PostgreSQL processes, including HTTP 429 responses and restart/concurrency regression coverage.
 - Reject password changes that would weaken the existing minimum 12-byte password policy.
 - Keep public password reset disabled; serialize login, rotation and password changes with offline recovery on SQLite and PostgreSQL, so stale hashes and revoked tokens cannot mint new sessions.

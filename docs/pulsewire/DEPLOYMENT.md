@@ -18,6 +18,15 @@ else's PostgreSQL schemas.
   `9898`. A trusted reverse proxy on the Docker network may communicate with
   the server on its internal container port; there is no automatic public proxy.
 
+## Outbound fetch policy
+
+The fetcher now applies conservative source URL and redirect checks plus
+bounded streaming. Read [FETCH_SECURITY.md](FETCH_SECURITY.md) before allowing
+third-party source definitions or granting the container unrestricted outbound
+network access. A syntactically public hostname can still resolve to private
+IP addresses, so this application-layer policy is not a substitute for
+network egress filtering.
+
 ## Requirements before starting on any host
 
 1. Decide which **existing Docker network** can resolve the intended PostgreSQL
