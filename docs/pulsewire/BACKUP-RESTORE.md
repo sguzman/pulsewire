@@ -1,6 +1,6 @@
 # Pulsewire — backup, restore and retention operator runbook
 
-**Status:** Draft PW-043 procedure, verified in isolated fixtures only.
+**Status:** PW-043 procedures accepted in isolated CI fixtures only; actual host recovery, off-site durability and scheduled backups remain unverified.
 Do **not** perform these operations on the household server without separate
 operator approval, a maintenance window, and a verified off-host backup.
 
