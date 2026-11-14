@@ -26,6 +26,695 @@ jobs:
         run: |
           docker compose -f crates/fetcher/docker-compose.yml config --quiet
           docker compose -f crates/server/docker-compose.yml config --quiet
+          # A default fetcher has no published metrics endpoint.
+          docker compose -f crates/fetcher/docker-compose.yml config --format json \
+            | jq -e '(.services.fetcher.ports // [] | length) == 0'
+          docker compose -f crates/server/docker-compose.yml config --format json \
+            | jq -e '(.services.server.ports | length) == 1 and all(.services.server.ports[]; .host_ip == "127.0.0.1")'
+          grep -q '^enabled = false
+      - name: Build fetcher and server images
+        run: |
+          docker build --file crates/fetcher/Dockerfile --tag pulsewire-fetcher:ci .
+          docker build --file crates/server/Dockerfile --tag pulsewire-server:ci .
+      - name: Verify non-root images and slim catalog
+        run: |
+          set -euo pipefail
+          test "$(docker image inspect pulsewire-fetcher:ci --format '{{.Config.User}}')" = '65532:65532'
+          test "$(docker image inspect pulsewire-server:ci --format '{{.Config.User}}')" = '65532:65532'
+          mkdir -p "$RUNNER_TEMP/pulsewire-check"
+          fetcher_id="$(docker create pulsewire-fetcher:ci)"
+          docker cp "$fetcher_id:/app/res/feeds" "$RUNNER_TEMP/pulsewire-check/feeds"
+          docker rm "$fetcher_id"
+          test -f "$RUNNER_TEMP/pulsewire-check/feeds/news/nytimes.toml"
+          test ! -e "$RUNNER_TEMP/pulsewire-check/feeds/youtube.com"
+          test ! -e "$RUNNER_TEMP/pulsewire-check/feeds/podcasts"
+          server_id="$(docker create pulsewire-server:ci)"
+          docker cp "$server_id:/app/res/sql/postgres/schema.sql" "$RUNNER_TEMP/pulsewire-check/schema.sql"
+          docker rm "$server_id"
+          test -s "$RUNNER_TEMP/pulsewire-check/schema.sql"
+      - name: Smoke against disposable PostgreSQL
+        env:
+          TEST_DB_PASSWORD: 'ci-only:p@ss/word?#'
+          TEST_ADMIN_PASSWORD: 'ci-only-administrator-passphrase'
+        run: |
+          set -euo pipefail
+          cleanup() {
+            docker rm -f pulsewire-ci-fetcher pulsewire-ci-rss pulsewire-ci-server pulsewire-ci-postgres >/dev/null 2>&1 || true
+            docker network rm pulsewire-ci >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          docker network create pulsewire-ci
+          docker run -d --name pulsewire-ci-postgres --network pulsewire-ci --network-alias ci-postgres \
+            -e POSTGRES_USER=admin -e POSTGRES_PASSWORD="$TEST_DB_PASSWORD" -e POSTGRES_DB=data \
+            postgres:16-alpine
+          for i in {1..40}; do
+            if docker exec pulsewire-ci-postgres pg_isready -U admin -d data >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          docker exec pulsewire-ci-postgres pg_isready -U admin -d data
+
+          mkdir -p "$RUNNER_TEMP/pulsewire-smoke/news"
+          cat > "$RUNNER_TEMP/pulsewire-smoke/news/ci.toml" <<'EOF'
+          [[feeds]]
+          id = "pulsewire-ci-feed"
+          url = "https://example.org/feed.xml"
+          category = "news"
+          EOF
+          docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e FEEDS_DIR=/app/smoke-feeds \
+            -v "$RUNNER_TEMP/pulsewire-smoke:/app/smoke-feeds:ro" \
+            pulsewire-fetcher:ci --ingest-benchmark 1
+          docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e PULSEWIRE_BOOTSTRAP_USERNAME=owner \
+            -e PULSEWIRE_BOOTSTRAP_PASSWORD="$TEST_ADMIN_PASSWORD" \
+            pulsewire-server:ci --bootstrap-admin
+          docker run -d --name pulsewire-ci-server --network pulsewire-ci \
+            --memory 256m --memory-swap 256m --cpus 0.25 --pids-limit 128 \
+            -p 127.0.0.1:18091:8091 \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            pulsewire-server:ci
+          healthy=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18091/health >/dev/null 2>&1; then healthy=1; break; fi
+            sleep 2
+          done
+          if [ "$healthy" -ne 1 ]; then
+            docker logs pulsewire-ci-server
+            exit 1
+          fi
+          code="$(curl -sS -o "$RUNNER_TEMP/login.json" -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d "{\"username\":\"owner\",\"password\":\"$TEST_ADMIN_PASSWORD\"}" \
+            http://127.0.0.1:18091/v1/auth/login)"
+          test "$code" = 200
+          grep -q '"token"' "$RUNNER_TEMP/login.json"
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d '{"username":"stranger","password":"not-an-administrator-passphrase"}' \
+            http://127.0.0.1:18091/v1/users)"
+          test "$code" = 401
+          test "$(docker port pulsewire-ci-server 8091/tcp)" = '127.0.0.1:18091'
+          # Exercise the real GET -> XML parser -> PostgreSQL -> API path using
+          # deterministic HTTP inside the isolated Docker network. No external RSS requests.
+          docker run -d --name pulsewire-ci-rss --network pulsewire-ci --network-alias ci-rss \
+            -v "$GITHUB_WORKSPACE/tests/fixtures/rss:/usr/share/nginx/html:ro" \
+            nginx:alpine
+          mkdir -p "$RUNNER_TEMP/pulsewire-real-feeds/news" \
+                   "$RUNNER_TEMP/pulsewire-real-feeds/podcasts" \
+                   "$RUNNER_TEMP/pulsewire-real-feeds/youtube.com"
+          cat > "$RUNNER_TEMP/pulsewire-real-feeds/news/ci.toml" <<'EOF'
+          [[feeds]]
+          id = "pulsewire-ci-real-rss"
+          url = "http://ci-rss/feed.xml"
+          category = "news"
+          base_poll_seconds = 1800
+          EOF
+          # These intentionally broken files prove disabled directories are
+          # skipped before reading/parsing them, not merely filtered afterward.
+          printf 'intentionally broken = [\n' > "$RUNNER_TEMP/pulsewire-real-feeds/podcasts/disabled.toml"
+          printf 'intentionally broken = [\n' > "$RUNNER_TEMP/pulsewire-real-feeds/youtube.com/disabled.toml"
+          docker run -d --name pulsewire-ci-fetcher --network pulsewire-ci \
+            --memory 512m --memory-swap 512m --cpus 0.75 --pids-limit 256 \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e FEEDS_DIR=/app/smoke-feeds \
+            -v "$RUNNER_TEMP/pulsewire-real-feeds:/app/smoke-feeds:ro" \
+            pulsewire-fetcher:ci
+          fetched=0
+          for i in {1..45}; do
+            items="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+              psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.feed_items WHERE feed_id = 'pulsewire-ci-real-rss'" 2>/dev/null || echo 0)"
+            if [ "$items" -ge 2 ]; then fetched=1; break; fi
+            if [ "$(docker inspect -f '{{.State.Running}}' pulsewire-ci-fetcher)" != true ]; then
+              docker logs pulsewire-ci-fetcher
+              exit 1
+            fi
+            sleep 2
+          done
+          if [ "$fetched" -ne 1 ]; then
+            docker logs pulsewire-ci-fetcher
+            exit 1
+          fi
+          docker stop pulsewire-ci-fetcher
+          # Verify disabled sources produced neither scheduler categories nor feed rows.
+          count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.feeds WHERE category IN ('youtube','podcasts')")"
+          test "$count" = 0
+          count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.fetch_events WHERE feed_id = 'pulsewire-ci-real-rss' AND method='GET' AND status=200")"
+          test "$count" -ge 1
+
+          token="$(jq -er '.token' "$RUNNER_TEMP/login.json")"
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?feed_id=pulsewire-ci-real-rss' \
+            > "$RUNNER_TEMP/entries.json"
+          jq -e '(.items | length) >= 2 and any(.items[]; .title == "Pulsewire CI Story One")' \
+            "$RUNNER_TEMP/entries.json"
+          # Reader API: authentication, subscriptions, favorites and search.
+          unauth="$(curl -sS -o /dev/null -w '%{http_code}' \
+            'http://127.0.0.1:18091/v1/entries?feed_id=pulsewire-ci-real-rss')"
+          test "$unauth" = 401
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $token" \
+            -H 'Content-Type: application/json' \
+            -d '{"feed_id":"pulsewire-ci-real-rss"}' \
+            http://127.0.0.1:18091/v1/subscriptions)"
+          test "$code" = 201
+          curl -fsS -H "Authorization: Bearer $token" \
+            http://127.0.0.1:18091/v1/subscriptions \
+            | jq -e 'any(.[]; .feed_id == "pulsewire-ci-real-rss")'
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $token" \
+            -H 'Content-Type: application/json' \
+            -d '{"feed_id":"pulsewire-ci-real-rss"}' \
+            http://127.0.0.1:18091/v1/favorites)"
+          test "$code" = 201
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries/search?q=Pulsewire%20CI%20Story' \
+            | jq -e '(.items | length) == 2'
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?read=unread&feed_id=pulsewire-ci-real-rss' \
+            | jq -e '(.items | length) == 2'
+          item_id="$(jq -er '.items[0].id' "$RUNNER_TEMP/entries.json")"
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $token" \
+            "http://127.0.0.1:18091/v1/entries/$item_id/read")"
+          test "$code" = 204
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?read=read&feed_id=pulsewire-ci-real-rss' \
+            | jq -e '(.items | length) == 1 and .items[0].is_read'
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?read=unread&feed_id=pulsewire-ci-real-rss' \
+            | jq -e '(.items | length) == 1'
+          docker restart pulsewire-ci-server
+          ready=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18091/health >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $token" \
+            "http://127.0.0.1:18091/v1/entries/$item_id/read")"
+          test "$code" = 204
+
+          # Backup then restore into a new database: never DROP or overwrite.
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            pg_dump -U admin -d data -Fc -f /tmp/pulsewire-ci-backup.dump
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            createdb -U admin data_restore
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            pg_restore -U admin -d data_restore --no-owner --no-acl --exit-on-error \
+            /tmp/pulsewire-ci-backup.dump
+          restored="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM fetcher.feed_items WHERE feed_id = 'pulsewire-ci-real-rss'")"
+          test "$restored" -ge 2
+          restored_reads="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.entry_states WHERE read_at IS NOT NULL")"
+          test "$restored_reads" -ge 1
+          restored_subscriptions="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.subscriptions WHERE feed_id = 'pulsewire-ci-real-rss'")"
+          test "$restored_subscriptions" -ge 1
+          restored_favorites="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.favorites WHERE feed_id = 'pulsewire-ci-real-rss'")"
+          test "$restored_favorites" -ge 1
+          # Offline operator recovery: invalid confirmation does not connect
+          # or mutate the database. A successful recovery kills old sessions.
+          prior_hash="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT password_hash FROM server.users WHERE username = 'owner'")"
+          if docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e PULSEWIRE_RECOVERY_CONFIRM=DENIED \
+            -e PULSEWIRE_RECOVERY_USERNAME=owner \
+            -e PULSEWIRE_RECOVERY_PASSWORD=ci-new-long-password \
+            pulsewire-server:ci --recover-user; then
+            echo "recovery must reject invalid confirmation" >&2
+            exit 1
+          fi
+          hash_after_denied="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT password_hash FROM server.users WHERE username = 'owner'")"
+          test "$prior_hash" = "$hash_after_denied"
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -c "INSERT INTO server.user_password_resets (user_id, token_hash, expires_at, created_at) SELECT id, 'obsolete-ci-reset', NOW() + INTERVAL '1 hour', NOW() FROM server.users WHERE username = 'owner'"
+          docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e PULSEWIRE_RECOVERY_CONFIRM=RECOVER_USER \
+            -e PULSEWIRE_RECOVERY_USERNAME=owner \
+            -e PULSEWIRE_RECOVERY_PASSWORD=ci-new-long-password \
+            pulsewire-server:ci --recover-user
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries')"
+          test "$code" = 401
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d "{\"username\":\"owner\",\"password\":\"$TEST_ADMIN_PASSWORD\"}" \
+            http://127.0.0.1:18091/v1/auth/login)"
+          test "$code" = 401
+          code="$(curl -sS -o "$RUNNER_TEMP/recovered.json" -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d '{"username":"owner","password":"ci-new-long-password"}' \
+            http://127.0.0.1:18091/v1/auth/login)"
+          test "$code" = 200
+          jq -e '.token | length > 0' "$RUNNER_TEMP/recovered.json"
+          remaining="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT COUNT(*) FROM server.user_password_resets WHERE user_id = (SELECT id FROM server.users WHERE username = 'owner')")"
+          test "$remaining" = 0
+          role="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT is_admin FROM server.users WHERE username = 'owner'")"
+          test "$role" = t
+
+          # Exercise the real HTTP authentication throttle against PostgreSQL.
+          # Unknown usernames share the normal invalid-credentials response.
+          login_status() {
+            jq -nc --arg username "$1" --arg password "$2" \
+              '{username:$username,password:$password}' | \
+              curl -sS -o /dev/null -w '%{http_code}' \
+                -H 'Content-Type: application/json' --data-binary @- \
+                http://127.0.0.1:18091/v1/auth/login
+          }
+          # Password changes must not weaken the 12-byte account policy.
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $(jq -er '.token' "$RUNNER_TEMP/recovered.json")" \
+            -H 'Content-Type: application/json' \
+            -d '{"current_password":"ci-new-long-password","new_password":"short"}' \
+            http://127.0.0.1:18091/v1/users/password)"
+          test "$code" = 400
+          for attempt in {1..4}; do
+            test "$(login_status absent-user incorrect-passphrase)" = 401
+          done
+          test "$(login_status ABSENT-USER incorrect-passphrase)" = 401
+          # A restart cannot bypass persistent, normalized account buckets.
+          docker restart pulsewire-ci-server
+          ready=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18091/health >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          test "$(login_status absent-user incorrect-passphrase)" = 429
+          # A blocked unknown account must not prevent an unrelated login.
+          test "$(login_status owner ci-new-long-password)" = 200
+          for attempt in {1..5}; do
+            test "$(login_status owner incorrect-passphrase)" = 401
+          done
+          # Even a correct password is rejected while its bucket is blocked.
+          test "$(login_status owner ci-new-long-password)" = 429
+          # Expire fixed windows deterministically without sleeping 15 minutes.
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -v ON_ERROR_STOP=1 -U admin -d data -c \
+            "UPDATE server.login_rate_limits SET window_started_at = EXTRACT(EPOCH FROM NOW())::BIGINT - 901"
+          test "$(login_status owner ci-new-long-password)" = 200
+          # Successful login removes the account bucket, allowing five new tries.
+          for attempt in {1..5}; do
+            test "$(login_status owner incorrect-passphrase)" = 401
+          done
+          test "$(login_status owner incorrect-passphrase)" = 429
+
+          # Real HTTP token rotation must consume the original bearer.
+          prior_bearer="$(jq -er '.token' "$RUNNER_TEMP/recovered.json")"
+          code="$(curl -sS -o "$RUNNER_TEMP/rotated.json" -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $prior_bearer" \
+            http://127.0.0.1:18091/v1/auth/rotate)"
+          test "$code" = 200
+          rotated_bearer="$(jq -er '.token' "$RUNNER_TEMP/rotated.json")"
+          test "$rotated_bearer" != "$prior_bearer"
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $prior_bearer" \
+            http://127.0.0.1:18091/v1/entries)"
+          test "$code" = 401
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $rotated_bearer" \
+            http://127.0.0.1:18091/v1/entries)"
+          test "$code" = 200
+
+          # Different usernames from the same TCP peer share one quota.
+          # Run this last because the source quota intentionally blocks
+          # later logins until its fixed time window expires.
+          source_blocked=0
+          for attempt in {1..75}; do
+            status="$(login_status "ci-spray-$attempt" incorrect-passphrase)"
+            if [ "$status" = 429 ]; then source_blocked=1; break; fi
+            test "$status" = 401
+          done
+          test "$source_blocked" = 1
+          test "$(login_status ci-spray-after-limit incorrect-passphrase)" = 429
+ crates/fetcher/res/docker.toml
+          grep -q '^bind    = "127.0.0.1:9898"
+      - name: Build fetcher and server images
+        run: |
+          docker build --file crates/fetcher/Dockerfile --tag pulsewire-fetcher:ci .
+          docker build --file crates/server/Dockerfile --tag pulsewire-server:ci .
+      - name: Verify non-root images and slim catalog
+        run: |
+          set -euo pipefail
+          test "$(docker image inspect pulsewire-fetcher:ci --format '{{.Config.User}}')" = '65532:65532'
+          test "$(docker image inspect pulsewire-server:ci --format '{{.Config.User}}')" = '65532:65532'
+          mkdir -p "$RUNNER_TEMP/pulsewire-check"
+          fetcher_id="$(docker create pulsewire-fetcher:ci)"
+          docker cp "$fetcher_id:/app/res/feeds" "$RUNNER_TEMP/pulsewire-check/feeds"
+          docker rm "$fetcher_id"
+          test -f "$RUNNER_TEMP/pulsewire-check/feeds/news/nytimes.toml"
+          test ! -e "$RUNNER_TEMP/pulsewire-check/feeds/youtube.com"
+          test ! -e "$RUNNER_TEMP/pulsewire-check/feeds/podcasts"
+          server_id="$(docker create pulsewire-server:ci)"
+          docker cp "$server_id:/app/res/sql/postgres/schema.sql" "$RUNNER_TEMP/pulsewire-check/schema.sql"
+          docker rm "$server_id"
+          test -s "$RUNNER_TEMP/pulsewire-check/schema.sql"
+      - name: Smoke against disposable PostgreSQL
+        env:
+          TEST_DB_PASSWORD: 'ci-only:p@ss/word?#'
+          TEST_ADMIN_PASSWORD: 'ci-only-administrator-passphrase'
+        run: |
+          set -euo pipefail
+          cleanup() {
+            docker rm -f pulsewire-ci-fetcher pulsewire-ci-rss pulsewire-ci-server pulsewire-ci-postgres >/dev/null 2>&1 || true
+            docker network rm pulsewire-ci >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          docker network create pulsewire-ci
+          docker run -d --name pulsewire-ci-postgres --network pulsewire-ci --network-alias ci-postgres \
+            -e POSTGRES_USER=admin -e POSTGRES_PASSWORD="$TEST_DB_PASSWORD" -e POSTGRES_DB=data \
+            postgres:16-alpine
+          for i in {1..40}; do
+            if docker exec pulsewire-ci-postgres pg_isready -U admin -d data >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          docker exec pulsewire-ci-postgres pg_isready -U admin -d data
+
+          mkdir -p "$RUNNER_TEMP/pulsewire-smoke/news"
+          cat > "$RUNNER_TEMP/pulsewire-smoke/news/ci.toml" <<'EOF'
+          [[feeds]]
+          id = "pulsewire-ci-feed"
+          url = "https://example.org/feed.xml"
+          category = "news"
+          EOF
+          docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e FEEDS_DIR=/app/smoke-feeds \
+            -v "$RUNNER_TEMP/pulsewire-smoke:/app/smoke-feeds:ro" \
+            pulsewire-fetcher:ci --ingest-benchmark 1
+          docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e PULSEWIRE_BOOTSTRAP_USERNAME=owner \
+            -e PULSEWIRE_BOOTSTRAP_PASSWORD="$TEST_ADMIN_PASSWORD" \
+            pulsewire-server:ci --bootstrap-admin
+          docker run -d --name pulsewire-ci-server --network pulsewire-ci \
+            --memory 256m --memory-swap 256m --cpus 0.25 --pids-limit 128 \
+            -p 127.0.0.1:18091:8091 \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            pulsewire-server:ci
+          healthy=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18091/health >/dev/null 2>&1; then healthy=1; break; fi
+            sleep 2
+          done
+          if [ "$healthy" -ne 1 ]; then
+            docker logs pulsewire-ci-server
+            exit 1
+          fi
+          code="$(curl -sS -o "$RUNNER_TEMP/login.json" -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d "{\"username\":\"owner\",\"password\":\"$TEST_ADMIN_PASSWORD\"}" \
+            http://127.0.0.1:18091/v1/auth/login)"
+          test "$code" = 200
+          grep -q '"token"' "$RUNNER_TEMP/login.json"
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d '{"username":"stranger","password":"not-an-administrator-passphrase"}' \
+            http://127.0.0.1:18091/v1/users)"
+          test "$code" = 401
+          test "$(docker port pulsewire-ci-server 8091/tcp)" = '127.0.0.1:18091'
+          # Exercise the real GET -> XML parser -> PostgreSQL -> API path using
+          # deterministic HTTP inside the isolated Docker network. No external RSS requests.
+          docker run -d --name pulsewire-ci-rss --network pulsewire-ci --network-alias ci-rss \
+            -v "$GITHUB_WORKSPACE/tests/fixtures/rss:/usr/share/nginx/html:ro" \
+            nginx:alpine
+          mkdir -p "$RUNNER_TEMP/pulsewire-real-feeds/news" \
+                   "$RUNNER_TEMP/pulsewire-real-feeds/podcasts" \
+                   "$RUNNER_TEMP/pulsewire-real-feeds/youtube.com"
+          cat > "$RUNNER_TEMP/pulsewire-real-feeds/news/ci.toml" <<'EOF'
+          [[feeds]]
+          id = "pulsewire-ci-real-rss"
+          url = "http://ci-rss/feed.xml"
+          category = "news"
+          base_poll_seconds = 1800
+          EOF
+          # These intentionally broken files prove disabled directories are
+          # skipped before reading/parsing them, not merely filtered afterward.
+          printf 'intentionally broken = [\n' > "$RUNNER_TEMP/pulsewire-real-feeds/podcasts/disabled.toml"
+          printf 'intentionally broken = [\n' > "$RUNNER_TEMP/pulsewire-real-feeds/youtube.com/disabled.toml"
+          docker run -d --name pulsewire-ci-fetcher --network pulsewire-ci \
+            --memory 512m --memory-swap 512m --cpus 0.75 --pids-limit 256 \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e FEEDS_DIR=/app/smoke-feeds \
+            -v "$RUNNER_TEMP/pulsewire-real-feeds:/app/smoke-feeds:ro" \
+            pulsewire-fetcher:ci
+          fetched=0
+          for i in {1..45}; do
+            items="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+              psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.feed_items WHERE feed_id = 'pulsewire-ci-real-rss'" 2>/dev/null || echo 0)"
+            if [ "$items" -ge 2 ]; then fetched=1; break; fi
+            if [ "$(docker inspect -f '{{.State.Running}}' pulsewire-ci-fetcher)" != true ]; then
+              docker logs pulsewire-ci-fetcher
+              exit 1
+            fi
+            sleep 2
+          done
+          if [ "$fetched" -ne 1 ]; then
+            docker logs pulsewire-ci-fetcher
+            exit 1
+          fi
+          docker stop pulsewire-ci-fetcher
+          # Verify disabled sources produced neither scheduler categories nor feed rows.
+          count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.feeds WHERE category IN ('youtube','podcasts')")"
+          test "$count" = 0
+          count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.fetch_events WHERE feed_id = 'pulsewire-ci-real-rss' AND method='GET' AND status=200")"
+          test "$count" -ge 1
+
+          token="$(jq -er '.token' "$RUNNER_TEMP/login.json")"
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?feed_id=pulsewire-ci-real-rss' \
+            > "$RUNNER_TEMP/entries.json"
+          jq -e '(.items | length) >= 2 and any(.items[]; .title == "Pulsewire CI Story One")' \
+            "$RUNNER_TEMP/entries.json"
+          # Reader API: authentication, subscriptions, favorites and search.
+          unauth="$(curl -sS -o /dev/null -w '%{http_code}' \
+            'http://127.0.0.1:18091/v1/entries?feed_id=pulsewire-ci-real-rss')"
+          test "$unauth" = 401
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $token" \
+            -H 'Content-Type: application/json' \
+            -d '{"feed_id":"pulsewire-ci-real-rss"}' \
+            http://127.0.0.1:18091/v1/subscriptions)"
+          test "$code" = 201
+          curl -fsS -H "Authorization: Bearer $token" \
+            http://127.0.0.1:18091/v1/subscriptions \
+            | jq -e 'any(.[]; .feed_id == "pulsewire-ci-real-rss")'
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $token" \
+            -H 'Content-Type: application/json' \
+            -d '{"feed_id":"pulsewire-ci-real-rss"}' \
+            http://127.0.0.1:18091/v1/favorites)"
+          test "$code" = 201
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries/search?q=Pulsewire%20CI%20Story' \
+            | jq -e '(.items | length) == 2'
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?read=unread&feed_id=pulsewire-ci-real-rss' \
+            | jq -e '(.items | length) == 2'
+          item_id="$(jq -er '.items[0].id' "$RUNNER_TEMP/entries.json")"
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $token" \
+            "http://127.0.0.1:18091/v1/entries/$item_id/read")"
+          test "$code" = 204
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?read=read&feed_id=pulsewire-ci-real-rss' \
+            | jq -e '(.items | length) == 1 and .items[0].is_read'
+          curl -fsS -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries?read=unread&feed_id=pulsewire-ci-real-rss' \
+            | jq -e '(.items | length) == 1'
+          docker restart pulsewire-ci-server
+          ready=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18091/health >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $token" \
+            "http://127.0.0.1:18091/v1/entries/$item_id/read")"
+          test "$code" = 204
+
+          # Backup then restore into a new database: never DROP or overwrite.
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            pg_dump -U admin -d data -Fc -f /tmp/pulsewire-ci-backup.dump
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            createdb -U admin data_restore
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            pg_restore -U admin -d data_restore --no-owner --no-acl --exit-on-error \
+            /tmp/pulsewire-ci-backup.dump
+          restored="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM fetcher.feed_items WHERE feed_id = 'pulsewire-ci-real-rss'")"
+          test "$restored" -ge 2
+          restored_reads="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.entry_states WHERE read_at IS NOT NULL")"
+          test "$restored_reads" -ge 1
+          restored_subscriptions="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.subscriptions WHERE feed_id = 'pulsewire-ci-real-rss'")"
+          test "$restored_subscriptions" -ge 1
+          restored_favorites="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data_restore -Atc "SELECT COUNT(*) FROM server.favorites WHERE feed_id = 'pulsewire-ci-real-rss'")"
+          test "$restored_favorites" -ge 1
+          # Offline operator recovery: invalid confirmation does not connect
+          # or mutate the database. A successful recovery kills old sessions.
+          prior_hash="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT password_hash FROM server.users WHERE username = 'owner'")"
+          if docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e PULSEWIRE_RECOVERY_CONFIRM=DENIED \
+            -e PULSEWIRE_RECOVERY_USERNAME=owner \
+            -e PULSEWIRE_RECOVERY_PASSWORD=ci-new-long-password \
+            pulsewire-server:ci --recover-user; then
+            echo "recovery must reject invalid confirmation" >&2
+            exit 1
+          fi
+          hash_after_denied="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT password_hash FROM server.users WHERE username = 'owner'")"
+          test "$prior_hash" = "$hash_after_denied"
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -c "INSERT INTO server.user_password_resets (user_id, token_hash, expires_at, created_at) SELECT id, 'obsolete-ci-reset', NOW() + INTERVAL '1 hour', NOW() FROM server.users WHERE username = 'owner'"
+          docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e PULSEWIRE_RECOVERY_CONFIRM=RECOVER_USER \
+            -e PULSEWIRE_RECOVERY_USERNAME=owner \
+            -e PULSEWIRE_RECOVERY_PASSWORD=ci-new-long-password \
+            pulsewire-server:ci --recover-user
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $token" \
+            'http://127.0.0.1:18091/v1/entries')"
+          test "$code" = 401
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d "{\"username\":\"owner\",\"password\":\"$TEST_ADMIN_PASSWORD\"}" \
+            http://127.0.0.1:18091/v1/auth/login)"
+          test "$code" = 401
+          code="$(curl -sS -o "$RUNNER_TEMP/recovered.json" -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d '{"username":"owner","password":"ci-new-long-password"}' \
+            http://127.0.0.1:18091/v1/auth/login)"
+          test "$code" = 200
+          jq -e '.token | length > 0' "$RUNNER_TEMP/recovered.json"
+          remaining="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT COUNT(*) FROM server.user_password_resets WHERE user_id = (SELECT id FROM server.users WHERE username = 'owner')")"
+          test "$remaining" = 0
+          role="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -U admin -d data -Atc "SELECT is_admin FROM server.users WHERE username = 'owner'")"
+          test "$role" = t
+
+          # Exercise the real HTTP authentication throttle against PostgreSQL.
+          # Unknown usernames share the normal invalid-credentials response.
+          login_status() {
+            jq -nc --arg username "$1" --arg password "$2" \
+              '{username:$username,password:$password}' | \
+              curl -sS -o /dev/null -w '%{http_code}' \
+                -H 'Content-Type: application/json' --data-binary @- \
+                http://127.0.0.1:18091/v1/auth/login
+          }
+          # Password changes must not weaken the 12-byte account policy.
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $(jq -er '.token' "$RUNNER_TEMP/recovered.json")" \
+            -H 'Content-Type: application/json' \
+            -d '{"current_password":"ci-new-long-password","new_password":"short"}' \
+            http://127.0.0.1:18091/v1/users/password)"
+          test "$code" = 400
+          for attempt in {1..4}; do
+            test "$(login_status absent-user incorrect-passphrase)" = 401
+          done
+          test "$(login_status ABSENT-USER incorrect-passphrase)" = 401
+          # A restart cannot bypass persistent, normalized account buckets.
+          docker restart pulsewire-ci-server
+          ready=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18091/health >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          test "$(login_status absent-user incorrect-passphrase)" = 429
+          # A blocked unknown account must not prevent an unrelated login.
+          test "$(login_status owner ci-new-long-password)" = 200
+          for attempt in {1..5}; do
+            test "$(login_status owner incorrect-passphrase)" = 401
+          done
+          # Even a correct password is rejected while its bucket is blocked.
+          test "$(login_status owner ci-new-long-password)" = 429
+          # Expire fixed windows deterministically without sleeping 15 minutes.
+          docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
+            psql -v ON_ERROR_STOP=1 -U admin -d data -c \
+            "UPDATE server.login_rate_limits SET window_started_at = EXTRACT(EPOCH FROM NOW())::BIGINT - 901"
+          test "$(login_status owner ci-new-long-password)" = 200
+          # Successful login removes the account bucket, allowing five new tries.
+          for attempt in {1..5}; do
+            test "$(login_status owner incorrect-passphrase)" = 401
+          done
+          test "$(login_status owner incorrect-passphrase)" = 429
+
+          # Real HTTP token rotation must consume the original bearer.
+          prior_bearer="$(jq -er '.token' "$RUNNER_TEMP/recovered.json")"
+          code="$(curl -sS -o "$RUNNER_TEMP/rotated.json" -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $prior_bearer" \
+            http://127.0.0.1:18091/v1/auth/rotate)"
+          test "$code" = 200
+          rotated_bearer="$(jq -er '.token' "$RUNNER_TEMP/rotated.json")"
+          test "$rotated_bearer" != "$prior_bearer"
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $prior_bearer" \
+            http://127.0.0.1:18091/v1/entries)"
+          test "$code" = 401
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $rotated_bearer" \
+            http://127.0.0.1:18091/v1/entries)"
+          test "$code" = 200
+
+          # Different usernames from the same TCP peer share one quota.
+          # Run this last because the source quota intentionally blocks
+          # later logins until its fixed time window expires.
+          source_blocked=0
+          for attempt in {1..75}; do
+            status="$(login_status "ci-spray-$attempt" incorrect-passphrase)"
+            if [ "$status" = 429 ]; then source_blocked=1; break; fi
+            test "$status" = 401
+          done
+          test "$source_blocked" = 1
+          test "$(login_status ci-spray-after-limit incorrect-passphrase)" = 429
+ crates/fetcher/res/docker.toml
       - name: Build fetcher and server images
         run: |
           docker build --file crates/fetcher/Dockerfile --tag pulsewire-fetcher:ci .

@@ -14,9 +14,13 @@ else's PostgreSQL schemas.
 - The default fetcher image contains **non-YouTube, non-podcast** feed catalogs
   only. Original source definitions remain in Git. The loader also skips these
   categories when their directories are mounted.
-- Ports are published only on **127.0.0.1** by Compose: server `8091`, metrics
-  `9898`. A trusted reverse proxy on the Docker network may communicate with
-  the server on its internal container port; there is no automatic public proxy.
+- The server is published only on **127.0.0.1:8091** by Compose. Fetcher
+  metrics are **disabled by default** and bind to **127.0.0.1:9898** if enabled
+  without overrides. Compose no longer publishes port 9898. To scrape metrics
+  from another container, explicitly review and supply a private metrics config
+  and restricted network; never expose the metrics endpoint publicly.
+  A trusted reverse proxy on the Docker network may access the server internally;
+  there is no automatic public proxy.
 
 ## Outbound fetch policy
 
@@ -55,7 +59,11 @@ passwords in Rust `Debug` output. API auth payloads and token responses also
 redact their passwords/bearer tokens in `Debug`. This limits accidental logging
 but does **not** make raw credentials disappear from process memory, container
 environment, Docker metadata, explicit HTTP token responses or unreviewed
-startup/parse error paths. Do not print the full container environment or
+startup/parse error paths. TOML parser and schema validation failures now
+suppress source text and rejected values in both Display and Debug; this
+protects secret-bearing config from being echoed in startup failures, at the
+cost of less detailed error messages. Inspect sensitive files privately.
+Do not print the full container environment or
 provide real secrets in bug reports. Configure secrets privately at deployment.
 
 The remaining `PW-023` ingress, TLS, metrics, and shared-network exposure

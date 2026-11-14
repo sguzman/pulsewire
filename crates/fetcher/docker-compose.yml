@@ -25,8 +25,8 @@ services:
       - ./res/feeds:/app/res/feeds:ro
       - ../../cookies:/app/cookies:ro
       - ../../headers:/app/headers:ro
-    ports:
-      - "127.0.0.1:9898:9898"
+    # Metrics disabled by default: no published port.
+    # Enable only with a reviewed, privately bound monitoring config.
     networks:
       - pulsewire_services
 
