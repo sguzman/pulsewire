@@ -49,7 +49,7 @@ pub async fn login(
   )
   .await?;
 
-  let (user_id, password_hash) =
+  let (_user_id, password_hash) =
     if let Some(pool) = &state.postgres
     {
       sqlx::query_as::<_, (i64, String)>(
