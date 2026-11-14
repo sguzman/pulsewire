@@ -71,6 +71,8 @@ jobs:
             sleep 2
           done
           docker exec pulsewire-ci-postgres pg_isready -U admin -d data
+          # Verify Docker DNS within the actual isolated service network.
+          docker exec pulsewire-ci-postgres pg_isready -h ci-postgres -U admin -d data
 
           mkdir -p "$RUNNER_TEMP/pulsewire-smoke/news"
           cat > "$RUNNER_TEMP/pulsewire-smoke/news/ci.toml" <<'EOF'
@@ -100,6 +102,9 @@ jobs:
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
             -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
             pulsewire-server:ci
+          # Inspect actual runtime enforcement, not only Compose declarations.
+          test "$(docker inspect -f '{{.HostConfig.Memory}}:{{.HostConfig.MemorySwap}}:{{.HostConfig.NanoCpus}}:{{.HostConfig.PidsLimit}}' pulsewire-ci-server)" = '268435456:268435456:250000000:128'
+          test "$(docker inspect -f '{{.HostConfig.NetworkMode}}' pulsewire-ci-server)" = 'pulsewire-ci'
           healthy=0
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:18091/health >/dev/null 2>&1; then healthy=1; break; fi
@@ -148,6 +153,8 @@ jobs:
             -e FEEDS_DIR=/app/smoke-feeds \
             -v "$RUNNER_TEMP/pulsewire-real-feeds:/app/smoke-feeds:ro" \
             pulsewire-fetcher:ci
+          test "$(docker inspect -f '{{.HostConfig.Memory}}:{{.HostConfig.MemorySwap}}:{{.HostConfig.NanoCpus}}:{{.HostConfig.PidsLimit}}' pulsewire-ci-fetcher)" = '536870912:536870912:750000000:256'
+          test "$(docker inspect -f '{{.HostConfig.NetworkMode}}' pulsewire-ci-fetcher)" = 'pulsewire-ci'
           fetched=0
           for i in {1..45}; do
             items="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
