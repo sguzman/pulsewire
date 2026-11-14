@@ -223,11 +223,15 @@ pub async fn upsert_categories(
 mod postgres_due_queue_tests {
   use super::*;
 
-  // Always isolated: TEMP tables on the CI service connection, not
-  // the application's persistent tables, schema, or real user data.
+  // Always isolated: TEMP tables on the
+  // CI service connection, not
+  // the application's persistent
+  // tables, schema, or real user data.
   #[tokio::test]
-  #[ignore = "requires disposable PostgreSQL CI service"]
-  async fn postgres_due_queue_paging_and_errors() {
+  #[ignore = "requires disposable \
+              PostgreSQL CI service"]
+  async fn postgres_due_queue_paging_and_errors()
+   {
     let password = std::env::var(
       "PULSEWIRE_TEST_POSTGRES_PASSWORD"
     )
@@ -240,7 +244,8 @@ mod postgres_due_queue_tests {
       .password(&password)
       .database("pulsewire_ci");
 
-    // One pooled connection preserves this session's TEMP tables.
+    // One pooled connection preserves
+    // this session's TEMP tables.
     let pool = sqlx::postgres::PgPoolOptions::new()
       .max_connections(1)
       .connect_with(options)
@@ -248,18 +253,33 @@ mod postgres_due_queue_tests {
       .expect("connect to disposable CI PostgreSQL");
 
     for ddl in [
-      "CREATE TEMP TABLE feeds (id TEXT PRIMARY KEY, url TEXT NOT NULL, domain TEXT NOT NULL, category TEXT NOT NULL, base_poll_seconds BIGINT NOT NULL)",
-      "CREATE TEMP TABLE feed_state_current (feed_id TEXT PRIMARY KEY, next_action_at TIMESTAMPTZ NOT NULL)",
-      "CREATE TEMP TABLE error_feeds (feed_id TEXT PRIMARY KEY)"
+      "CREATE TEMP TABLE feeds (id \
+       TEXT PRIMARY KEY, url TEXT NOT \
+       NULL, domain TEXT NOT NULL, \
+       category TEXT NOT NULL, \
+       base_poll_seconds BIGINT NOT \
+       NULL)",
+      "CREATE TEMP TABLE \
+       feed_state_current (feed_id \
+       TEXT PRIMARY KEY, \
+       next_action_at TIMESTAMPTZ NOT \
+       NULL)",
+      "CREATE TEMP TABLE error_feeds \
+       (feed_id TEXT PRIMARY KEY)"
     ] {
       sqlx::query(ddl)
         .execute(&pool)
         .await
-        .expect("create isolated queue fixture table");
+        .expect(
+          "create isolated queue \
+           fixture table"
+        );
     }
 
-    // Reverse insertion prevents incidental insertion order from
-    // making an unstable query appear deterministic.
+    // Reverse insertion prevents
+    // incidental insertion order from
+    // making an unstable query appear
+    // deterministic.
     sqlx::query(
       "INSERT INTO feeds (id, url, domain, category, base_poll_seconds)
        SELECT 'feed-' || LPAD(n::text, 4, '0'),
@@ -281,52 +301,98 @@ mod postgres_due_queue_tests {
 
     let now_ms: i64 = 1_700_000_000_000;
     let zone = chrono_tz::UTC;
-    let first = due_feeds(&pool, "news", now_ms, 1000, &zone)
-      .await
-      .expect("first bounded due query");
+    let first = due_feeds(
+      &pool, "news", now_ms, 1000,
+      &zone
+    )
+    .await
+    .expect("first bounded due query");
     assert_eq!(first.len(), 1000);
-    assert_eq!(first.first().map(|f| f.id.as_str()), Some("feed-0001"));
-    assert_eq!(first.last().map(|f| f.id.as_str()), Some("feed-1000"));
-    assert!(first.windows(2).all(|w| w[0].id < w[1].id));
+    assert_eq!(
+      first
+        .first()
+        .map(|f| f.id.as_str()),
+      Some("feed-0001")
+    );
+    assert_eq!(
+      first
+        .last()
+        .map(|f| f.id.as_str()),
+      Some("feed-1000")
+    );
+    assert!(
+      first
+        .windows(2)
+        .all(|w| w[0].id < w[1].id)
+    );
 
-    // Emulate finished requests scheduling their next action later.
+    // Emulate finished requests
+    // scheduling their next action
+    // later.
     sqlx::query(
-      "INSERT INTO feed_state_current (feed_id, next_action_at)
-       SELECT id, to_timestamp($1::double precision)
-       FROM feeds WHERE category = 'news' AND id <= 'feed-1000'"
+      "INSERT INTO feed_state_current \
+       (feed_id, next_action_at)
+       SELECT id, \
+       to_timestamp($1::double \
+       precision)
+       FROM feeds WHERE category = \
+       'news' AND id <= 'feed-1000'"
     )
     .bind(1_700_003_600.0f64)
     .execute(&pool)
     .await
-    .expect("defer processed first page");
+    .expect(
+      "defer processed first page"
+    );
 
     sqlx::query(
-      "INSERT INTO error_feeds (feed_id) VALUES ('feed-1050')"
+      "INSERT INTO error_feeds \
+       (feed_id) VALUES ('feed-1050')"
     )
     .execute(&pool)
     .await
-    .expect("mark a subsequent feed errored");
+    .expect(
+      "mark a subsequent feed errored"
+    );
 
-    let second = due_feeds(&pool, "news", now_ms, 1000, &zone)
-      .await
-      .expect("remaining due feeds after first page");
-    let actual: Vec<_> = second.iter().map(|f| f.id.clone()).collect();
-    let expected: Vec<_> = (1001..=1101)
+    let second = due_feeds(
+      &pool, "news", now_ms, 1000,
+      &zone
+    )
+    .await
+    .expect(
+      "remaining due feeds after \
+       first page"
+    );
+    let actual: Vec<_> = second
+      .iter()
+      .map(|f| f.id.clone())
+      .collect();
+    let expected: Vec<_> = (1001
+      ..=1101)
       .filter(|n| *n != 1050)
       .map(|n| format!("feed-{n:04}"))
       .collect();
     assert_eq!(actual, expected);
     assert_eq!(second.len(), 100);
 
-    let other = due_feeds(&pool, "other", now_ms, 1000, &zone)
-      .await
-      .expect("unrelated category stays available");
+    let other = due_feeds(
+      &pool, "other", now_ms, 1000,
+      &zone
+    )
+    .await
+    .expect(
+      "unrelated category stays \
+       available"
+    );
     assert_eq!(other.len(), 1);
     assert_eq!(other[0].id, "other-1");
 
-    let zero = due_feeds(&pool, "news", now_ms, 0, &zone)
-      .await
-      .expect("zero limit is bounded");
+    let zero = due_feeds(
+      &pool, "news", now_ms, 0, &zone
+    )
+    .await
+    .expect("zero limit is bounded");
     assert!(zero.is_empty());
   }
 }
