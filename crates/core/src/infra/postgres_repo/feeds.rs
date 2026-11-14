@@ -152,7 +152,7 @@ pub async fn due_feeds(
       WHERE f.category = $1
         AND e.feed_id IS NULL
         AND (s.feed_id IS NULL OR s.next_action_at <= $2)
-      ORDER BY COALESCE(s.next_action_at, $2)
+      ORDER BY COALESCE(s.next_action_at, $2), f.id
       LIMIT $3
       "#,
     )
