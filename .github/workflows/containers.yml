@@ -137,6 +137,11 @@ jobs:
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
             -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e SERVER_CONFIG_PATH= \
+            -e SCHEMAS_DIR= \
+            -e XDG_CONFIG_HOME=/app/ci-xdg \
+            -v "$RUNNER_TEMP/pulsewire-xdg:/app/ci-xdg:ro" \
+            -v "$RUNNER_TEMP/pulsewire-installed-schemas:/usr/local/share/pulsewire/schemas:ro" \
             pulsewire-server:ci
           # Inspect actual runtime enforcement, not only Compose declarations.
           test "$(docker inspect -f '{{.HostConfig.Memory}}:{{.HostConfig.MemorySwap}}:{{.HostConfig.NanoCpus}}:{{.HostConfig.PidsLimit}}' pulsewire-ci-server)" = '268435456:268435456:250000000:128'
