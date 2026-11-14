@@ -44,7 +44,8 @@ impl ConcurrencyGuards {
     // category loops that limit must be
     // global rather than per-category.
     let limit = global_limit(
-      cfg.global_max_concurrent_requests
+      cfg
+        .global_max_concurrent_requests
     );
     let global = Some(Arc::new(
       Semaphore::new(limit)
@@ -155,22 +156,25 @@ mod global_budget_tests {
   fn default_and_zero_limits_are_bounded()
    {
     assert_eq!(global_limit(None), 64);
-    assert_eq!(global_limit(Some(0)), 1);
-    assert_eq!(global_limit(Some(7)), 7);
+    assert_eq!(
+      global_limit(Some(0)),
+      1
+    );
+    assert_eq!(
+      global_limit(Some(7)),
+      7
+    );
   }
 
   #[tokio::test]
   async fn one_global_slot_is_shared_by_domains()
    {
-    let global = Arc::new(
-      Semaphore::new(1)
-    );
-    let news = Arc::new(
-      Semaphore::new(1)
-    );
-    let science = Arc::new(
-      Semaphore::new(1)
-    );
+    let global =
+      Arc::new(Semaphore::new(1));
+    let news =
+      Arc::new(Semaphore::new(1));
+    let science =
+      Arc::new(Semaphore::new(1));
 
     let first = PermitPair::acquire(
       Some(global.clone()),
