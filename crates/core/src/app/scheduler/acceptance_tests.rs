@@ -28,7 +28,10 @@ use super::Scheduler;
 use super::concurrency::ConcurrencyGuards;
 use super::processing::run_tick;
 use crate::app::context::AppContext;
-use crate::domain::link_state::LinkState;
+use crate::domain::link_state::{
+  LinkPhase,
+  LinkState
+};
 use crate::domain::model::{
   AppConfig,
   AppMode,
@@ -53,6 +56,7 @@ use crate::ports::repo::{
 struct FakeRepo {
   feeds:           Vec<FeedConfig>,
   completed: Mutex<HashSet<String>>,
+  phases: Mutex<HashMap<String, LinkPhase>>,
   page_sizes:      Mutex<Vec<usize>>,
   blocked_entered: Arc<Notify>,
   blocked_release: Arc<Notify>,
@@ -72,6 +76,7 @@ impl FakeRepo {
       completed: Mutex::new(
         HashSet::new()
       ),
+      phases: Mutex::new(HashMap::new()),
       page_sizes: Mutex::new(Vec::new()),
       blocked_entered: Arc::new(
         Notify::new()
@@ -186,6 +191,7 @@ impl Repo for FakeRepo {
       .lock()
       .await
       .insert(state.feed_id.clone());
+    self.phases.lock().await.insert(state.feed_id.clone(), state.phase);
     Ok(())
   }
 
@@ -253,6 +259,7 @@ struct FakeHttp {
   inflight:          AtomicUsize,
   peak:              AtomicUsize,
   block_slow_http:   bool,
+  fail_slow_http: bool,
   slow_http_entered: Notify,
   slow_http_release: Notify,
   healthy_http_seen: Notify
@@ -312,12 +319,13 @@ impl Http for FakeHttp {
     self
       .inflight
       .fetch_sub(1, Ordering::SeqCst);
+    let failed = self.fail_slow_http && url.ends_with("/slow");
     GetResult {
-      status:             Some(200),
+      status:             if failed { None } else { Some(200) },
       body:               None,
       etag:               None,
       last_modified:      None,
-      error:              None,
+      error:              if failed { Some(ErrorKind::Timeout) } else { None },
       latency_ms:         1,
       set_cookie_headers: Vec::new()
     }
@@ -666,5 +674,53 @@ async fn slow_http_feed_does_not_starve_another_category()
     advanced.is_ok(),
     "slow HTTP feed must not stall \
      unrelated category"
+  );
+}
+
+#[tokio::test]
+async fn failed_http_feed_does_not_cascade_and_enters_error_backoff() {
+  let repo = Arc::new(FakeRepo::new(
+    vec![
+      mock_feed("slow", "slow", "slow.test"),
+      mock_feed("healthy", "healthy", "healthy.test")
+    ],
+    false,
+    false
+  ));
+  let http = Arc::new(FakeHttp {
+    fail_slow_http: true,
+    ..Default::default()
+  });
+  let ctx = fixture(repo.clone(), http);
+  let worker = tokio::spawn(async move {
+    Scheduler::run_forever_by_category(
+      ctx,
+      vec!["slow".into(), "healthy".into()]
+    ).await
+  });
+
+  let advanced = tokio::time::timeout(
+    Duration::from_secs(2),
+    async {
+      loop {
+        let phases = repo.phases.lock().await;
+        let slow_backoff =
+          phases.get("slow") == Some(&LinkPhase::ErrorBackoff);
+        let healthy_advanced =
+          phases.get("healthy") == Some(&LinkPhase::NeedsHead);
+        drop(phases);
+        if slow_backoff && healthy_advanced {
+          break;
+        }
+        tokio::time::sleep(Duration::from_millis(5)).await;
+      }
+    }
+  ).await;
+
+  worker.abort();
+  let _ = worker.await;
+  assert!(
+    advanced.is_ok(),
+    "failed HTTP request must enter backoff without blocking healthy category"
   );
 }
