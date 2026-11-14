@@ -156,7 +156,7 @@ pub async fn due_feeds(
       WHERE f.category = ?1
         AND e.feed_id IS NULL
         AND (s.feed_id IS NULL OR s.next_action_at_ms <= ?2)
-      ORDER BY COALESCE(s.next_action_at_ms, ?2)
+      ORDER BY COALESCE(s.next_action_at_ms, ?2), f.id
       LIMIT ?3
       "#,
     )
@@ -215,4 +215,113 @@ pub async fn upsert_categories(
   })?;
 
   Ok(())
+}
+
+#[cfg(test)]
+mod stable_due_queue_tests {
+  use super::*;
+
+  #[tokio::test]
+  async fn equal_due_times_page_in_feed_id_order_and_exclude_deferred()
+   {
+    let pool = sqlx::sqlite::SqlitePoolOptions::new()
+      .max_connections(1)
+      .connect("sqlite::memory:")
+      .await
+      .expect("memory SQLite");
+
+    for ddl in [
+      "CREATE TABLE feeds (id TEXT \
+       PRIMARY KEY, url TEXT NOT \
+       NULL, domain TEXT NOT NULL, \
+       category TEXT NOT NULL, \
+       base_poll_seconds INTEGER NOT \
+       NULL)",
+      "CREATE TABLE \
+       feed_state_current (feed_id \
+       TEXT PRIMARY KEY, \
+       next_action_at_ms INTEGER NOT \
+       NULL)",
+      "CREATE TABLE error_feeds \
+       (feed_id TEXT PRIMARY KEY)"
+    ] {
+      sqlx::query(ddl)
+        .execute(&pool)
+        .await
+        .expect("fixture table");
+    }
+
+    // Reverse insertion order makes a
+    // missing ORDER BY tie-break
+    // visible.
+    for id in ["z", "c", "b", "a"] {
+      sqlx::query(
+        "INSERT INTO feeds (id, url, \
+         domain, category, \
+         base_poll_seconds) VALUES \
+         (?1, ?2, 'example.test', \
+         'news', 60)"
+      )
+      .bind(id)
+      .bind(format!(
+        "https://example.test/{id}"
+      ))
+      .execute(&pool)
+      .await
+      .expect("fixture feed");
+    }
+
+    let ids =
+      |rows: Vec<FeedConfig>| {
+        rows
+          .into_iter()
+          .map(|f| f.id)
+          .collect::<Vec<_>>()
+      };
+
+    let first =
+      due_feeds(&pool, "news", 1000, 2)
+        .await
+        .expect("first due page");
+    assert_eq!(ids(first), vec![
+      "a", "b"
+    ]);
+
+    for id in ["a", "b"] {
+      sqlx::query(
+        "INSERT INTO \
+         feed_state_current (feed_id, \
+         next_action_at_ms) VALUES \
+         (?1, 10000)"
+      )
+      .bind(id)
+      .execute(&pool)
+      .await
+      .expect("defer processed feed");
+    }
+
+    let second =
+      due_feeds(&pool, "news", 1000, 2)
+        .await
+        .expect("second due page");
+    assert_eq!(ids(second), vec![
+      "c", "z"
+    ]);
+
+    sqlx::query(
+      "INSERT INTO error_feeds \
+       (feed_id) VALUES ('z')"
+    )
+    .execute(&pool)
+    .await
+    .expect("suppress errored feed");
+
+    let remaining =
+      due_feeds(&pool, "news", 1000, 2)
+        .await
+        .expect("due after error");
+    assert_eq!(ids(remaining), vec![
+      "c"
+    ]);
+  }
 }
