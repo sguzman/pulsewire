@@ -211,7 +211,11 @@ pub async fn run()
     tokio::net::TcpListener::bind(addr)
       .await?;
 
-  axum::serve(listener, app)
+  // Supply the real TCP peer; never
+  // infer client identity
+  // from caller-controlled forwarding
+  // headers.
+  axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
     .await
     .map_err(|e| {
       ConfigError::Invalid(format!(

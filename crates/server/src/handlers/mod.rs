@@ -48,7 +48,12 @@ pub fn router(
         // out-of-band recovery flow. Previously, an unauthenticated
         // request received a usable reset token directly.
         .route("/v1/users/password", post(users::change_password))
-        .route("/v1/auth/login", post(auth::login))
+        .route("/v1/auth/login", post(auth::login).layer(
+          axum::middleware::from_fn_with_state(
+            state.clone(),
+            auth::throttle_login_source
+          )
+        ))
         .route("/v1/auth/logout", post(auth::logout))
         .route("/v1/auth/rotate", post(auth::rotate_token))
         .route("/v1/auth/tokens", get(auth::list_tokens))
