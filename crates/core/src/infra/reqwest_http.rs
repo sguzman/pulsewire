@@ -543,10 +543,7 @@ mod hardened_fetch_tests {
       )
       .expect("client");
     let url =
-      test_server(chunked(&vec![
-        b'x';
-        64
-      ]));
+      test_server(chunked(&[b'x'; 64]));
     let result = http
       .get_with_limit(
         &url, None, None, 64
@@ -573,10 +570,7 @@ mod hardened_fetch_tests {
       )
       .expect("client");
     let url =
-      test_server(chunked(&vec![
-        b'y';
-        65
-      ]));
+      test_server(chunked(&[b'y'; 65]));
     let result = http
       .get_with_limit(
         &url, None, None, 64
