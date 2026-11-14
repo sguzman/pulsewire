@@ -375,12 +375,13 @@ mod security_tests {
     .await
     .expect("tokens table");
     sqlx::query(
-      "CREATE TABLE user_password_resets \
-       (id INTEGER PRIMARY KEY, \
-       user_id INTEGER NOT NULL, \
-       token_hash TEXT NOT NULL, \
-       expires_at TEXT NOT NULL, \
-       created_at TEXT NOT NULL)"
+      "CREATE TABLE \
+       user_password_resets (id \
+       INTEGER PRIMARY KEY, user_id \
+       INTEGER NOT NULL, token_hash \
+       TEXT NOT NULL, expires_at TEXT \
+       NOT NULL, created_at TEXT NOT \
+       NULL)"
     )
     .execute(&pool)
     .await

@@ -1562,14 +1562,17 @@ mod postgres_runtime_tests {
       );
     assert_eq!(token_count, 1);
 
-    // Competing PostgreSQL rotations may consume a bearer
-    // at most once, leaving one active successor.
+    // Competing PostgreSQL rotations
+    // may consume a bearer
+    // at most once, leaving one active
+    // successor.
     let rotating_hash =
       crate::auth::hash_token(&rotated);
     let mut races = Vec::new();
     for _ in 0..8 {
       let state = state.clone();
-      let rotating_hash = rotating_hash.clone();
+      let rotating_hash =
+        rotating_hash.clone();
       races.push(tokio::spawn(async move {
         crate::session_issue::rotate_existing_token(
           &state, &rotating_hash
@@ -1580,9 +1583,12 @@ mod postgres_runtime_tests {
     let mut accepted = 0;
     let mut denied_rotations = 0;
     for race in races {
-      match race.await.expect("rotation task") {
-        Ok(_) => accepted += 1,
-        Err(err) => {
+      match race
+        .await
+        .expect("rotation task")
+      {
+        | Ok(_) => accepted += 1,
+        | Err(err) => {
           assert_eq!(
             axum::response::IntoResponse::into_response(err).status(),
             axum::http::StatusCode::UNAUTHORIZED
@@ -1593,13 +1599,18 @@ mod postgres_runtime_tests {
     }
     assert_eq!(accepted, 1);
     assert_eq!(denied_rotations, 7);
-    let after_rotation: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM user_tokens WHERE user_id = $1"
-    )
-    .bind(id)
-    .fetch_one(pgpool)
-    .await
-    .expect("single surviving successor");
+    let after_rotation: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM \
+         user_tokens WHERE user_id = \
+         $1"
+      )
+      .bind(id)
+      .fetch_one(pgpool)
+      .await
+      .expect(
+        "single surviving successor"
+      );
     assert_eq!(after_rotation, 1);
 
     // Atomic PostgreSQL reservations
