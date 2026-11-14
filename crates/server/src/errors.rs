@@ -115,3 +115,42 @@ fn status_code_to_string(
     }
     .to_string()
 }
+
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[tokio::test]
+  async fn internal_errors_never_expose_database_details()
+  {
+    let response = ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR,
+      "db connection: password=secret@with:/?#"
+    )
+    .into_response();
+    assert_eq!(
+      response.status(),
+      StatusCode::INTERNAL_SERVER_ERROR
+    );
+    let body = axum::body::to_bytes(
+      response.into_body(), 4096
+    )
+    .await
+    .expect("error body");
+    let parsed: serde_json::Value =
+      serde_json::from_slice(&body)
+        .expect("valid JSON");
+    assert_eq!(
+      parsed["error"]["code"],
+      "internal_error"
+    );
+    assert_eq!(
+      parsed["error"]["message"],
+      "internal server error"
+    );
+    assert!(
+      !String::from_utf8_lossy(&body).contains("secret")
+    );
+  }
+}

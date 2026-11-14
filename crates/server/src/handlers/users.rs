@@ -874,4 +874,176 @@ mod security_tests {
       .expect("cleared");
     assert_eq!(existing, 0);
   }
+
+  #[tokio::test]
+  async fn deletion_protects_last_admin_and_revokes_reader()
+  {
+    let state = setup().await;
+    crate::db::bootstrap_admin(
+      &state, "owner", "owner-long-passphrase"
+    )
+    .await
+    .expect("bootstrap");
+    let admin = login_headers(
+      &state, "owner", "owner-long-passphrase"
+    )
+    .await;
+    let result = delete_user(
+      State(state.clone()), admin.clone()
+    )
+    .await
+    .expect_err("last administrator deletion rejected");
+    assert_eq!(
+      result.into_response().status(),
+      StatusCode::CONFLICT
+    );
+
+    let password = "  reader-passphrase-with-spaces  ";
+    let Json(reader) = create_user(
+      State(state.clone()),
+      admin.clone(),
+      Json(CreateUserRequest {
+        username: "reader".into(),
+        password: password.into()
+      })
+    )
+    .await
+    .expect("create reader");
+    let pool = state.sqlite.as_ref().expect("sqlite");
+    let stored_id: i64 = sqlx::query_scalar(
+      "SELECT id FROM users WHERE username = 'reader'"
+    )
+    .fetch_one(pool)
+    .await
+    .expect("stored reader id");
+    assert_eq!(reader.id, stored_id);
+
+    let err = auth::login(
+      State(state.clone()),
+      Json(LoginRequest {
+        username: "reader".into(),
+        password: password.trim().into()
+      })
+    )
+    .await
+    .expect_err("password whitespace preserved");
+    assert_eq!(
+      err.into_response().status(),
+      StatusCode::UNAUTHORIZED
+    );
+    let reader_headers = login_headers(
+      &state, "reader", password
+    )
+    .await;
+    sqlx::query(
+      "INSERT INTO user_password_resets \
+       (user_id, token_hash, expires_at, created_at) \
+       VALUES (?1, 'old-reset', datetime('now', '+1 hour'), datetime('now'))"
+    )
+    .bind(stored_id)
+    .execute(pool)
+    .await
+    .expect("reset fixture");
+
+    delete_user(
+      State(state.clone()),
+      reader_headers.clone()
+    )
+    .await
+    .expect("reader self-deletion");
+    assert!(
+      crate::auth::auth_user_id(&state, &reader_headers)
+        .await
+        .is_err()
+    );
+    let users: i64 = sqlx::query_scalar(
+      "SELECT COUNT(*) FROM users"
+    )
+    .fetch_one(pool)
+    .await
+    .expect("users");
+    let tokens: i64 = sqlx::query_scalar(
+      "SELECT COUNT(*) FROM user_tokens WHERE user_id = ?1"
+    )
+    .bind(stored_id)
+    .fetch_one(pool)
+    .await
+    .expect("tokens");
+    let resets: i64 = sqlx::query_scalar(
+      "SELECT COUNT(*) FROM user_password_resets WHERE user_id = ?1"
+    )
+    .bind(stored_id)
+    .fetch_one(pool)
+    .await
+    .expect("resets");
+    assert_eq!(users, 1);
+    assert_eq!(tokens, 0);
+    assert_eq!(resets, 0);
+    assert!(
+      crate::auth::auth_user_id(&state, &admin)
+        .await
+        .is_ok()
+    );
+  }
+
+  #[tokio::test]
+  async fn deleting_one_of_two_administrators_preserves_the_other()
+  {
+    let state = setup().await;
+    crate::db::bootstrap_admin(
+      &state, "owner", "owner-long-passphrase"
+    )
+    .await
+    .expect("bootstrap");
+    let owner = login_headers(
+      &state, "owner", "owner-long-passphrase"
+    )
+    .await;
+    create_user(
+      State(state.clone()),
+      owner.clone(),
+      Json(CreateUserRequest {
+        username: "second_admin".into(),
+        password: "second-admin-passphrase".into()
+      })
+    )
+    .await
+    .expect("second account");
+    let pool = state.sqlite.as_ref().expect("sqlite");
+    sqlx::query(
+      "UPDATE users SET is_admin = 1 WHERE username = 'second_admin'"
+    )
+    .execute(pool)
+    .await
+    .expect("promote fixture admin");
+    let other = login_headers(
+      &state, "second_admin", "second-admin-passphrase"
+    )
+    .await;
+    delete_user(
+      State(state.clone()), owner.clone()
+    )
+    .await
+    .expect("one of two admins may delete self");
+    assert!(
+      crate::auth::auth_user_id(&state, &owner)
+        .await
+        .is_err()
+    );
+    assert!(
+      crate::auth::require_admin(&state, &other)
+        .await
+        .is_ok()
+    );
+    let err = delete_user(
+      State(state.clone()), other
+    )
+    .await
+    .expect_err("last remaining admin stays");
+    assert_eq!(
+      err.into_response().status(),
+      StatusCode::CONFLICT
+    );
+  }
+
 }
