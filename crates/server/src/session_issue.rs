@@ -251,3 +251,163 @@ pub(crate) async fn rotate_existing_token(
 
   Ok(token)
 }
+
+#[cfg(test)]
+mod tests {
+  use axum::http::StatusCode;
+  use axum::response::IntoResponse;
+  use sqlx::sqlite::SqlitePoolOptions;
+
+  use super::*;
+  use crate::auth::hash_password;
+  use crate::db::recover_user_password;
+
+  async fn fixture() -> AppState {
+    let pool = SqlitePoolOptions::new()
+      .max_connections(1)
+      .connect("sqlite::memory:")
+      .await
+      .expect("sqlite");
+    for ddl in [
+      "CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, is_admin INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)",
+      "CREATE TABLE user_tokens (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, token_hash TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL)",
+      "CREATE TABLE user_password_resets (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, token_hash TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL)"
+    ] {
+      sqlx::query(ddl)
+        .execute(&pool)
+        .await
+        .expect("fixture schema");
+    }
+    let hash =
+      hash_password("old-long-password")
+        .expect("password hash");
+    sqlx::query(
+      "INSERT INTO users (id, username, password_hash, created_at) VALUES (1, 'reader', ?1, '2026-01-01')"
+    )
+    .bind(hash)
+    .execute(&pool)
+    .await
+    .expect("fixture user");
+    AppState {
+      sqlite: Some(pool),
+      postgres: None,
+      fetcher_schema: None,
+      token_ttl_seconds: 3600
+    }
+  }
+
+  #[tokio::test]
+  async fn recovery_invalidates_stale_login_and_rotation() {
+    let state = fixture().await;
+    let pool = state.sqlite.as_ref().expect("sqlite");
+    let old_hash: String = sqlx::query_scalar(
+      "SELECT password_hash FROM users WHERE id = 1"
+    )
+    .fetch_one(pool)
+    .await
+    .expect("original hash");
+    let old_token =
+      issue_for_verified_login(&state, "reader", &old_hash)
+        .await
+        .expect("initial token");
+    recover_user_password(
+      &state, "reader", "new-long-password"
+    )
+    .await
+    .expect("recovery");
+    let err =
+      issue_for_verified_login(&state, "reader", &old_hash)
+        .await
+        .expect_err("stale verified hash rejected");
+    assert_eq!(
+      err.into_response().status(),
+      StatusCode::UNAUTHORIZED
+    );
+    let err = rotate_existing_token(
+      &state, &hash_token(&old_token)
+    )
+    .await
+    .expect_err("revoked token cannot rotate");
+    assert_eq!(
+      err.into_response().status(),
+      StatusCode::UNAUTHORIZED
+    );
+    let remaining: i64 = sqlx::query_scalar(
+      "SELECT COUNT(*) FROM user_tokens"
+    )
+    .fetch_one(pool)
+    .await
+    .expect("no sessions after recovery");
+    assert_eq!(remaining, 0);
+    let new_hash: String = sqlx::query_scalar(
+      "SELECT password_hash FROM users WHERE id = 1"
+    )
+    .fetch_one(pool)
+    .await
+    .expect("replacement hash");
+    let fresh = issue_for_verified_login(
+      &state, "reader", &new_hash
+    )
+    .await
+    .expect("new password may log in");
+    let rotated = rotate_existing_token(
+      &state, &hash_token(&fresh)
+    )
+    .await
+    .expect("valid token rotates");
+    assert_ne!(rotated, fresh);
+    let err = rotate_existing_token(
+      &state, &hash_token(&fresh)
+    )
+    .await
+    .expect_err("old token consumed");
+    assert_eq!(
+      err.into_response().status(),
+      StatusCode::UNAUTHORIZED
+    );
+  }
+
+  #[tokio::test]
+  async fn competing_rotations_create_one_successor() {
+    let state = fixture().await;
+    let pool = state.sqlite.as_ref().expect("sqlite");
+    let hash: String = sqlx::query_scalar(
+      "SELECT password_hash FROM users WHERE id = 1"
+    )
+    .fetch_one(pool)
+    .await
+    .expect("password hash");
+    let original = issue_for_verified_login(
+      &state, "reader", &hash
+    )
+    .await
+    .expect("initial token");
+    let old_hash = hash_token(&original);
+    let mut attempts = Vec::new();
+    for _ in 0..8 {
+      let state = state.clone();
+      let old_hash = old_hash.clone();
+      attempts.push(tokio::spawn(async move {
+        rotate_existing_token(&state, &old_hash).await
+      }));
+    }
+    let mut succeeded = 0;
+    for attempt in attempts {
+      match attempt.await.expect("rotation task") {
+        Ok(_) => succeeded += 1,
+        Err(err) => assert_eq!(
+          err.into_response().status(),
+          StatusCode::UNAUTHORIZED
+        )
+      }
+    }
+    assert_eq!(succeeded, 1);
+    let count: i64 = sqlx::query_scalar(
+      "SELECT COUNT(*) FROM user_tokens"
+    )
+    .fetch_one(pool)
+    .await
+    .expect("session count");
+    assert_eq!(count, 1);
+  }
+}

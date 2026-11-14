@@ -1491,6 +1491,66 @@ mod postgres_runtime_tests {
     .expect("login after recovery");
     assert!(!relogin.token.is_empty());
 
+    // A hash verified before recovery may not mint a
+    // session afterward, nor may the revoked token rotate.
+    let verified_before_recovery = new_hash.clone();
+    let revoked_token_hash =
+      crate::auth::hash_token(&relogin.token);
+    recover_user_password(
+      &state,
+      "existing_user",
+      "final-recovery-passphrase"
+    )
+    .await
+    .expect("second operator recovery");
+    let err = crate::session_issue::issue_for_verified_login(
+      &state,
+      "existing_user",
+      &verified_before_recovery
+    )
+    .await
+    .expect_err("stale password hash rejected");
+    assert_eq!(
+      axum::response::IntoResponse::into_response(err).status(),
+      axum::http::StatusCode::UNAUTHORIZED
+    );
+    let err = crate::session_issue::rotate_existing_token(
+      &state, &revoked_token_hash
+    )
+    .await
+    .expect_err("revoked token rejected");
+    assert_eq!(
+      axum::response::IntoResponse::into_response(err).status(),
+      axum::http::StatusCode::UNAUTHORIZED
+    );
+    let fresh_hash: String = sqlx::query_scalar(
+      "SELECT password_hash FROM users WHERE id = $1"
+    )
+    .bind(id)
+    .fetch_one(pgpool)
+    .await
+    .expect("fresh hash");
+    let fresh_token = crate::session_issue::issue_for_verified_login(
+      &state, "existing_user", &fresh_hash
+    )
+    .await
+    .expect("fresh credential token");
+    let rotated = crate::session_issue::rotate_existing_token(
+      &state,
+      &crate::auth::hash_token(&fresh_token)
+    )
+    .await
+    .expect("valid rotation");
+    assert_ne!(fresh_token, rotated);
+    let token_count: i64 = sqlx::query_scalar(
+      "SELECT COUNT(*) FROM user_tokens WHERE user_id = $1"
+    )
+    .bind(id)
+    .fetch_one(pgpool)
+    .await
+    .expect("only replacement active");
+    assert_eq!(token_count, 1);
+
     // Atomic PostgreSQL reservations
     // across concurrent connections and
     // shared unknown-account buckets.
