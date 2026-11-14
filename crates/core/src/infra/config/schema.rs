@@ -58,11 +58,20 @@ pub(crate) fn validate_toml(
         ))
       })?;
 
-  // JSON Schema errors can quote the rejected value, which may
-  // contain a password, cookie, or API token. Report only context.
-  if schema.iter_errors(&json_value).next().is_some() {
+  // JSON Schema errors can quote the
+  // rejected value, which may contain a
+  // password, cookie, or API token.
+  // Report only context.
+  if schema
+    .iter_errors(&json_value)
+    .next()
+    .is_some()
+  {
     return Err(ConfigError::Invalid(
-      format!("schema validation failed for {context} (values omitted)")
+      format!(
+        "schema validation failed for \
+         {context} (values omitted)"
+      )
     ));
   }
 
@@ -74,14 +83,30 @@ mod redaction_tests {
   use super::*;
 
   #[test]
-  fn schema_errors_do_not_echo_password_values() {
+  fn schema_errors_do_not_echo_password_values()
+   {
     let schema = r#"{"type":"object","properties":{"password":{"type":"integer"}}}"#;
-    let input = "password = \"pw023-config-secret-sentinel\"";
-    let err = validate_toml(schema, input, "test")
-      .expect_err("string is not integer");
-    for message in [err.to_string(), format!("{err:?}")] {
-      assert!(message.contains("values omitted"));
-      assert!(!message.contains("pw023-config-secret-sentinel"));
+    let input =
+      "password = \
+       \"pw023-config-secret-sentinel\\
+       "";
+    let err = validate_toml(
+      schema, input, "test"
+    )
+    .expect_err(
+      "string is not integer"
+    );
+    for message in [
+      err.to_string(),
+      format!("{err:?}")
+    ] {
+      assert!(
+        message
+          .contains("values omitted")
+      );
+      assert!(!message.contains(
+        "pw023-config-secret-sentinel"
+      ));
     }
   }
 }

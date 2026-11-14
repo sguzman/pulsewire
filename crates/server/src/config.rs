@@ -11,14 +11,20 @@ use thiserror::Error;
 pub enum ConfigError {
   #[error("config IO error: {0}")]
   Io(#[from] std::io::Error),
-  #[error("config parse error (source omitted to protect secrets)")]
+  #[error(
+    "config parse error (source \
+     omitted to protect secrets)"
+  )]
   Parse(#[from] toml::de::Error),
   #[error("config invalid: {0}")]
   Invalid(String)
 }
 
 impl std::fmt::Debug for ConfigError {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
     write!(f, "{self}")
   }
 }
@@ -294,7 +300,8 @@ fn validate_toml(
     toml::from_str(toml_input)
       .map_err(|_| {
         ConfigError::Invalid(format!(
-          "{name}: invalid TOML (source omitted)"
+          "{name}: invalid TOML \
+           (source omitted)"
         ))
       })?;
 
@@ -302,14 +309,24 @@ fn validate_toml(
     serde_json::to_value(toml_value)
       .map_err(|_| {
         ConfigError::Invalid(
-          "config conversion failed (values omitted)".into()
+          "config conversion failed \
+           (values omitted)"
+            .into()
         )
       })?;
 
-  // Schema errors may embed rejected values, including credentials.
-  if compiled.iter_errors(&json_value).next().is_some() {
+  // Schema errors may embed rejected
+  // values, including credentials.
+  if compiled
+    .iter_errors(&json_value)
+    .next()
+    .is_some()
+  {
     return Err(ConfigError::Invalid(
-      format!("schema validation failed for {name} (values omitted)")
+      format!(
+        "schema validation failed for \
+         {name} (values omitted)"
+      )
     ));
   }
 
@@ -378,25 +395,58 @@ mod validation_redaction_tests {
   use super::*;
 
   #[test]
-  fn toml_and_schema_errors_hide_password_values() {
-    let secret = "pw023-config-secret-sentinel";
+  fn toml_and_schema_errors_hide_password_values()
+   {
+    let secret =
+      "pw023-config-secret-sentinel";
     let schema = r#"{"type":"object","properties":{"password":{"type":"integer"}}}"#;
-    let invalid = format!("password = \"{secret}\"");
-    let err = validate_toml(schema, &invalid, "server")
-      .expect_err("schema validation should reject secret string");
-    for message in [err.to_string(), format!("{err:?}")] {
-      assert!(message.contains("values omitted"));
-      assert!(!message.contains(secret));
+    let invalid = format!(
+      "password = \"{secret}\""
+    );
+    let err = validate_toml(
+      schema, &invalid, "server"
+    )
+    .expect_err(
+      "schema validation should \
+       reject secret string"
+    );
+    for message in [
+      err.to_string(),
+      format!("{err:?}")
+    ] {
+      assert!(
+        message
+          .contains("values omitted")
+      );
+      assert!(
+        !message.contains(secret)
+      );
     }
-    let malformed = format!("password = \"{secret}");
-    let err = validate_toml(schema, &malformed, "server")
-      .expect_err("malformed TOML");
-    assert!(!err.to_string().contains(secret));
-    assert!(!format!("{err:?}").contains(secret));
-    let parse_error = toml::from_str::<toml::Value>(&malformed)
-      .expect_err("malformed TOML");
-    let err = ConfigError::Parse(parse_error);
-    assert!(!err.to_string().contains(secret));
-    assert!(!format!("{err:?}").contains(secret));
+    let malformed =
+      format!("password = \"{secret}");
+    let err = validate_toml(
+      schema, &malformed, "server"
+    )
+    .expect_err("malformed TOML");
+    assert!(
+      !err.to_string().contains(secret)
+    );
+    assert!(
+      !format!("{err:?}")
+        .contains(secret)
+    );
+    let parse_error = toml::from_str::<
+      toml::Value
+    >(&malformed)
+    .expect_err("malformed TOML");
+    let err =
+      ConfigError::Parse(parse_error);
+    assert!(
+      !err.to_string().contains(secret)
+    );
+    assert!(
+      !format!("{err:?}")
+        .contains(secret)
+    );
   }
 }
