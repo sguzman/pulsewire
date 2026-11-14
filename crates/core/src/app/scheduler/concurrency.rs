@@ -232,18 +232,23 @@ mod global_budget_tests {
     tokio::pin!(blocked);
     tokio::pin!(ready);
 
-    let advanced = tokio::time::timeout(
-      std::time::Duration::from_secs(1),
-      async {
-        tokio::select! {
-          biased;
-          _ = &mut blocked => false,
-          _ = &mut ready => true,
+    let advanced =
+      tokio::time::timeout(
+        std::time::Duration::from_secs(
+          1
+        ),
+        async {
+          tokio::select! {
+            biased;
+            _ = &mut blocked => false,
+            _ = &mut ready => true,
+          }
         }
-      }
-    )
-    .await
-    .expect("unrelated domain must run");
+      )
+      .await
+      .expect(
+        "unrelated domain must run"
+      );
 
     assert!(advanced);
     assert_eq!(
@@ -252,5 +257,4 @@ mod global_budget_tests {
     );
     drop(held);
   }
-
 }
