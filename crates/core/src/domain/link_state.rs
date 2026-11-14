@@ -342,12 +342,27 @@ fn has_changed(
   state: &LinkState,
   result: &HeadResult
 ) -> bool {
+  // A 200 response without a comparable
+  // ETag or Last-Modified value cannot
+  // establish that the feed is
+  // unchanged. Fetch the body instead
+  // of sleeping indefinitely on
+  // validator-free feeds.
+  let comparable_validator =
+    (state.etag.is_some()
+      && result.etag.is_some())
+      || (state
+        .last_modified_ms
+        .is_some()
+        && result
+          .last_modified
+          .is_some());
   let by_status =
     matches!(result.status, Some(200))
-      && matches!(
+      && (matches!(
         state.last_head_status,
         Some(304)
-      );
+      ) || !comparable_validator);
 
   let by_etag =
     match (&state.etag, &result.etag) {
@@ -609,5 +624,151 @@ mod scheduler_retry_tests {
       ),
       NextAction::DoGet { .. }
     ));
+  }
+}
+
+#[cfg(test)]
+mod head_validator_regressions {
+  use super::*;
+
+  fn initial_with_validators()
+  -> LinkState {
+    let mut state = LinkState::initial(
+      "rss-head-validators".into(),
+      5,
+      60,
+      0.0,
+      1_000
+    );
+    state.phase = LinkPhase::NeedsHead;
+    state.last_head_status = Some(200);
+    state.etag = Some("etag-v1".into());
+    state.last_modified_ms = Some(100);
+    state
+  }
+
+  fn head(
+    status: u16,
+    etag: &str,
+    last_modified: i64
+  ) -> HeadResult {
+    HeadResult {
+      status:             Some(status),
+      etag:               Some(
+        etag.into()
+      ),
+      last_modified:      Some(
+        last_modified
+      ),
+      error:              None,
+      latency_ms:         1,
+      set_cookie_headers: Vec::new()
+    }
+  }
+
+  #[test]
+  fn unchanged_validators_do_not_trigger_get()
+   {
+    let state =
+      initial_with_validators();
+    let after =
+      LinkState::apply_head_result(
+        state,
+        head(304, "etag-v1", 100),
+        2_000,
+        0.5
+      );
+    assert_eq!(
+      after.phase,
+      LinkPhase::Sleeping
+    );
+    assert_eq!(
+      after.note.as_deref(),
+      Some("head-not-modified")
+    );
+    let unchanged_ok =
+      LinkState::apply_head_result(
+        initial_with_validators(),
+        head(200, "etag-v1", 100),
+        2_000,
+        0.5
+      );
+    assert_eq!(
+      unchanged_ok.phase,
+      LinkPhase::Sleeping
+    );
+  }
+
+  #[test]
+  fn http_200_without_comparable_validators_refetches()
+   {
+    let mut state =
+      initial_with_validators();
+    state.etag = None;
+    state.last_modified_ms = None;
+    let response = HeadResult {
+      status:             Some(200),
+      etag:               None,
+      last_modified:      None,
+      error:              None,
+      latency_ms:         1,
+      set_cookie_headers: Vec::new()
+    };
+    let after =
+      LinkState::apply_head_result(
+        state, response, 2_000, 0.5
+      );
+    assert_eq!(
+      after.phase,
+      LinkPhase::NeedsGet
+    );
+    assert_eq!(
+      after.note.as_deref(),
+      Some("head-modified")
+    );
+  }
+
+  #[test]
+  fn changed_etag_or_last_modified_triggers_get()
+   {
+    for (etag, modified) in [
+      ("etag-v2", 100),
+      ("etag-v1", 200)
+    ] {
+      let after =
+        LinkState::apply_head_result(
+          initial_with_validators(),
+          head(200, etag, modified),
+          2_000,
+          0.5
+        );
+      assert_eq!(
+        after.phase,
+        LinkPhase::NeedsGet
+      );
+      assert_eq!(
+        after.note.as_deref(),
+        Some("head-modified")
+      );
+    }
+  }
+
+  #[test]
+  fn recovery_from_not_modified_to_ok_triggers_get()
+   {
+    let mut state =
+      initial_with_validators();
+    state.last_head_status = Some(304);
+    let after =
+      LinkState::apply_head_result(
+        state,
+        head(200, "etag-v1", 100),
+        2_000,
+        0.5
+      );
+    assert_eq!(
+      after.phase,
+      LinkPhase::NeedsGet
+    );
   }
 }
