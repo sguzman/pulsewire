@@ -324,4 +324,79 @@ mod stable_due_queue_tests {
       "c"
     ]);
   }
+
+  #[tokio::test]
+  async fn sqlite_1101_feed_queue_does_not_starve_remaining_page() {
+    let pool = sqlx::sqlite::SqlitePoolOptions::new()
+      .max_connections(1)
+      .connect("sqlite::memory:")
+      .await
+      .expect("memory SQLite");
+
+    for ddl in [
+      "CREATE TABLE feeds (id TEXT PRIMARY KEY, url TEXT NOT NULL, domain TEXT NOT NULL, category TEXT NOT NULL, base_poll_seconds INTEGER NOT NULL)",
+      "CREATE TABLE feed_state_current (feed_id TEXT PRIMARY KEY, next_action_at_ms INTEGER NOT NULL)",
+      "CREATE TABLE error_feeds (feed_id TEXT PRIMARY KEY)"
+    ] {
+      sqlx::query(ddl)
+        .execute(&pool)
+        .await
+        .expect("create isolated table");
+    }
+
+    let mut tx = pool.begin().await.expect("insert transaction");
+    for n in (1..=1101).rev() {
+      let id = format!("feed-{n:04}");
+      sqlx::query(
+        "INSERT INTO feeds (id, url, domain, category, base_poll_seconds)
+         VALUES (?1, ?2, 'example.test', 'news', 60)"
+      )
+      .bind(&id)
+      .bind(format!("https://example.test/{n}"))
+      .execute(&mut *tx)
+      .await
+      .expect("insert synthetic feed");
+    }
+    tx.commit().await.expect("commit fixture");
+
+    let now_ms = 1_700_000_000_000i64;
+    let first = due_feeds(&pool, "news", now_ms, 1000)
+      .await
+      .expect("bounded first page");
+    assert_eq!(first.len(), 1000);
+    assert_eq!(first.first().map(|f| f.id.as_str()), Some("feed-0001"));
+    assert_eq!(first.last().map(|f| f.id.as_str()), Some("feed-1000"));
+
+    sqlx::query(
+      "INSERT INTO feed_state_current (feed_id, next_action_at_ms)
+       SELECT id, ?1 FROM feeds WHERE id <= 'feed-1000'"
+    )
+    .bind(now_ms + 60_000)
+    .execute(&pool)
+    .await
+    .expect("defer completed first page");
+    sqlx::query("INSERT INTO error_feeds (feed_id) VALUES ('feed-1050')")
+      .execute(&pool)
+      .await
+      .expect("exclude one failing feed");
+
+    let second = due_feeds(&pool, "news", now_ms, 1000)
+      .await
+      .expect("remaining second page");
+    let actual: Vec<_> = second.iter().map(|f| f.id.clone()).collect();
+    let expected: Vec<_> = (1001..=1101)
+      .filter(|n| *n != 1050)
+      .map(|n| format!("feed-{n:04}"))
+      .collect();
+    assert_eq!(actual, expected);
+    assert_eq!(actual.len(), 100);
+
+    assert!(
+      due_feeds(&pool, "news", now_ms, 0)
+        .await
+        .expect("zero limit")
+        .is_empty()
+    );
+  }
+
 }
