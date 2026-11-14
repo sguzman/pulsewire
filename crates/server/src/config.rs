@@ -15,9 +15,16 @@ pub enum ConfigError {
     "config parse error (source \
      omitted to protect secrets)"
   )]
-  Parse(#[from] toml::de::Error),
+  Parse,
   #[error("config invalid: {0}")]
   Invalid(String)
+}
+
+// Do not retain a TOML error whose source contains credential text.
+impl From<toml::de::Error> for ConfigError {
+  fn from(_: toml::de::Error) -> Self {
+    Self::Parse
+  }
 }
 
 impl std::fmt::Debug for ConfigError {
@@ -440,7 +447,7 @@ mod validation_redaction_tests {
     >(&malformed)
     .expect_err("malformed TOML");
     let err =
-      ConfigError::Parse(parse_error);
+      ConfigError::from(parse_error);
     assert!(
       !err.to_string().contains(secret)
     );

@@ -6,9 +6,17 @@ pub enum ConfigError {
     "toml: invalid input (source \
      omitted to protect secrets)"
   )]
-  Toml(#[from] toml::de::Error),
+  Toml,
   #[error("invalid config: {0}")]
   Invalid(String)
+}
+
+// Discard the parser error: it may contain source snippets and
+// must not survive via Error::source() or diagnostic formatting.
+impl From<toml::de::Error> for ConfigError {
+  fn from(_: toml::de::Error) -> Self {
+    Self::Toml
+  }
 }
 
 impl std::fmt::Debug for ConfigError {
@@ -37,7 +45,7 @@ mod redaction_tests {
       "unterminated string is invalid"
     );
     let err =
-      ConfigError::Toml(parse_error);
+      ConfigError::from(parse_error);
     for message in [
       err.to_string(),
       format!("{err:?}")
