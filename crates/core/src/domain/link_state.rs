@@ -410,3 +410,120 @@ pub fn compute_delay_seconds(
 fn is_error_status(code: u16) -> bool {
   (400..=599).contains(&code)
 }
+
+#[cfg(test)]
+mod scheduler_retry_tests {
+  use super::*;
+
+  fn timeout_get() -> GetResult {
+    GetResult {
+      status: None,
+      body: None,
+      etag: None,
+      last_modified: None,
+      error: Some(ErrorKind::Timeout),
+      latency_ms: 25,
+      set_cookie_headers: Vec::new()
+    }
+  }
+
+  fn timeout_head() -> HeadResult {
+    HeadResult {
+      status: None,
+      etag: None,
+      last_modified: None,
+      error: Some(ErrorKind::Timeout),
+      latency_ms: 25,
+      set_cookie_headers: Vec::new()
+    }
+  }
+
+  #[test]
+  fn error_backoff_defers_retries_and_caps_delay() {
+    let state = LinkState::initial(
+      "failing-feed".into(),
+      2,
+      16,
+      0.0,
+      1_000
+    );
+    let first = LinkState::apply_get_result(
+      state, timeout_get(), 1_000, false, 0.5
+    );
+    assert_eq!(first.phase, LinkPhase::ErrorBackoff);
+    assert_eq!(first.consecutive_error_count, 1);
+    assert_eq!(first.backoff_index, 1);
+    assert_eq!(first.next_action_at_ms, 5_000);
+    assert!(matches!(
+      LinkState::decide_next_action(&first, 4_999),
+      NextAction::SleepUntil { at_ms: 5_000 }
+    ));
+    assert!(matches!(
+      LinkState::decide_next_action(&first, 5_000),
+      NextAction::DoHead { .. }
+    ));
+
+    let second = LinkState::apply_head_result(
+      first, timeout_head(), 5_000, 0.5
+    );
+    assert_eq!(second.consecutive_error_count, 2);
+    assert_eq!(second.backoff_index, 2);
+    assert_eq!(second.next_action_at_ms, 13_000);
+
+    let third = LinkState::apply_head_result(
+      second, timeout_head(), 13_000, 0.5
+    );
+    assert_eq!(third.consecutive_error_count, 3);
+    assert_eq!(third.next_action_at_ms, 29_000);
+
+    let fourth = LinkState::apply_head_result(
+      third, timeout_head(), 29_000, 0.5
+    );
+    assert_eq!(fourth.consecutive_error_count, 4);
+    assert_eq!(fourth.next_action_at_ms, 45_000);
+    assert_eq!(fourth.backoff_index, 4);
+  }
+
+  #[test]
+  fn recovered_head_clears_error_streak_and_returns_to_get() {
+    let mut state = LinkState::initial(
+      "recovered-feed".into(),
+      2,
+      16,
+      0.0,
+      1_000
+    );
+    state = LinkState::apply_get_result(
+      state, timeout_get(), 1_000, false, 0.5
+    );
+    state.etag = Some("old-version".into());
+
+    let due_at = state.next_action_at_ms;
+    let recovered = LinkState::apply_head_result(
+      state,
+      HeadResult {
+        status: Some(200),
+        etag: Some("new-version".into()),
+        last_modified: None,
+        error: None,
+        latency_ms: 4,
+        set_cookie_headers: Vec::new()
+      },
+      due_at,
+      0.5
+    );
+
+    assert_eq!(recovered.phase, LinkPhase::NeedsGet);
+    assert_eq!(recovered.consecutive_error_count, 0);
+    assert!(recovered.last_head_error.is_none());
+    assert_eq!(recovered.etag.as_deref(), Some("new-version"));
+    assert!(matches!(
+      LinkState::decide_next_action(&recovered, due_at),
+      NextAction::SleepUntil { .. }
+    ));
+    assert!(matches!(
+      LinkState::decide_next_action(&recovered, recovered.next_action_at_ms),
+      NextAction::DoGet { .. }
+    ));
+  }
+}
