@@ -43,7 +43,8 @@ impl ReqwestHttp {
     user_agent: String
   ) -> Result<Self, reqwest::Error> {
     Self::new_with_policy(
-      user_agent, false
+      user_agent,
+      http_policy::allow_private_feed_networks()
     )
   }
 
@@ -57,6 +58,11 @@ impl ReqwestHttp {
       .connect_timeout(Duration::from_secs(10))
       .timeout(Duration::from_secs(30))
       .cookie_store(true)
+      // Do not let ambient proxies resolve internal destinations.
+      .no_proxy()
+      .dns_resolver(std::sync::Arc::new(
+        crate::infra::guarded_dns::GuardedDns::new(allow_local_test)
+      ))
       .redirect(reqwest::redirect::Policy::custom(
         move |attempt| {
           if attempt.previous().len() >= MAX_REDIRECTS {
