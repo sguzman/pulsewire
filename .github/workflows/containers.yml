@@ -86,6 +86,13 @@ jobs:
             "$RUNNER_TEMP/pulsewire-xdg/pulsewire/fetcher/categories.toml"
           cp crates/server/res/docker.toml \
             "$RUNNER_TEMP/pulsewire-xdg/pulsewire/server/config.toml"
+          # The loader intentionally rejects empty feed catalogs.
+          cat > "$RUNNER_TEMP/pulsewire-xdg/pulsewire/fetcher/feeds/ci.toml" <<'EOF'
+          [[feeds]]
+          id = "pulsewire-xdg-feed"
+          url = "https://example.org/feed.xml"
+          category = "news"
+          EOF
           # A normal /usr/local/share install should work without a
           # SCHEMAS_DIR override or a build-tree source directory.
           mkdir -p "$RUNNER_TEMP/pulsewire-installed-schemas"
