@@ -44,11 +44,11 @@ pub async fn run()
       }
     };
   let config_path =
-    std::env::var("SERVER_CONFIG_PATH")
-      .unwrap_or_else(|_| {
-        "crates/server/res/config.toml"
-          .to_string()
-      });
+    pulsewire_schemas::config_path(
+      "server",
+      None,
+      "SERVER_CONFIG_PATH"
+    );
 
   unsafe {
     std::env::set_var(

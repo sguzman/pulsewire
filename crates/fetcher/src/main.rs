@@ -290,41 +290,11 @@ async fn main() -> Result<(), BootError>
 fn pick_config_path(
   arg1: Option<String>
 ) -> PathBuf {
-  if let Some(p) = arg1 {
-    return PathBuf::from(p);
-  }
-
-  if let Ok(p) =
-    std::env::var("CONFIG_PATH")
-    && !p.trim().is_empty()
-  {
-    return PathBuf::from(p);
-  }
-
-  // Prefer repo-local res/ config; fall
-  // back to old resources path for
-  // compatibility.
-  let candidates = [
-    PathBuf::from(
-      "crates/fetcher/res/config.toml"
-    ),
-    PathBuf::from(
-      "fetcher/res/config.toml"
-    ),
-    PathBuf::from("res/config.toml"),
-    PathBuf::from(
-      "src/main/resources/config/\
-       config.toml"
-    )
-  ];
-
-  for p in &candidates {
-    if p.exists() {
-      return p.clone();
-    }
-  }
-
-  candidates[0].clone()
+  pulsewire_schemas::config_path(
+    "fetcher",
+    arg1.as_deref(),
+    "CONFIG_PATH"
+  )
 }
 
 enum RunMode {
