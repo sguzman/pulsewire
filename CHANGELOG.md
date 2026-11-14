@@ -2,6 +2,7 @@
 ## [Unreleased]
 
 ### 🔐 Security
+- Redact secret-bearing TOML/schema validation diagnostics and disable default published fetcher metrics; cover config error redaction and Compose loopback/metrics defaults in CI (PR #10).
 - Redact password-bearing API request models and bearer-token responses in Rust Debug output, with synthetic secret-marker tests; do not treat this as production network exposure approval.
 - Serialize first-administrator bootstrap on PostgreSQL/SQLite, prevent last-admin self-deletion, revoke account sessions/resets on deletion, preserve exact password bytes and redact HTTP 500 diagnostics.
 - Rate-limit login sprays across distinct usernames by the actual TCP peer (60 requests per 15 minutes) in addition to the persistent per-account throttle; ignore untrusted forwarding headers. Verify both SQLite/PostgreSQL and real HTTP smoke.
