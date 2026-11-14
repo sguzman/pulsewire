@@ -48,6 +48,21 @@ traffic without trusted ingress controls. Pulsewire deliberately does **not**
 accept untrusted `X-Forwarded-For` claims as source identity. A shared NAT
 can also aggregate clients into one quota; account lockout is possible.
 
+## Secret handling and debugging
+
+PostgreSQL configuration objects in the server and core/fetcher now redact
+passwords in Rust `Debug` output. API auth payloads and token responses also
+redact their passwords/bearer tokens in `Debug`. This limits accidental logging
+but does **not** make raw credentials disappear from process memory, container
+environment, Docker metadata, explicit HTTP token responses or unreviewed
+startup/parse error paths. Do not print the full container environment or
+provide real secrets in bug reports. Configure secrets privately at deployment.
+
+The remaining `PW-023` ingress, TLS, metrics, and shared-network exposure
+criteria are tracked in [P0 issue #9](https://github.com/sguzman/pulsewire/issues/9).
+Do not interpret successful isolated CI smoke as approval to expose Pulsewire
+publicly or migrate an existing household database.
+
 ## Requirements before starting on any host
 
 1. Decide which **existing Docker network** can resolve the intended PostgreSQL

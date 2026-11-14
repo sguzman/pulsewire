@@ -2,6 +2,7 @@
 ## [Unreleased]
 
 ### 🔐 Security
+- Redact password-bearing API request models and bearer-token responses in Rust Debug output, with synthetic secret-marker tests; do not treat this as production network exposure approval.
 - Serialize first-administrator bootstrap on PostgreSQL/SQLite, prevent last-admin self-deletion, revoke account sessions/resets on deletion, preserve exact password bytes and redact HTTP 500 diagnostics.
 - Rate-limit login sprays across distinct usernames by the actual TCP peer (60 requests per 15 minutes) in addition to the persistent per-account throttle; ignore untrusted forwarding headers. Verify both SQLite/PostgreSQL and real HTTP smoke.
 - Block non-public resolved feed destinations at the Reqwest connection-time DNS boundary (including mixed public/private DNS answers), disable ambient proxies, and require explicit `PULSEWIRE_ALLOW_PRIVATE_FEEDS=1` opt-in for trusted internal sources; verified with Rust and container CI.
