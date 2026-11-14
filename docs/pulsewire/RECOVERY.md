@@ -111,6 +111,30 @@ temporarily block a known username). Deploy a trusted network/reverse-proxy
 rate limit for source-based protections; do not expose the API publicly without
 one. Privileged offline recovery is unaffected by HTTP login throttling.
 
+### Transactional login, rotation and password-change safety
+
+The [2026-11-13 Rust integration suite](https://github.com/sguzman/pulsewire/actions/runs/43532690650)
+and [disposable PostgreSQL container smoke](https://github.com/sguzman/pulsewire/actions/runs/43532690620)
+verified the session-issuance fix. Login rechecks the previously verified
+password hash under an account lock immediately before token insertion.
+PostgreSQL locks the user row using `FOR UPDATE`; SQLite first acquires a
+write lock with `UPDATE ... RETURNING`. Recovery updates that same account
+row and revokes its tokens within a transaction. A stale login can therefore
+not issue a surviving session after recovery.
+
+Token rotation rechecks and consumes the presented bearer and creates its
+replacement in one transaction under the same lock. Password changes
+revalidate their original bearer and password hash under that lock and
+revoke sessions and historical reset tokens atomically. Negative tests cover
+stale hashes and revoked tokens; concurrent-rotation tests on both backends
+prove a bearer has one successor. The HTTP smoke verifies the original
+bearer becomes invalid after rotation while its replacement authenticates.
+
+The API is not yet approved for public exposure. Per-account throttling may
+still be abused for targeted temporary lockout; deployment-specific
+source-based throttling, trusted-proxy configuration and body/URL limits
+remain release blockers under PW-021/PW-023/PW-024.
+
 ## Gates before production use
 
 - Confirm the host's real storage topology, schema names, and backup permissions.
