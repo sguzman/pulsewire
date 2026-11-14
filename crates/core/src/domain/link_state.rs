@@ -344,14 +344,19 @@ fn has_changed(
 ) -> bool {
   // A 200 response without a comparable
   // ETag or Last-Modified value cannot
-  // establish that the feed is unchanged.
-  // Fetch the body instead of sleeping
-  // indefinitely on validator-free feeds.
+  // establish that the feed is
+  // unchanged. Fetch the body instead
+  // of sleeping indefinitely on
+  // validator-free feeds.
   let comparable_validator =
     (state.etag.is_some()
       && result.etag.is_some())
-      || (state.last_modified_ms.is_some()
-        && result.last_modified.is_some());
+      || (state
+        .last_modified_ms
+        .is_some()
+        && result
+          .last_modified
+          .is_some());
   let by_status =
     matches!(result.status, Some(200))
       && (matches!(
@@ -695,25 +700,24 @@ mod head_validator_regressions {
   }
 
   #[test]
-  fn http_200_without_comparable_validators_refetches() {
+  fn http_200_without_comparable_validators_refetches()
+   {
     let mut state =
       initial_with_validators();
     state.etag = None;
     state.last_modified_ms = None;
     let response = HeadResult {
-      status: Some(200),
-      etag: None,
-      last_modified: None,
-      error: None,
-      latency_ms: 1,
+      status:             Some(200),
+      etag:               None,
+      last_modified:      None,
+      error:              None,
+      latency_ms:         1,
       set_cookie_headers: Vec::new()
     };
-    let after = LinkState::apply_head_result(
-      state,
-      response,
-      2_000,
-      0.5
-    );
+    let after =
+      LinkState::apply_head_result(
+        state, response, 2_000, 0.5
+      );
     assert_eq!(
       after.phase,
       LinkPhase::NeedsGet
