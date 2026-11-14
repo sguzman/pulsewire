@@ -331,3 +331,20 @@ jobs:
             test "$(login_status owner incorrect-passphrase)" = 401
           done
           test "$(login_status owner incorrect-passphrase)" = 429
+
+          # Real HTTP token rotation must consume the original bearer.
+          prior_bearer="$(jq -er '.token' "$RUNNER_TEMP/recovered.json")"
+          code="$(curl -sS -o "$RUNNER_TEMP/rotated.json" -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $prior_bearer" \
+            http://127.0.0.1:18091/v1/auth/rotate)"
+          test "$code" = 200
+          rotated_bearer="$(jq -er '.token' "$RUNNER_TEMP/rotated.json")"
+          test "$rotated_bearer" != "$prior_bearer"
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $prior_bearer" \
+            http://127.0.0.1:18091/v1/entries)"
+          test "$code" = 401
+          code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $rotated_bearer" \
+            http://127.0.0.1:18091/v1/entries)"
+          test "$code" = 200
