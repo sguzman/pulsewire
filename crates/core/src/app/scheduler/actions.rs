@@ -207,8 +207,13 @@ where
       cap
     )
     .await;
-  // Defense-in-depth for injected/test Http adapters.
-  if res.body.as_ref().is_some_and(|b| b.len() > cap) {
+  // Defense-in-depth for injected/test
+  // Http adapters.
+  if res
+    .body
+    .as_ref()
+    .is_some_and(|b| b.len() > cap)
+  {
     res.body = None;
     res.error = Some(crate::domain::model::ErrorKind::Unexpected);
   }

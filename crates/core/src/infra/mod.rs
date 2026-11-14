@@ -4,8 +4,8 @@
 
 pub mod config;
 pub mod database;
-pub mod logging;
 pub mod http_policy;
+pub mod logging;
 pub mod metrics;
 pub mod postgres_repo;
 pub mod random;

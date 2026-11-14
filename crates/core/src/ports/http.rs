@@ -30,15 +30,24 @@ pub trait Http: Send + Sync {
 
   /// The concrete HTTP adapter enforces
   /// this bound while streaming; the
-  /// scheduler also checks returned bytes
-  /// so test/mocked adapters cannot skip it.
+  /// scheduler also checks returned
+  /// bytes so test/mocked adapters
+  /// cannot skip it.
   async fn get_with_limit(
     &self,
     url: &str,
     cookie_header: Option<&str>,
-    extra_headers: Option<&HashMap<String, String>>,
+    extra_headers: Option<
+      &HashMap<String, String>
+    >,
     _max_body_bytes: usize
   ) -> GetResult {
-    self.get(url, cookie_header, extra_headers).await
+    self
+      .get(
+        url,
+        cookie_header,
+        extra_headers
+      )
+      .await
   }
 }
