@@ -37,9 +37,11 @@ pub async fn create_user(
   let username =
     payload.username.trim();
 
-  // Passwords are opaque bytes: trimming silently
-  // changes the credential that a user selected.
-  let password = payload.password.as_str();
+  // Passwords are opaque bytes:
+  // trimming silently changes the
+  // credential that a user selected.
+  let password =
+    payload.password.as_str();
 
   if username.is_empty()
     || password.len() < 12
@@ -86,9 +88,12 @@ pub async fn create_user(
             .as_ref()
             .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
 
-    // The returned id must come from the INSERT itself:
-    // last_insert_rowid() is connection-local and a pooled
-    // follow-up query can observe a different connection.
+    // The returned id must come from
+    // the INSERT itself:
+    // last_insert_rowid() is
+    // connection-local and a pooled
+    // follow-up query can observe a
+    // different connection.
     sqlx::query_scalar::<_, i64>(
       "INSERT INTO users (username, \
        password_hash, created_at) \
@@ -100,7 +105,10 @@ pub async fn create_user(
     .fetch_one(pool)
     .await
     .map_err(|e| {
-      map_db_error(e, "user create failed")
+      map_db_error(
+        e,
+        "user create failed"
+      )
     })?
   };
 
@@ -124,9 +132,11 @@ pub async fn change_password(
     &bearer_token(&headers)?
   );
 
-  let current_password = payload.current_password.as_str();
+  let current_password =
+    payload.current_password.as_str();
 
-  let new_password = payload.new_password.as_str();
+  let new_password =
+    payload.new_password.as_str();
 
   if current_password.is_empty()
     || new_password.len() < 12
@@ -288,15 +298,18 @@ pub async fn change_password(
   Ok(StatusCode::NO_CONTENT)
 }
 
-/// Self-service deletion. The last administrator
-/// cannot delete themselves, which would leave
-/// the instance without an administrative path.
+/// Self-service deletion. The last
+/// administrator cannot delete
+/// themselves, which would leave
+/// the instance without an
+/// administrative path.
 pub async fn delete_user(
   State(state): State<AppState>,
   headers: axum::http::HeaderMap
 ) -> Result<StatusCode, ServerError> {
   let user_id =
-    auth_user_id(&state, &headers).await?;
+    auth_user_id(&state, &headers)
+      .await?;
   let token_hash = hash_token(
     &bearer_token(&headers)?
   );
@@ -306,8 +319,9 @@ pub async fn delete_user(
         StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
       )
     })?;
-    // Serialize concurrent admin deletions in a
-    // stable row-lock order. Login and recovery
+    // Serialize concurrent admin
+    // deletions in a stable row-lock
+    // order. Login and recovery
     // also lock their account row.
     let admins: Vec<i64> = sqlx::query_scalar(
       "SELECT id FROM users WHERE is_admin = TRUE \
@@ -327,9 +341,11 @@ pub async fn delete_user(
     .map_err(|e| ServerError::new(
       StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
     ))?;
-    let Some(is_admin) = is_admin else {
+    let Some(is_admin) = is_admin
+    else {
       return Err(ServerError::new(
-        StatusCode::UNAUTHORIZED, "invalid token"
+        StatusCode::UNAUTHORIZED,
+        "invalid token"
       ));
     };
     let active: Option<i64> = sqlx::query_scalar(
@@ -346,17 +362,20 @@ pub async fn delete_user(
     ))?;
     if active.is_none() {
       return Err(ServerError::new(
-        StatusCode::UNAUTHORIZED, "invalid token"
+        StatusCode::UNAUTHORIZED,
+        "invalid token"
       ));
     }
     if is_admin && admins.len() <= 1 {
       return Err(ServerError::new(
         StatusCode::CONFLICT,
-        "cannot delete the last administrator"
+        "cannot delete the last \
+         administrator"
       ));
     }
-    // Explicit token cleanup is intentional, even
-    // where cascading foreign keys are present.
+    // Explicit token cleanup is
+    // intentional, even where cascading
+    // foreign keys are present.
     sqlx::query(
       "DELETE FROM user_tokens WHERE user_id = $1"
     )
@@ -396,8 +415,9 @@ pub async fn delete_user(
         StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
       )
     })?;
-    // Acquire SQLite's writer lock before checking
-    // the admin count or session validity.
+    // Acquire SQLite's writer lock
+    // before checking the admin count
+    // or session validity.
     let is_admin: Option<i64> = sqlx::query_scalar(
       "UPDATE users SET is_admin = is_admin \
        WHERE id = ?1 RETURNING is_admin"
@@ -408,9 +428,11 @@ pub async fn delete_user(
     .map_err(|e| ServerError::new(
       StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
     ))?;
-    let Some(is_admin) = is_admin else {
+    let Some(is_admin) = is_admin
+    else {
       return Err(ServerError::new(
-        StatusCode::UNAUTHORIZED, "invalid token"
+        StatusCode::UNAUTHORIZED,
+        "invalid token"
       ));
     };
     let active: Option<i64> = sqlx::query_scalar(
@@ -427,7 +449,8 @@ pub async fn delete_user(
     ))?;
     if active.is_none() {
       return Err(ServerError::new(
-        StatusCode::UNAUTHORIZED, "invalid token"
+        StatusCode::UNAUTHORIZED,
+        "invalid token"
       ));
     }
     if is_admin != 0 {
@@ -442,7 +465,8 @@ pub async fn delete_user(
       if count <= 1 {
         return Err(ServerError::new(
           StatusCode::CONFLICT,
-          "cannot delete the last administrator"
+          "cannot delete the last \
+           administrator"
         ));
       }
     }
@@ -877,22 +901,30 @@ mod security_tests {
 
   #[tokio::test]
   async fn deletion_protects_last_admin_and_revokes_reader()
-  {
+   {
     let state = setup().await;
     crate::db::bootstrap_admin(
-      &state, "owner", "owner-long-passphrase"
+      &state,
+      "owner",
+      "owner-long-passphrase"
     )
     .await
     .expect("bootstrap");
     let admin = login_headers(
-      &state, "owner", "owner-long-passphrase"
+      &state,
+      "owner",
+      "owner-long-passphrase"
     )
     .await;
     let result = delete_user(
-      State(state.clone()), admin.clone()
+      State(state.clone()),
+      admin.clone()
     )
     .await
-    .expect_err("last administrator deletion rejected");
+    .expect_err(
+      "last administrator deletion \
+       rejected"
+    );
     assert_eq!(
       result.into_response().status(),
       StatusCode::CONFLICT
@@ -909,24 +941,33 @@ mod security_tests {
     )
     .await
     .expect("create reader");
-    let pool = state.sqlite.as_ref().expect("sqlite");
-    let stored_id: i64 = sqlx::query_scalar(
-      "SELECT id FROM users WHERE username = 'reader'"
-    )
-    .fetch_one(pool)
-    .await
-    .expect("stored reader id");
+    let pool = state
+      .sqlite
+      .as_ref()
+      .expect("sqlite");
+    let stored_id: i64 =
+      sqlx::query_scalar(
+        "SELECT id FROM users WHERE \
+         username = 'reader'"
+      )
+      .fetch_one(pool)
+      .await
+      .expect("stored reader id");
     assert_eq!(reader.id, stored_id);
 
     let err = auth::login(
       State(state.clone()),
       Json(LoginRequest {
         username: "reader".into(),
-        password: password.trim().into()
+        password: password
+          .trim()
+          .into()
       })
     )
     .await
-    .expect_err("password whitespace preserved");
+    .expect_err(
+      "password whitespace preserved"
+    );
     assert_eq!(
       err.into_response().status(),
       StatusCode::UNAUTHORIZED
@@ -936,9 +977,12 @@ mod security_tests {
     )
     .await;
     sqlx::query(
-      "INSERT INTO user_password_resets \
-       (user_id, token_hash, expires_at, created_at) \
-       VALUES (?1, 'old-reset', datetime('now', '+1 hour'), datetime('now'))"
+      "INSERT INTO \
+       user_password_resets (user_id, \
+       token_hash, expires_at, \
+       created_at) VALUES (?1, \
+       'old-reset', datetime('now', \
+       '+1 hour'), datetime('now'))"
     )
     .bind(stored_id)
     .execute(pool)
@@ -952,51 +996,67 @@ mod security_tests {
     .await
     .expect("reader self-deletion");
     assert!(
-      crate::auth::auth_user_id(&state, &reader_headers)
-        .await
-        .is_err()
+      crate::auth::auth_user_id(
+        &state,
+        &reader_headers
+      )
+      .await
+      .is_err()
     );
-    let users: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM users"
-    )
-    .fetch_one(pool)
-    .await
-    .expect("users");
-    let tokens: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM user_tokens WHERE user_id = ?1"
-    )
-    .bind(stored_id)
-    .fetch_one(pool)
-    .await
-    .expect("tokens");
-    let resets: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM user_password_resets WHERE user_id = ?1"
-    )
-    .bind(stored_id)
-    .fetch_one(pool)
-    .await
-    .expect("resets");
+    let users: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM users"
+      )
+      .fetch_one(pool)
+      .await
+      .expect("users");
+    let tokens: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM \
+         user_tokens WHERE user_id = \
+         ?1"
+      )
+      .bind(stored_id)
+      .fetch_one(pool)
+      .await
+      .expect("tokens");
+    let resets: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM \
+         user_password_resets WHERE \
+         user_id = ?1"
+      )
+      .bind(stored_id)
+      .fetch_one(pool)
+      .await
+      .expect("resets");
     assert_eq!(users, 1);
     assert_eq!(tokens, 0);
     assert_eq!(resets, 0);
     assert!(
-      crate::auth::auth_user_id(&state, &admin)
-        .await
-        .is_ok()
+      crate::auth::auth_user_id(
+        &state, &admin
+      )
+      .await
+      .is_ok()
     );
   }
 
   #[tokio::test]
   async fn deleting_one_of_two_administrators_preserves_the_other()
-  {
+   {
     let state = setup().await;
     crate::db::bootstrap_admin(
-      &state, "owner", "owner-long-passphrase"
+      &state,
+      "owner",
+      "owner-long-passphrase"
     )
     .await
     .expect("bootstrap");
     let owner = login_headers(
-      &state, "owner", "owner-long-passphrase"
+      &state,
+      "owner",
+      "owner-long-passphrase"
     )
     .await;
     create_user(
@@ -1004,46 +1064,64 @@ mod security_tests {
       owner.clone(),
       Json(CreateUserRequest {
         username: "second_admin".into(),
-        password: "second-admin-passphrase".into()
+        password:
+          "second-admin-passphrase"
+            .into()
       })
     )
     .await
     .expect("second account");
-    let pool = state.sqlite.as_ref().expect("sqlite");
+    let pool = state
+      .sqlite
+      .as_ref()
+      .expect("sqlite");
     sqlx::query(
-      "UPDATE users SET is_admin = 1 WHERE username = 'second_admin'"
+      "UPDATE users SET is_admin = 1 \
+       WHERE username = 'second_admin'"
     )
     .execute(pool)
     .await
     .expect("promote fixture admin");
     let other = login_headers(
-      &state, "second_admin", "second-admin-passphrase"
+      &state,
+      "second_admin",
+      "second-admin-passphrase"
     )
     .await;
     delete_user(
-      State(state.clone()), owner.clone()
+      State(state.clone()),
+      owner.clone()
     )
     .await
-    .expect("one of two admins may delete self");
-    assert!(
-      crate::auth::auth_user_id(&state, &owner)
-        .await
-        .is_err()
+    .expect(
+      "one of two admins may delete \
+       self"
     );
     assert!(
-      crate::auth::require_admin(&state, &other)
-        .await
-        .is_ok()
+      crate::auth::auth_user_id(
+        &state, &owner
+      )
+      .await
+      .is_err()
+    );
+    assert!(
+      crate::auth::require_admin(
+        &state, &other
+      )
+      .await
+      .is_ok()
     );
     let err = delete_user(
-      State(state.clone()), other
+      State(state.clone()),
+      other
     )
     .await
-    .expect_err("last remaining admin stays");
+    .expect_err(
+      "last remaining admin stays"
+    );
     assert_eq!(
       err.into_response().status(),
       StatusCode::CONFLICT
     );
   }
-
 }

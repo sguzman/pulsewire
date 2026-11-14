@@ -1316,74 +1316,105 @@ mod postgres_runtime_tests {
       reader.username,
       "new_reader"
     );
-    let pgpool = state.postgres.as_ref().expect("postgres");
-    let actual_reader_id: i64 = sqlx::query_scalar(
-      "SELECT id FROM users WHERE username = 'new_reader'"
-    )
-    .fetch_one(pgpool)
-    .await
-    .expect("created reader id");
-    assert_eq!(reader.id, actual_reader_id);
+    let pgpool = state
+      .postgres
+      .as_ref()
+      .expect("postgres");
+    let actual_reader_id: i64 =
+      sqlx::query_scalar(
+        "SELECT id FROM users WHERE \
+         username = 'new_reader'"
+      )
+      .fetch_one(pgpool)
+      .await
+      .expect("created reader id");
+    assert_eq!(
+      reader.id,
+      actual_reader_id
+    );
     let denied = users::delete_user(
-      State(state.clone()), headers.clone()
+      State(state.clone()),
+      headers.clone()
     )
     .await
-    .expect_err("sole admin may not delete self");
+    .expect_err(
+      "sole admin may not delete self"
+    );
     assert_eq!(
       axum::response::IntoResponse::into_response(denied).status(),
       axum::http::StatusCode::CONFLICT
     );
-    let Json(reader_token) = auth::login(
-      State(state.clone()),
-      Json(LoginRequest {
-        username: "new_reader".into(),
-        password: "reader-passphrase-long".into()
-      })
-    )
-    .await
-    .expect("reader login");
-    let mut reader_headers = HeaderMap::new();
+    let Json(reader_token) =
+      auth::login(
+        State(state.clone()),
+        Json(LoginRequest {
+          username: "new_reader".into(),
+          password:
+            "reader-passphrase-long"
+              .into()
+        })
+      )
+      .await
+      .expect("reader login");
+    let mut reader_headers =
+      HeaderMap::new();
     reader_headers.insert(
       "authorization",
-      format!("Bearer {}", reader_token.token)
-        .parse()
-        .expect("reader bearer")
+      format!(
+        "Bearer {}",
+        reader_token.token
+      )
+      .parse()
+      .expect("reader bearer")
     );
     sqlx::query(
-      "INSERT INTO user_password_resets \
-       (user_id, token_hash, expires_at, created_at) \
-       VALUES ($1, 'reader-reset', NOW() + INTERVAL '1 hour', NOW())"
+      "INSERT INTO \
+       user_password_resets (user_id, \
+       token_hash, expires_at, \
+       created_at) VALUES ($1, \
+       'reader-reset', NOW() + \
+       INTERVAL '1 hour', NOW())"
     )
     .bind(actual_reader_id)
     .execute(pgpool)
     .await
     .expect("reader reset fixture");
     users::delete_user(
-      State(state.clone()), reader_headers.clone()
+      State(state.clone()),
+      reader_headers.clone()
     )
     .await
-    .expect("reader can delete own account");
+    .expect(
+      "reader can delete own account"
+    );
     assert!(
       crate::auth::auth_user_id(
-        &state, &reader_headers
+        &state,
+        &reader_headers
       )
       .await
       .is_err()
     );
-    let old_sessions: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM user_tokens WHERE user_id = $1"
-    )
-    .bind(actual_reader_id)
-    .fetch_one(pgpool)
-    .await
-    .expect("reader tokens");
-    let old_resets: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM user_password_resets WHERE user_id = $1"
-    )
-    .bind(actual_reader_id)
-    .fetch_one(pgpool)
-    .await
-    .expect("reader resets");
+    let old_sessions: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM \
+         user_tokens WHERE user_id = \
+         $1"
+      )
+      .bind(actual_reader_id)
+      .fetch_one(pgpool)
+      .await
+      .expect("reader tokens");
+    let old_resets: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM \
+         user_password_resets WHERE \
+         user_id = $1"
+      )
+      .bind(actual_reader_id)
+      .fetch_one(pgpool)
+      .await
+      .expect("reader resets");
     assert_eq!(old_sessions, 0);
     assert_eq!(old_resets, 0);
     users::change_password(

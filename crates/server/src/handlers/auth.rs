@@ -32,7 +32,8 @@ pub async fn login(
   let username =
     payload.username.trim();
 
-  let password = payload.password.as_str();
+  let password =
+    payload.password.as_str();
 
   if username.is_empty()
     || password.is_empty()

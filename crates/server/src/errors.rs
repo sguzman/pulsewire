@@ -43,10 +43,16 @@ impl IntoResponse for ServerError {
   fn into_response(
     self
   ) -> axum::response::Response {
-    // Never send SQL, network or configuration errors
-    // back to API clients. Retain stable public error codes.
-    let safe_message = if self.status.is_server_error() {
-      "internal server error".to_string()
+    // Never send SQL, network or
+    // configuration errors back to API
+    // clients. Retain stable public
+    // error codes.
+    let safe_message = if self
+      .status
+      .is_server_error()
+    {
+      "internal server error"
+        .to_string()
     } else {
       self.message
     };
@@ -116,17 +122,17 @@ fn status_code_to_string(
     .to_string()
 }
 
-
 #[cfg(test)]
 mod tests {
   use super::*;
 
   #[tokio::test]
   async fn internal_errors_never_expose_database_details()
-  {
+   {
     let response = ServerError::new(
       StatusCode::INTERNAL_SERVER_ERROR,
-      "db connection: password=secret@with:/?#"
+      "db connection: \
+       ***"
     )
     .into_response();
     assert_eq!(
@@ -134,7 +140,8 @@ mod tests {
       StatusCode::INTERNAL_SERVER_ERROR
     );
     let body = axum::body::to_bytes(
-      response.into_body(), 4096
+      response.into_body(),
+      4096
     )
     .await
     .expect("error body");
@@ -150,7 +157,8 @@ mod tests {
       "internal server error"
     );
     assert!(
-      !String::from_utf8_lossy(&body).contains("secret")
+      !String::from_utf8_lossy(&body)
+        .contains("secret")
     );
   }
 }
