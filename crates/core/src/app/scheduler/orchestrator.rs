@@ -45,8 +45,11 @@ impl Scheduler {
       );
     }
 
-    // Each category owns its tick timer and retry backoff. All loops
-    // share the same global and per-domain network concurrency guards.
+    // Each category owns its tick timer
+    // and retry backoff. All loops
+    // share the same global and
+    // per-domain network concurrency
+    // guards.
     let parallelism =
       per_category_parallelism(
         ctx.cfg
@@ -70,8 +73,10 @@ impl Scheduler {
         )
       });
 
-    futures::future::try_join_all(loops)
-      .await?;
+    futures::future::try_join_all(
+      loops
+    )
+    .await?;
 
     Ok(())
   }
@@ -203,8 +208,10 @@ fn per_category_parallelism(
   total_parallelism: usize,
   category_count: usize
 ) -> usize {
-  // Per-category windows avoid giving every slot to one busy category.
-  // Shared global semaphore still caps aggregate request concurrency.
+  // Per-category windows avoid giving
+  // every slot to one busy category.
+  // Shared global semaphore still caps
+  // aggregate request concurrency.
   total_parallelism
     .max(1)
     .div_ceil(category_count.max(1))
@@ -216,17 +223,40 @@ mod fairness_tests {
   use super::*;
 
   #[test]
-  fn fair_windows_partition_the_global_budget() {
-    assert_eq!(per_category_parallelism(64, 4), 16);
-    assert_eq!(per_category_parallelism(5, 2), 3);
-    assert_eq!(per_category_parallelism(2, 5), 1);
-    assert_eq!(per_category_parallelism(0, 3), 1);
-    assert_eq!(per_category_parallelism(64, 1), 64);
+  fn fair_windows_partition_the_global_budget()
+   {
+    assert_eq!(
+      per_category_parallelism(64, 4),
+      16
+    );
+    assert_eq!(
+      per_category_parallelism(5, 2),
+      3
+    );
+    assert_eq!(
+      per_category_parallelism(2, 5),
+      1
+    );
+    assert_eq!(
+      per_category_parallelism(0, 3),
+      1
+    );
+    assert_eq!(
+      per_category_parallelism(64, 1),
+      64
+    );
   }
 
   #[test]
-  fn single_category_and_empty_input_are_bounded() {
-    assert_eq!(per_category_parallelism(64, 0), 64);
-    assert_eq!(per_category_parallelism(1, 0), 1);
+  fn single_category_and_empty_input_are_bounded()
+   {
+    assert_eq!(
+      per_category_parallelism(64, 0),
+      64
+    );
+    assert_eq!(
+      per_category_parallelism(1, 0),
+      1
+    );
   }
 }
