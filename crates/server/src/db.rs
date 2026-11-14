@@ -398,6 +398,22 @@ pub async fn bootstrap_admin(
         "bootstrap begin: {e}"
       ))
     })?;
+  // A deferred SQLite transaction does
+  // not take a writer lock with SELECT
+  // COUNT; acquire it first
+  // so concurrent first-admin commands
+  // serialize.
+  sqlx::query(
+    "UPDATE users SET is_admin = \
+     is_admin WHERE 0"
+  )
+  .execute(&mut *tx)
+  .await
+  .map_err(|e| {
+    ConfigError::Invalid(format!(
+      "bootstrap lock: {e}"
+    ))
+  })?;
   let count: i64 = sqlx::query_scalar(
     "SELECT COUNT(*) FROM users"
   )
@@ -1036,6 +1052,90 @@ mod bootstrap_tests {
           .expect("revoked tokens");
       assert_eq!(count, 0);
     }
+  }
+  #[tokio::test]
+  async fn concurrent_first_admin_sqlite_keeps_only_one_admin()
+   {
+    // Use a disk-backed, isolated
+    // fixture so separate SQLite
+    // connections really contend for
+    // the first-admin write lock.
+    let stamp =
+      std::time::SystemTime::now()
+        .duration_since(
+          std::time::UNIX_EPOCH
+        )
+        .expect("time")
+        .as_nanos();
+    let path = std::env::temp_dir().join(format!(
+      "pulsewire-ci-bootstrap-{}-{stamp}.sqlite",
+      std::process::id()
+    ));
+    let options = sqlx::sqlite::SqliteConnectOptions::new()
+      .filename(&path)
+      .create_if_missing(true)
+      .busy_timeout(std::time::Duration::from_secs(10));
+    let pool = SqlitePoolOptions::new()
+      .max_connections(4)
+      .connect_with(options)
+      .await
+      .expect("isolated sqlite");
+    sqlx::query(
+      "CREATE TABLE users (id INTEGER \
+       PRIMARY KEY, username TEXT NOT \
+       NULL UNIQUE, password_hash \
+       TEXT NOT NULL, is_admin \
+       INTEGER NOT NULL DEFAULT 0, \
+       created_at TEXT NOT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("users");
+    sqlx::query(
+      "CREATE TABLE user_tokens (id \
+       INTEGER PRIMARY KEY, user_id \
+       INTEGER NOT NULL, token_hash \
+       TEXT NOT NULL, expires_at TEXT \
+       NOT NULL, created_at TEXT NOT \
+       NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("tokens");
+    let state = AppState {
+      sqlite:            Some(
+        pool.clone()
+      ),
+      postgres:          None,
+      fetcher_schema:    None,
+      token_ttl_seconds: 3600
+    };
+    let (a, b) = tokio::join!(
+      bootstrap_admin(
+        &state,
+        "first",
+        "first-long-password"
+      ),
+      bootstrap_admin(
+        &state,
+        "second",
+        "second-long-password"
+      )
+    );
+    assert_ne!(a.is_ok(), b.is_ok());
+    let admin_count: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM users \
+         WHERE is_admin != 0"
+      )
+      .fetch_one(&pool)
+      .await
+      .expect("admin count");
+    assert_eq!(admin_count, 1);
+    pool.close().await;
+    std::fs::remove_file(&path).expect(
+      "cleanup isolated sqlite"
+    );
   }
 }
 
