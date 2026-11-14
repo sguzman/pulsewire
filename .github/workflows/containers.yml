@@ -86,6 +86,11 @@ jobs:
             "$RUNNER_TEMP/pulsewire-xdg/pulsewire/fetcher/categories.toml"
           cp crates/server/res/docker.toml \
             "$RUNNER_TEMP/pulsewire-xdg/pulsewire/server/config.toml"
+          # A normal /usr/local/share install should work without a
+          # SCHEMAS_DIR override or a build-tree source directory.
+          mkdir -p "$RUNNER_TEMP/pulsewire-installed-schemas"
+          cp -R crates/schemas/fetcher "$RUNNER_TEMP/pulsewire-installed-schemas/fetcher"
+          cp -R crates/schemas/server "$RUNNER_TEMP/pulsewire-installed-schemas/server"
           mkdir -p "$RUNNER_TEMP/pulsewire-smoke/news"
           cat > "$RUNNER_TEMP/pulsewire-smoke/news/ci.toml" <<'EOF'
           [[feeds]]
@@ -98,17 +103,21 @@ jobs:
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
             -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
             -e CONFIG_PATH= \
+            -e SCHEMAS_DIR= \
             -e XDG_CONFIG_HOME=/app/ci-xdg \
             -e FEEDS_DIR=/app/ci-xdg/pulsewire/fetcher/feeds \
             -v "$RUNNER_TEMP/pulsewire-xdg:/app/ci-xdg:ro" \
+            -v "$RUNNER_TEMP/pulsewire-installed-schemas:/usr/local/share/pulsewire/schemas:ro" \
             pulsewire-fetcher:ci --ingest-benchmark 1
           docker run --rm --network pulsewire-ci \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
             -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
             -e SERVER_CONFIG_PATH= \
+            -e SCHEMAS_DIR= \
             -e XDG_CONFIG_HOME=/app/ci-xdg \
             -v "$RUNNER_TEMP/pulsewire-xdg:/app/ci-xdg:ro" \
+            -v "$RUNNER_TEMP/pulsewire-installed-schemas:/usr/local/share/pulsewire/schemas:ro" \
             -e PULSEWIRE_BOOTSTRAP_USERNAME=owner \
             -e PULSEWIRE_BOOTSTRAP_PASSWORD="$TEST_ADMIN_PASSWORD" \
             pulsewire-server:ci --bootstrap-admin
