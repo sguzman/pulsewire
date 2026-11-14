@@ -122,7 +122,8 @@ mod offline_feed_regressions {
   use super::*;
 
   #[test]
-  fn rss_item_metadata_survives_normalization() {
+  fn rss_item_metadata_survives_normalization()
+   {
     let rss = br#"<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
@@ -138,7 +139,8 @@ mod offline_feed_regressions {
     </item>
   </channel>
 </rss>"#;
-    let parsed = parse(rss).expect("valid RSS");
+    let parsed =
+      parse(rss).expect("valid RSS");
     assert_eq!(
       parsed.metadata.title.as_deref(),
       Some("News & Research")
@@ -168,7 +170,8 @@ mod offline_feed_regressions {
   }
 
   #[test]
-  fn atom_item_uses_updated_when_published_is_missing() {
+  fn atom_item_uses_updated_when_published_is_missing()
+   {
     let atom = br#"<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Research Feed</title>
@@ -181,7 +184,8 @@ mod offline_feed_regressions {
     <summary>Atom summary</summary>
   </entry>
 </feed>"#;
-    let parsed = parse(atom).expect("valid Atom");
+    let parsed =
+      parse(atom).expect("valid Atom");
     assert_eq!(
       parsed.metadata.title.as_deref(),
       Some("Research Feed")
@@ -203,11 +207,13 @@ mod offline_feed_regressions {
   }
 
   #[test]
-  fn rejects_invalid_and_empty_feed_documents() {
+  fn rejects_invalid_and_empty_feed_documents()
+   {
     for malformed in [
       b"".as_slice(),
       b"not an XML feed".as_slice(),
-      b"<rss><channel><item>".as_slice()
+      b"<rss><channel><item>"
+        .as_slice()
     ] {
       assert!(
         parse(malformed).is_err(),
@@ -217,14 +223,17 @@ mod offline_feed_regressions {
   }
 
   #[test]
-  fn decompressed_body_over_eight_mib_is_rejected_before_parsing() {
+  fn decompressed_body_over_eight_mib_is_rejected_before_parsing()
+   {
     let over_limit = vec![
       b' ';
       crate::infra::http_policy::MAX_RESPONSE_BODY_BYTES + 1
     ];
     assert_eq!(
-      parse(&over_limit).expect_err("over-limit feed"),
-      "feed exceeds maximum response size"
+      parse(&over_limit)
+        .expect_err("over-limit feed"),
+      "feed exceeds maximum response \
+       size"
     );
   }
 }
