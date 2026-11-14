@@ -371,3 +371,16 @@ jobs:
           done
           test "$source_blocked" = 1
           test "$(login_status ci-spray-after-limit incorrect-passphrase)" = 429
+          # A blocked TCP peer stays blocked when callers forge proxy headers.
+          # Each synthetic username is distinct, so its account bucket cannot
+          # explain an HTTP 429; only the real peer quota can.
+          for fake_ip in 198.51.100.10 198.51.100.11 203.0.113.12; do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' \
+              -H 'Content-Type: application/json' \
+              -H "X-Forwarded-For: $fake_ip" \
+              -H "X-Real-IP: $fake_ip" \
+              -H "Forwarded: for=$fake_ip" \
+              -d "{\"username\":\"ci-spoof-$fake_ip\",\"password\":\"incorrect-passphrase\"}" \
+              http://127.0.0.1:18091/v1/auth/login)"
+            test "$code" = 429
+          done
