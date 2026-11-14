@@ -251,7 +251,11 @@ impl Repo for FakeRepo {
 #[derive(Default)]
 struct FakeHttp {
   inflight: AtomicUsize,
-  peak:     AtomicUsize
+  peak: AtomicUsize,
+  block_slow_http: bool,
+  slow_http_entered: Notify,
+  slow_http_release: Notify,
+  healthy_http_seen: Notify
 }
 
 #[async_trait::async_trait]
@@ -271,7 +275,7 @@ impl Http for FakeHttp {
 
   async fn get(
     &self,
-    _url: &str,
+    url: &str,
     _cookie_header: Option<&str>,
     _extra_headers: Option<
       &HashMap<String, String>
@@ -285,6 +289,15 @@ impl Http for FakeHttp {
       concurrent,
       Ordering::SeqCst
     );
+    if self.block_slow_http
+      && url.ends_with("/slow")
+    {
+      self.slow_http_entered.notify_one();
+      self.slow_http_release.notified().await;
+    }
+    if url.ends_with("/healthy") {
+      self.healthy_http_seen.notify_one();
+    }
     tokio::time::sleep(
       Duration::from_millis(1)
     )
@@ -565,5 +578,65 @@ async fn backlog_pages_are_bounded_and_drain_without_repeats()
       .inflight
       .load(Ordering::SeqCst),
     0
+  );
+}
+
+fn mock_feed(
+  id: &str,
+  category: &str,
+  domain: &str
+) -> FeedConfig {
+  FeedConfig {
+    id: id.into(),
+    url: format!("https://{domain}/{id}"),
+    domain: domain.into(),
+    category: category.into(),
+    base_poll_seconds: 60,
+    provenance: None,
+    tags: None,
+    language: None,
+    content_type: None,
+    cookie_path: None,
+    headers_path: None,
+    headers: None
+  }
+}
+
+#[tokio::test]
+async fn slow_http_feed_does_not_starve_another_category() {
+  let repo = Arc::new(FakeRepo::new(
+    vec![
+      mock_feed("slow", "slow", "slow.test"),
+      mock_feed("healthy", "healthy", "healthy.test")
+    ],
+    false,
+    false
+  ));
+  let http = Arc::new(FakeHttp {
+    block_slow_http: true,
+    ..Default::default()
+  });
+  let ctx = fixture(repo, http.clone());
+  let worker = tokio::spawn(async move {
+    Scheduler::run_forever_by_category(
+      ctx,
+      vec!["slow".into(), "healthy".into()]
+    ).await
+  });
+
+  let advanced = tokio::time::timeout(
+    Duration::from_secs(2),
+    async {
+      http.slow_http_entered.notified().await;
+      http.healthy_http_seen.notified().await;
+    }
+  ).await;
+  http.slow_http_release.notify_one();
+  worker.abort();
+  let _ = worker.await;
+
+  assert!(
+    advanced.is_ok(),
+    "slow HTTP feed must not stall unrelated category"
   );
 }
