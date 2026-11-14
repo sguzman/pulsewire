@@ -4,6 +4,7 @@
 
 pub mod config;
 pub mod database;
+pub mod guarded_dns;
 pub mod http_policy;
 pub mod logging;
 pub mod metrics;

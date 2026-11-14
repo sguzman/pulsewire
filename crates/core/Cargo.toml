@@ -9,6 +9,7 @@ futures = "0.3.31"
 tokio = { features = [
   "fs",
   "macros",
+  "net",
   "rt-multi-thread",
   "sync",
   "time",

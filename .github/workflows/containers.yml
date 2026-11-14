@@ -77,12 +77,14 @@ jobs:
           docker run --rm --network pulsewire-ci \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
             -e FEEDS_DIR=/app/smoke-feeds \
             -v "$RUNNER_TEMP/pulsewire-smoke:/app/smoke-feeds:ro" \
             pulsewire-fetcher:ci --ingest-benchmark 1
           docker run --rm --network pulsewire-ci \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
             -e PULSEWIRE_BOOTSTRAP_USERNAME=owner \
             -e PULSEWIRE_BOOTSTRAP_PASSWORD="$TEST_ADMIN_PASSWORD" \
             pulsewire-server:ci --bootstrap-admin
@@ -91,6 +93,7 @@ jobs:
             -p 127.0.0.1:18091:8091 \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
             pulsewire-server:ci
           healthy=0
           for i in {1..30}; do
@@ -136,6 +139,7 @@ jobs:
             --memory 512m --memory-swap 512m --cpus 0.75 --pids-limit 256 \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
             -e FEEDS_DIR=/app/smoke-feeds \
             -v "$RUNNER_TEMP/pulsewire-real-feeds:/app/smoke-feeds:ro" \
             pulsewire-fetcher:ci
@@ -244,6 +248,7 @@ jobs:
           if docker run --rm --network pulsewire-ci \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
             -e PULSEWIRE_RECOVERY_CONFIRM=DENIED \
             -e PULSEWIRE_RECOVERY_USERNAME=owner \
             -e PULSEWIRE_RECOVERY_PASSWORD=ci-new-long-password \
@@ -259,6 +264,7 @@ jobs:
           docker run --rm --network pulsewire-ci \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
             -e PULSEWIRE_RECOVERY_CONFIRM=RECOVER_USER \
             -e PULSEWIRE_RECOVERY_USERNAME=owner \
             -e PULSEWIRE_RECOVERY_PASSWORD=ci-new-long-password \

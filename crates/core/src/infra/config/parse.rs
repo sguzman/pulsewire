@@ -107,7 +107,8 @@ pub(crate) fn url_host(
   url: &str
 ) -> Option<String> {
   crate::infra::http_policy::parse_source_url(
-    url, false
+    url,
+    crate::infra::http_policy::allow_private_feed_networks()
   )
   .ok()?
   .host_str()
