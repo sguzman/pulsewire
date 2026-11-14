@@ -1,6 +1,6 @@
 # Pulsewire — adoption and resurrection roadmap
 
-> Canonical, scope-frozen engineering plan. Adopted 2026-11-13 on `main` at `c1b1995b13e6`. Weights denote relative full-lifecycle delivery, **not** lines of code or estimated calendar time. Current accepted weighted verification credit: **60/100** (33 source-inventory, 5 CI/build, 5 slim catalog, 5 destructive-startup safety, 5 account-recovery safety, 2 bounded outbound fetch safety, 5 authenticated account-lifecycle safety); operational readiness remains **unverified**.
+> Canonical, scope-frozen engineering plan. Adopted 2026-11-13 on `main` at `c1b1995b13e6`. Weights denote relative full-lifecycle delivery, **not** lines of code or estimated calendar time. Current accepted weighted verification credit: **65/100** (33 source-inventory, 5 CI/build, 5 slim catalog, 5 destructive-startup safety, 5 account-recovery safety, 2 bounded outbound fetch safety, 5 authenticated account-lifecycle safety, 5 verified fair scheduling); operational readiness remains **unverified**.
 
 ## Mission and acceptance contract
 
@@ -55,7 +55,7 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 | ID | Item (deliverable) | Weight | Priority | Status | Dependencies | Objective acceptance criteria |
 |---|---|---:|---|---|---|---|
 | PW-030 | 🚫 Disable YouTube and podcasts by default | 5 | P0 | verified complete | PW-010 | New install skips the two catalogs before parsing, never schedules them or ingests them; all other categories stay enabled, existing definitions/data are preserved; tests and smoke run prove it. |
-| PW-031 | ⏲️ Fair bounded scheduling | 5 | P1 | active | PW-030 | One category cannot starve others; due-queue paging, domain budgets and retries behave under slow/failing feeds; simulated load tests prove behavior. |
+| PW-031 | ⏲️ Fair bounded scheduling | 5 | P1 | verified complete | PW-030 | One category cannot starve others; due-queue paging, domain budgets and retries behave under slow/failing feeds; simulated load tests prove behavior. |
 | PW-032 | 📉 Realistic resource envelope | 2 | P1 | pending | PW-031 | Measure CPU, memory, DB growth, poll latency and backlog for the slim news/government/journals catalog; document sustainable bounds on target server. |
 
 ### M4 — Build, configuration, operations
@@ -346,3 +346,11 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 - **Draft PR #19** [multi-category synthetic backlog](https://github.com/sguzman/pulsewire/pull/19) adds measurable three-category/3,225-feed rounds and aggregate concurrency bounds. First branch-head Rust/container CI passed with peak 3 requests and 2,266 ms isolated-runner elapsed time; branch subsequently rebased (head 457ef3f) onto latest main to retain merged PG and HTTP regressions, and both CI gates are pending at new head.
 - **Draft PR #21** [SQLite real 1,101-feed paging](https://github.com/sguzman/pulsewire/pull/21) adds in-memory SQL large-backlog counterpart to PostgreSQL; strict rustfmt fixed and CI pending at head 7acd3e2.
 - **Weighted status unchanged: 60/100, Δ +0 percentage points.** PW-031 remains **active**, not accepted until PR #19 and #21 both pass and merge, and final integrated tests confirm acceptance. PW-032's real target-host CPU/memory, DB growth and sustainable envelope require separate measurement; no live household services, networks or databases changed.
+
+## Verification checkpoint — 2026-11-14, round 16 (PW-031 final acceptance)
+
+- **Scope accepted:** PW-031 fair bounded scheduling. Full implementation and test mapping in [SCHEDULER_ACCEPTANCE.md](SCHEDULER_ACCEPTANCE.md). Verified independent category timers/backoff, shared global/domain permits and busy-domain fairness, slow/failing query and HTTP isolation, retry deadlines/recovery, deterministic SQLite/PostgreSQL due ordering, both backends' real 1,101-feed queue tests, and 3,225-feed synthetic repeated-load testing.
+- **Final merged code evidence:** [PR #12](https://github.com/sguzman/pulsewire/pull/12), [#13](https://github.com/sguzman/pulsewire/pull/13), [#15](https://github.com/sguzman/pulsewire/pull/15), [#16](https://github.com/sguzman/pulsewire/pull/16), [#17](https://github.com/sguzman/pulsewire/pull/17), [#18](https://github.com/sguzman/pulsewire/pull/18), [#19](https://github.com/sguzman/pulsewire/pull/19), [#20](https://github.com/sguzman/pulsewire/pull/20), [#21](https://github.com/sguzman/pulsewire/pull/21); each merged after Rust and container CI succeeded at its final code head.
+- **Synthetic runner measurement:** 3,225 feed actions across 3 categories in 3 scheduling rounds; 2,291 ms wall time and peak 3 simultaneous HTTP requests under an aggregate cap of 4 (Rust CI [43609054897](https://github.com/sguzman/pulsewire/actions/runs/43609054897)). Synthetic fakes do not establish production throughput, real host resource envelopes, or deployability.
+- **Final combined acceptance gate:** this draft ledger change must itself pass both CI workflows on a new PR after all source changes are merged; only merge/award credit on success.
+- **Weighted score after acceptance:** **65/100 (+5 percentage points from 60/100)**, M3 **10/12** with PW-032 still pending. PW-023 (M2 **17/20**) and P0 infrastructure/recovery gates remain open. No deployment authorization, production DB/network touch, or real-feed ingestion performed.
