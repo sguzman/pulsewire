@@ -763,3 +763,147 @@ async fn failed_http_feed_does_not_cascade_and_enters_error_backoff()
      category"
   );
 }
+
+#[tokio::test]
+async fn sustained_multicategory_queue_is_bounded()
+ {
+  let categories =
+    ["news", "government", "journals"];
+  let feeds_per_category = 1075usize;
+
+  let mut feeds = Vec::new();
+  for category in categories {
+    let domain =
+      format!("{category}.test");
+    for n in 0..feeds_per_category {
+      let id =
+        format!("{category}-{n:04}");
+      feeds.push(mock_feed(
+        &id, category, &domain
+      ));
+    }
+  }
+
+  let repo = Arc::new(FakeRepo::new(
+    feeds, false, false
+  ));
+  let http =
+    Arc::new(FakeHttp::default());
+  let ctx =
+    fixture(repo.clone(), http.clone());
+  let guards = ConcurrencyGuards::new(
+    ctx.cfg.clone()
+  );
+
+  let started = Instant::now();
+  tokio::time::timeout(
+    Duration::from_secs(30),
+    async {
+      // Each category has >1,000 due
+      // feeds: two complete sweeps
+      // drain them, followed by an
+      // empty sweep to prove no
+      // reprocessing.
+      for sweep in 0..3 {
+        let ticks = categories
+          .iter()
+          .map(|category| {
+            run_tick(
+              &ctx,
+              &guards,
+              Instant::now(),
+              category,
+              2
+            )
+          });
+        for result in
+          futures::future::join_all(
+            ticks
+          )
+          .await
+        {
+          result.expect(
+            "synthetic category tick"
+          );
+        }
+
+        let completed =
+          repo.completed.lock().await;
+        for category in categories {
+          let count = completed
+            .iter()
+            .filter(|id| {
+              id.starts_with(category)
+            })
+            .count();
+          let expected = if sweep == 0 {
+            1000
+          } else {
+            feeds_per_category
+          };
+          assert_eq!(
+            count, expected,
+            "all categories must make \
+             progress on each sweep"
+          );
+        }
+      }
+    }
+  )
+  .await
+  .expect(
+    "synthetic load exceeded bounded \
+     duration"
+  );
+
+  let completed =
+    repo.completed.lock().await;
+  assert_eq!(
+    completed.len(),
+    categories.len()
+      * feeds_per_category
+  );
+  drop(completed);
+
+  let mut page_sizes = repo
+    .page_sizes
+    .lock()
+    .await
+    .clone();
+  page_sizes.sort_unstable();
+  assert_eq!(
+    page_sizes,
+    vec![
+      0, 0, 0, 75, 75, 75, 1000, 1000,
+      1000
+    ],
+    "queue batches must stay capped \
+     and drain without repeats"
+  );
+  let peak =
+    http.peak.load(Ordering::SeqCst);
+  assert!(
+    (2..=4).contains(&peak),
+    "global concurrency must remain \
+     bounded, but multiple categories \
+     must progress"
+  );
+  assert_eq!(
+    http
+      .inflight
+      .load(Ordering::SeqCst),
+    0
+  );
+
+  eprintln!(
+    "PW-031 isolated synthetic load: \
+     feeds={}, categories={}, \
+     rounds=3, peak_http={}, \
+     elapsed_ms={}",
+    categories.len()
+      * feeds_per_category,
+    categories.len(),
+    peak,
+    started.elapsed().as_millis()
+  );
+}

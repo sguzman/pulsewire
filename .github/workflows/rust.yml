@@ -40,6 +40,8 @@ jobs:
         run: cargo check --workspace --locked
       - name: Rust tests
         run: cargo test --workspace --locked
+      - name: Scheduler synthetic backlog measurements
+        run: cargo test -p pulsewire-core sustained_multicategory_queue_is_bounded --locked -- --nocapture --test-threads=1
       - name: PostgreSQL service integration
         env:
           PULSEWIRE_TEST_POSTGRES_PASSWORD: 'p@ss/word?#:with+punctuation'
