@@ -676,15 +676,30 @@ mod sqlite_recovery_tests {
 
     // Conservative retention: archived
     // payload, event and state history
-    // must survive migrations and restore.
+    // must survive migrations and
+    // restore.
     for sql in [
-      "INSERT INTO feed_state_history (feed_id, recorded_at_ms, phase, backoff_index, base_poll_seconds, next_action_at_ms, jitter_seconds) VALUES ('fixture', 100, 'NeedsHead', 0, 3600, 200, 0)",
-      "INSERT INTO fetch_events (feed_id, event_time_ms, method, status, backoff_index, scheduled_next_action_at_ms) VALUES ('fixture', 100, 'GET', 200, 0, 200)"
+      "INSERT INTO feed_state_history \
+       (feed_id, recorded_at_ms, \
+       phase, backoff_index, \
+       base_poll_seconds, \
+       next_action_at_ms, \
+       jitter_seconds) VALUES \
+       ('fixture', 100, 'NeedsHead', \
+       0, 3600, 200, 0)",
+      "INSERT INTO fetch_events \
+       (feed_id, event_time_ms, \
+       method, status, backoff_index, \
+       scheduled_next_action_at_ms) \
+       VALUES ('fixture', 100, 'GET', \
+       200, 0, 200)"
     ] {
       sqlx::query(sql)
         .execute(&pool)
         .await
-        .expect("seed retained history");
+        .expect(
+          "seed retained history"
+        );
     }
 
     crate::db::bootstrap_admin(
@@ -885,22 +900,29 @@ mod sqlite_recovery_tests {
     assert_eq!(admin_after, 1);
 
     // Historical payloads, fetch events
-    // and link-state history are retained;
-    // no implicit prune may erase them.
+    // and link-state history are
+    // retained; no implicit prune may
+    // erase them.
     for table in [
       "feed_payloads",
       "feed_state_history",
       "fetch_events"
     ] {
-      let count: i64 = sqlx::query_scalar(
-        &format!(
-          "SELECT COUNT(*) FROM {table} WHERE feed_id = 'fixture'"
-        )
-      )
-      .fetch_one(&recovered_pool)
-      .await
-      .expect("restored historical data");
-      assert_eq!(count, 1, "{table} must survive restore");
+      let count: i64 =
+        sqlx::query_scalar(&format!(
+          "SELECT COUNT(*) FROM \
+           {table} WHERE feed_id = \
+           'fixture'"
+        ))
+        .fetch_one(&recovered_pool)
+        .await
+        .expect(
+          "restored historical data"
+        );
+      assert_eq!(
+        count, 1,
+        "{table} must survive restore"
+      );
     }
 
     // Verify all four relationships
