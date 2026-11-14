@@ -2,6 +2,7 @@
 ## [Unreleased]
 
 ### 🔐 Security
+- Block non-public resolved feed destinations at the Reqwest connection-time DNS boundary (including mixed public/private DNS answers), disable ambient proxies, and require explicit `PULSEWIRE_ALLOW_PRIVATE_FEEDS=1` opt-in for trusted internal sources; verified with Rust and container CI.
 - Bound accepted feed response bodies to 8 MiB (with smaller watch-specific limits), validate outbound HTTP(S) source URLs, and restrict redirects to the same origin or same-host HTTP-to-HTTPS upgrades; add isolated HTTP rejection and streaming tests.
 - Add persistent per-account login throttling shared across SQLite/PostgreSQL processes, including HTTP 429 responses and restart/concurrency regression coverage.
 - Reject password changes that would weaken the existing minimum 12-byte password policy.

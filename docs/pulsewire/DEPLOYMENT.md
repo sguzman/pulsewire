@@ -20,12 +20,17 @@ else's PostgreSQL schemas.
 
 ## Outbound fetch policy
 
-The fetcher now applies conservative source URL and redirect checks plus
-bounded streaming. Read [FETCH_SECURITY.md](FETCH_SECURITY.md) before allowing
-third-party source definitions or granting the container unrestricted outbound
-network access. A syntactically public hostname can still resolve to private
-IP addresses, so this application-layer policy is not a substitute for
-network egress filtering.
+The fetcher now applies conservative source URL and redirect rules,
+connection-time public-IP DNS restrictions, disabled ambient proxies and
+bounded body streaming. Read [FETCH_SECURITY.md](FETCH_SECURITY.md) before
+allowing third-party source definitions or granting unrestricted egress.
+
+Strict mode is the default. The **opt-in** `PULSEWIRE_ALLOW_PRIVATE_FEEDS=1`
+permits internal DNS targets and private addresses for explicitly trusted
+sources only; do not enable it casually or in a shared/public feed system.
+The disposable smoke uses it for its `ci-rss` fixture. The resolver checks
+are not a network sandbox: enforce independent container/firewall egress
+rules, trusted DNS and proxy controls before real-host deployment.
 
 ## Requirements before starting on any host
 

@@ -47,28 +47,34 @@ prove a strict process-wide memory limit: decompression, malformed XML,
 HTML DOM expansion, or many concurrent requests can still consume more
 memory. Keep the fetcher container resource limits in place.
 
-## Important residual risk: DNS and network egress
+## Connection-time DNS and network egress
 
-The URL policy checks URL strings and IP **literals**. It does **not**
-inspect each DNS resolution or pin the resolved IP on connection. A
-syntactically public hostname may resolve to a private address, and
-DNS rebinding can change that resolution. This includes Docker-only
-hostnames and external hostnames controlled by an attacker.
+The fetcher's strict Reqwest client now supplies a **custom DNS resolver**
+(`crates/core/src/infra/guarded_dns.rs`) that validates the addresses
+actually handed to Reqwest for a connection. It rejects an empty result
+or any non-public IPv4/IPv6 answer, including private, loopback,
+link-local, documentation/reserved and metadata-service addresses. This
+also rejects a mixed public/private DNS answer instead of trusting only
+its public entries. Each fresh DNS resolution is checked, including
+resolutions requested after allowed redirects. The client disables
+automatic ambient HTTP(S) proxy discovery, which otherwise could allow
+a proxy to resolve forbidden targets outside these checks.
 
-Consequently, do **not** permit arbitrary unauthenticated users to
-submit sources or run the fetcher on an unrestricted trusted LAN.
-Require deployment-level outbound firewall/proxy rules blocking
-loopback, RFC1918, link-local and metadata services for the fetcher
-network. A trusted internal source would need an explicitly reviewed
-configuration/policy extension; do not silently weaken the production
-default to admit private URLs. Keep local services off the fetcher's
-unrestricted network until the DNS/egress boundary is independently
-verified.
+For **trusted internal feeds only**, an operator can explicitly set
+`PULSEWIRE_ALLOW_PRIVATE_FEEDS=1`. This relaxes both source URL
+validation and resolver address restrictions; absent or other values
+keep the strict default. The isolated container smoke sets this opt-in
+for the intentionally local Docker fixture `ci-rss` and does **not**
+prove strict-mode access to that fixture. Never set this switch merely
+to make an untrusted external feed work.
 
-The isolated CI feed fixture uses an internal Docker DNS name
-(`ci-rss`). Passing this fixture **does not** establish private-IP
-egress isolation. The default YouTube and podcast catalogs remain
-disabled and preserved.
+This guard is an application-level egress restriction, **not** a network
+sandbox or a proof that every library/process can only contact public
+destinations. Keep defense-in-depth firewall/network egress rules that
+block private, link-local and metadata targets, especially before
+untrusted users can introduce feeds. Review proxy, container and DNS
+trust boundaries during PW-023 deployment hardening. The default
+YouTube and podcast catalogs remain disabled and preserved.
 
 ## Automated evidence
 
@@ -84,14 +90,21 @@ downgrade and nonstandard-port redirects.
 - a cross-host redirect fails;
 - direct loopback targets fail under the production policy.
 
-The production constructor never enables the test-only local-address
-override. The existing Docker smoke validates actual local RSS
-fetching and disabled-category suppression in a disposable network.
+The production constructor enforces the strict policy by default and
+accepts private feeds only with the explicit operator opt-in. DNS
+regressions in `crates/core/src/infra/guarded_dns.rs` test acceptance
+of a public answer, rejection of private/metadata and mixed public/
+private answers, empty answers and strict localhost resolution. The
+Docker smoke opts in for its trusted internal RSS fixture, validating
+end-to-end ingestion and disabled-category suppression in an isolated
+network. Both Rust and container CI passed on PR #4.
 
 ## Remaining release gates
 
-* DNS/IP resolution filtering or independently verified egress controls.
-* Feed-by-feed compatibility QA for redirect strictness.
+* Independent network-level egress filtering and proxy/DNS hardening
+  before running on a trusted host or accepting third-party sources.
+* Feed-by-feed compatibility QA for redirect strictness and internal
+  feeds that require deliberate private-network opt-in.
 * Browser/TUI and steady-state fetching tests and real-host backups.
 * Separate owner approval before modifying running home services.
 
