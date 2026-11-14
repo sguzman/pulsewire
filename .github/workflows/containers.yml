@@ -74,6 +74,18 @@ jobs:
           # Verify Docker DNS within the actual isolated service network.
           docker exec pulsewire-ci-postgres pg_isready -h ci-postgres -U admin -d data
 
+          # Test XDG discovery in the actual scratch images, without
+          # CONFIG_PATH or SERVER_CONFIG_PATH. Keep all contents disposable.
+          mkdir -p "$RUNNER_TEMP/pulsewire-xdg/pulsewire/fetcher/feeds" \
+                   "$RUNNER_TEMP/pulsewire-xdg/pulsewire/server"
+          cp crates/fetcher/res/docker.toml \
+            "$RUNNER_TEMP/pulsewire-xdg/pulsewire/fetcher/config.toml"
+          cp crates/fetcher/res/domains.toml \
+            "$RUNNER_TEMP/pulsewire-xdg/pulsewire/fetcher/domains.toml"
+          cp crates/fetcher/res/categories.toml \
+            "$RUNNER_TEMP/pulsewire-xdg/pulsewire/fetcher/categories.toml"
+          cp crates/server/res/docker.toml \
+            "$RUNNER_TEMP/pulsewire-xdg/pulsewire/server/config.toml"
           mkdir -p "$RUNNER_TEMP/pulsewire-smoke/news"
           cat > "$RUNNER_TEMP/pulsewire-smoke/news/ci.toml" <<'EOF'
           [[feeds]]
@@ -85,13 +97,18 @@ jobs:
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
             -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
-            -e FEEDS_DIR=/app/smoke-feeds \
-            -v "$RUNNER_TEMP/pulsewire-smoke:/app/smoke-feeds:ro" \
+            -e CONFIG_PATH= \
+            -e XDG_CONFIG_HOME=/app/ci-xdg \
+            -e FEEDS_DIR=/app/ci-xdg/pulsewire/fetcher/feeds \
+            -v "$RUNNER_TEMP/pulsewire-xdg:/app/ci-xdg:ro" \
             pulsewire-fetcher:ci --ingest-benchmark 1
           docker run --rm --network pulsewire-ci \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
             -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e SERVER_CONFIG_PATH= \
+            -e XDG_CONFIG_HOME=/app/ci-xdg \
+            -v "$RUNNER_TEMP/pulsewire-xdg:/app/ci-xdg:ro" \
             -e PULSEWIRE_BOOTSTRAP_USERNAME=owner \
             -e PULSEWIRE_BOOTSTRAP_PASSWORD="$TEST_ADMIN_PASSWORD" \
             pulsewire-server:ci --bootstrap-admin
