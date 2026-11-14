@@ -15,6 +15,8 @@
 
 ### 📦 Containers
 - Verify actual non-root isolated container runtime CPU, memory/swap, PID ceilings and private Docker DNS alias as part of full disposable PostgreSQL/HTTP smoke (PR #24).
+- Discover validation schemas from XDG or installed runtime share directories instead of a compiled-in source checkout, preserving explicit schema overrides (PR #26).
+- Use shared fetcher/server config lookup with CLI/environment precedence, XDG/HOME and installed fallbacks; allow server migration SQL alongside legacy config or the installed schema tree, and exercise both binaries against XDG config plus installed SQL/JSON assets in disposable container smoke (PR #28).
 
 ### ⏲️ Scheduler
 - Run category ticks and retries independently with a shared global request budget and domain limits; busy domains do not hold global capacity while waiting (PR #12).
