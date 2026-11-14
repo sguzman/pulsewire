@@ -42,11 +42,9 @@ pub async fn apply_server_schema(
           )
         })?;
 
-      let schema_path =
-        sql_schema_path(
-          base_dir,
-          "sqlite"
-        );
+      let schema_path = sql_schema_path(
+        base_dir, "sqlite"
+      );
 
       let content = fs::read_to_string(
         &schema_path
@@ -97,11 +95,9 @@ pub async fn apply_server_schema(
           &pg.fetcher_schema
         )?;
 
-      let schema_path =
-        sql_schema_path(
-          base_dir,
-          "postgres"
-        );
+      let schema_path = sql_schema_path(
+        base_dir, "postgres"
+      );
 
       let content = fs::read_to_string(
         &schema_path
@@ -142,16 +138,18 @@ pub async fn apply_server_schema(
 }
 
 /// Use a schema beside the operator's
-/// config when provided (legacy layout).
-/// Otherwise resolve migration SQL from
-/// the installed runtime schema tree.
+/// config when provided (legacy
+/// layout). Otherwise resolve migration
+/// SQL from the installed runtime
+/// schema tree.
 fn sql_schema_path(
   config_dir: &Path,
   dialect: &str
 ) -> std::path::PathBuf {
-  let schema_root = pulsewire_schemas::schema_dir(
-    "server"
-  );
+  let schema_root =
+    pulsewire_schemas::schema_dir(
+      "server"
+    );
   sql_schema_path_with_root(
     config_dir,
     Path::new(&schema_root),
@@ -181,54 +179,95 @@ fn sql_schema_path_with_root(
 mod runtime_sql_schema_tests {
   use super::*;
 
-  fn root(name: &str) -> std::path::PathBuf {
+  fn root(
+    name: &str
+  ) -> std::path::PathBuf {
     let path = std::env::temp_dir().join(
       format!("pulsewire-server-schema-{}-{name}", std::process::id())
     );
-    let _ = std::fs::remove_dir_all(&path);
-    std::fs::create_dir_all(&path).expect("test root");
+    let _ =
+      std::fs::remove_dir_all(&path);
+    std::fs::create_dir_all(&path)
+      .expect("test root");
     path
   }
 
   fn touch(path: &Path) {
-    std::fs::create_dir_all(path.parent().expect("schema parent"))
-      .expect("schema directory");
-    std::fs::write(path, "-- ci fixture").expect("schema fixture");
+    std::fs::create_dir_all(
+      path
+        .parent()
+        .expect("schema parent")
+    )
+    .expect("schema directory");
+    std::fs::write(
+      path,
+      "-- ci fixture"
+    )
+    .expect("schema fixture");
   }
 
   #[test]
-  fn legacy_config_adjacent_migration_remains_authoritative() {
+  fn legacy_config_adjacent_migration_remains_authoritative()
+   {
     let root = root("legacy");
-    let config_dir = root.join("config");
-    let installed_root = root.join("share/pulsewire/schemas/server");
-    let beside = config_dir.join("sql/postgres/schema.sql");
+    let config_dir =
+      root.join("config");
+    let installed_root = root.join(
+      "share/pulsewire/schemas/server"
+    );
+    let beside = config_dir
+      .join("sql/postgres/schema.sql");
     touch(&beside);
-    touch(&installed_root.join("sql/postgres/schema.sql"));
+    touch(
+      &installed_root.join(
+        "sql/postgres/schema.sql"
+      )
+    );
     assert_eq!(
-      sql_schema_path_with_root(&config_dir, &installed_root, "postgres"),
+      sql_schema_path_with_root(
+        &config_dir,
+        &installed_root,
+        "postgres"
+      ),
       beside
     );
-    let _ = std::fs::remove_dir_all(root);
+    let _ =
+      std::fs::remove_dir_all(root);
   }
 
   #[test]
-  fn installed_migrations_support_xdg_config_without_sql_sibling() {
+  fn installed_migrations_support_xdg_config_without_sql_sibling()
+   {
     let root = root("installed");
-    let config_dir = root.join("xdg/pulsewire/server");
-    let installed_root = root.join("share/pulsewire/schemas/server");
-    let expected = installed_root.join("sql/postgres/schema.sql");
+    let config_dir =
+      root.join("xdg/pulsewire/server");
+    let installed_root = root.join(
+      "share/pulsewire/schemas/server"
+    );
+    let expected = installed_root
+      .join("sql/postgres/schema.sql");
     touch(&expected);
     assert_eq!(
-      sql_schema_path_with_root(&config_dir, &installed_root, "postgres"),
+      sql_schema_path_with_root(
+        &config_dir,
+        &installed_root,
+        "postgres"
+      ),
       expected
     );
-    let sqlite = installed_root.join("sql/sqlite/schema.sql");
+    let sqlite = installed_root
+      .join("sql/sqlite/schema.sql");
     touch(&sqlite);
     assert_eq!(
-      sql_schema_path_with_root(&config_dir, &installed_root, "sqlite"),
+      sql_schema_path_with_root(
+        &config_dir,
+        &installed_root,
+        "sqlite"
+      ),
       sqlite
     );
-    let _ = std::fs::remove_dir_all(root);
+    let _ =
+      std::fs::remove_dir_all(root);
   }
 }
 
