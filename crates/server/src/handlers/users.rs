@@ -124,8 +124,9 @@ pub async fn change_password(
   let user_id =
     auth_user_id(&state, &headers)
       .await?;
-  let session_hash =
-    hash_token(&bearer_token(&headers)?);
+  let session_hash = hash_token(
+    &bearer_token(&headers)?
+  );
 
   let current_password =
     payload.current_password.trim();
@@ -192,8 +193,10 @@ pub async fn change_password(
   if let Some(pool) = &state.postgres {
     let mut tx = pool.begin().await
       .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    // Verify the original password and active bearer again
-    // while holding the same user lock as operator recovery.
+    // Verify the original password and
+    // active bearer again while holding
+    // the same user lock as operator
+    // recovery.
     let locked_hash: Option<String> = sqlx::query_scalar(
       "SELECT password_hash FROM users WHERE id = $1 FOR UPDATE"
     )
@@ -201,8 +204,13 @@ pub async fn change_password(
     .fetch_optional(&mut *tx)
     .await
     .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    if locked_hash.as_deref() != Some(password_hash.as_str()) {
-      return Err(ServerError::new(StatusCode::UNAUTHORIZED, "invalid credentials"));
+    if locked_hash.as_deref()
+      != Some(password_hash.as_str())
+    {
+      return Err(ServerError::new(
+        StatusCode::UNAUTHORIZED,
+        "invalid credentials"
+      ));
     }
     let still_active: Option<i64> = sqlx::query_scalar(
       "SELECT user_id FROM user_tokens WHERE user_id = $1 AND token_hash = $2 AND expires_at > NOW()"
@@ -213,7 +221,10 @@ pub async fn change_password(
     .await
     .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     if still_active.is_none() {
-      return Err(ServerError::new(StatusCode::UNAUTHORIZED, "invalid token"));
+      return Err(ServerError::new(
+        StatusCode::UNAUTHORIZED,
+        "invalid token"
+      ));
     }
     sqlx::query("UPDATE users SET password_hash = $1 WHERE id = $2")
       .bind(&new_hash).bind(user_id).execute(&mut *tx).await
@@ -234,8 +245,10 @@ pub async fn change_password(
 
     let mut tx = pool.begin().await
       .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    // Acquire SQLite's write lock before rechecking the
-    // password hash and session; a plain SELECT is too late.
+    // Acquire SQLite's write lock
+    // before rechecking the
+    // password hash and session; a
+    // plain SELECT is too late.
     let locked_hash: Option<String> = sqlx::query_scalar(
       "UPDATE users SET password_hash = password_hash WHERE id = ?1 RETURNING password_hash"
     )
@@ -243,8 +256,13 @@ pub async fn change_password(
     .fetch_optional(&mut *tx)
     .await
     .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    if locked_hash.as_deref() != Some(password_hash.as_str()) {
-      return Err(ServerError::new(StatusCode::UNAUTHORIZED, "invalid credentials"));
+    if locked_hash.as_deref()
+      != Some(password_hash.as_str())
+    {
+      return Err(ServerError::new(
+        StatusCode::UNAUTHORIZED,
+        "invalid credentials"
+      ));
     }
     let still_active: Option<i64> = sqlx::query_scalar(
       "SELECT user_id FROM user_tokens WHERE user_id = ?1 AND token_hash = ?2 AND expires_at > datetime('now')"
@@ -255,7 +273,10 @@ pub async fn change_password(
     .await
     .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     if still_active.is_none() {
-      return Err(ServerError::new(StatusCode::UNAUTHORIZED, "invalid token"));
+      return Err(ServerError::new(
+        StatusCode::UNAUTHORIZED,
+        "invalid token"
+      ));
     }
     sqlx::query("UPDATE users SET password_hash = ?1 WHERE id = ?2")
       .bind(&new_hash).bind(user_id).execute(&mut *tx).await

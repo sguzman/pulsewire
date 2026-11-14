@@ -155,7 +155,7 @@ pub async fn rotate_token(
     .await?;
 
   Ok(Json(TokenResponse {
-    token: new_token,
+    token:      new_token,
     token_type: "bearer".to_string(),
     expires_in: state.token_ttl_seconds
   }))
