@@ -13,6 +13,9 @@
 - Reject password changes that would weaken the existing minimum 12-byte password policy.
 - Keep public password reset disabled; serialize login, rotation and password changes with offline recovery on SQLite and PostgreSQL, so stale hashes and revoked tokens cannot mint new sessions.
 
+### 📦 Containers
+- Verify actual non-root isolated container runtime CPU, memory/swap, PID ceilings and private Docker DNS alias as part of full disposable PostgreSQL/HTTP smoke (PR #24).
+
 ### ⏲️ Scheduler
 - Run category ticks and retries independently with a shared global request budget and domain limits; busy domains do not hold global capacity while waiting (PR #12).
 - Add deterministic offline scheduler regressions for blocked/failed category queries and bounded 1,101-feed backlog draining (PR #13).
