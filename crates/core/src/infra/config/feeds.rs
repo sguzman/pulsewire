@@ -1313,3 +1313,87 @@ mod disabled_category_tests {
       .expect("remove test directory");
   }
 }
+
+#[cfg(test)]
+mod suppressed_catalog_tests {
+  use super::*;
+
+  #[tokio::test]
+  async fn disabled_catalogs_are_skipped_before_toml_parse() {
+    let root = std::env::temp_dir()
+      .join(format!(
+        "pulsewire-disabled-catalog-{}",
+        std::process::id()
+      ));
+    let _ = fs::remove_dir_all(&root).await;
+    for name in [
+      "news", "podcasts", "youtube"
+    ] {
+      fs::create_dir_all(root.join(name))
+        .await
+        .expect("create fixture catalog");
+    }
+
+    fs::write(
+      root.join("news/valid.toml"),
+      "[[feeds]]\nid = 'news-1'\nurl = 'https://example.org/news'\ncategory = 'news'\n"
+    )
+    .await
+    .expect("enabled fixture");
+    for category in [
+      "podcasts", "youtube"
+    ] {
+      fs::write(
+        root.join(category).join(
+          "invalid.toml"
+        ),
+        "this is intentionally malformed [["
+      )
+      .await
+      .expect("disabled fixture");
+    }
+    fs::write(
+      root.join("global.toml"),
+      "not valid TOML [["
+    )
+    .await
+    .expect("ignored defaults fixture");
+
+    let disabled = HashSet::from([
+      "podcasts".to_string(),
+      "youtube".to_string()
+    ]);
+    let files = collect_feed_files(
+      &root,
+      &disabled
+    )
+    .await
+    .expect("collect active catalog");
+    assert_eq!(
+      files,
+      vec![root.join("news/valid.toml")]
+    );
+
+    // A permissive JSON schema isolates
+    // TOML selection from schema rules.
+    // If disabled directories were read,
+    // the deliberately invalid TOML
+    // would fail this load.
+    let loaded = load_all_feeds(
+      &root,
+      "{}",
+      "{}",
+      &disabled
+    )
+    .await
+    .expect("load enabled catalogs only");
+    assert_eq!(loaded.feeds.len(), 1);
+    assert_eq!(
+      loaded.feeds[0].id,
+      "news-1"
+    );
+    fs::remove_dir_all(root)
+      .await
+      .expect("remove test fixtures");
+  }
+}
