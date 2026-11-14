@@ -55,7 +55,7 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 | ID | Item (deliverable) | Weight | Priority | Status | Dependencies | Objective acceptance criteria |
 |---|---|---:|---|---|---|---|
 | PW-030 | 🚫 Disable YouTube and podcasts by default | 5 | P0 | verified complete | PW-010 | New install skips the two catalogs before parsing, never schedules them or ingests them; all other categories stay enabled, existing definitions/data are preserved; tests and smoke run prove it. |
-| PW-031 | ⏲️ Fair bounded scheduling | 5 | P1 | pending | PW-030 | One category cannot starve others; due-queue paging, domain budgets and retries behave under slow/failing feeds; simulated load tests prove behavior. |
+| PW-031 | ⏲️ Fair bounded scheduling | 5 | P1 | active | PW-030 | One category cannot starve others; due-queue paging, domain budgets and retries behave under slow/failing feeds; simulated load tests prove behavior. |
 | PW-032 | 📉 Realistic resource envelope | 2 | P1 | pending | PW-031 | Measure CPU, memory, DB growth, poll latency and backlog for the slim news/government/journals catalog; document sustainable bounds on target server. |
 
 ### M4 — Build, configuration, operations
@@ -321,3 +321,11 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 - **Rust checks passed:** [run 43553769950](https://github.com/sguzman/pulsewire/actions/runs/43553769950): formatting, workspace check/tests, isolated PostgreSQL integration, and Clippy `-D warnings`.
 - **Not yet accepted:** [container run 43553769955](https://github.com/sguzman/pulsewire/actions/runs/43553769955) is still building at this checkpoint. Simulated slow/failing feeds, large due-queue paging, persistent scheduler soak and resource bounds have not satisfied full PW-031 acceptance; do not award the 5 weighted points. PR #12 stays unmerged until both required CI gates pass.
 - **Progress unchanged:** **60/100 (Δ +0 percentage points)**, PW-031 active; M2 **17/20** and PW-023 open. No user home services, actual database, router, Docker networks or CoreDNS modified.
+
+
+## Verification checkpoint — 2026-11-14, round 15 (category isolation merged, queue acceptance active)
+
+- **Merged implementation:** [PR #12](https://github.com/sguzman/pulsewire/pull/12) as [\`bae545e\`](https://github.com/sguzman/pulsewire/commit/bae545e4baf49d79f79dacc77259dfc930f485b7). Rust CI [43553769950](https://github.com/sguzman/pulsewire/actions/runs/43553769950) **passed** (fmt/check/tests/PostgreSQL integration/Clippy); container CI [43553769955](https://github.com/sguzman/pulsewire/actions/runs/43553769955) **passed** (Compose/images/non-root plus disposable PostgreSQL HTTP smoke). Categories now have independent tick/backoff loops, per-category processing windows and shared global/domain permits. Domain waits do not occupy global slots; the default global budget is 64 even when unset.
+- **PW-031 now active:** [issue #14](https://github.com/sguzman/pulsewire/issues/14) records remaining acceptance; [draft PR #13](https://github.com/sguzman/pulsewire/pull/13) adds deterministic offline scheduler tests for blocked/failing category queries and two bounded pages of 1,101 due feeds. Rust CI [43604223443](https://github.com/sguzman/pulsewire/actions/runs/43604223443) **passed**; container CI [43604223347](https://github.com/sguzman/pulsewire/actions/runs/43604223347) was still building at checkpoint. No merge/credit until both gates green.
+- **Separate queue-stability work:** [draft PR #15](https://github.com/sguzman/pulsewire/pull/15) adds a stable feed-ID tie-break for equal due timestamps in both SQLite/PostgreSQL, plus a real in-memory SQLite paging/deferral/error-exclusion test. CI pending after required formatting repair. This is not a DB migration.
+- **Still outstanding:** simulated slow/failing *HTTP feed actions*, PostgreSQL-specific queue behavior, sustained backlog fairness/soak and resource envelopes. **Progress remains 60/100 (Δ +0 pp)**, PW-031 retains all 5 outstanding weighted points, PW-023 remains open (M2 17/20). No home service, network, container, database or production RSS content touched.
