@@ -51,5 +51,5 @@ level               = "info"
 tick_warn_seconds   = 1200
 
 [metrics]
-bind    = "0.0.0.0:9898"
-enabled = true
+bind    = "127.0.0.1:9898"
+enabled = false

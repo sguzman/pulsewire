@@ -26,6 +26,11 @@ jobs:
         run: |
           docker compose -f crates/fetcher/docker-compose.yml config --quiet
           docker compose -f crates/server/docker-compose.yml config --quiet
+          # Verify the default fetcher publishes no metrics port.
+          docker compose -f crates/fetcher/docker-compose.yml config --format json | jq -e '(.services.fetcher.ports // [] | length) == 0'
+          docker compose -f crates/server/docker-compose.yml config --format json | jq -e '(.services.server.ports | length) == 1 and all(.services.server.ports[]; .host_ip == "127.0.0.1")'
+          grep -q '^enabled = false$' crates/fetcher/res/docker.toml
+          grep -q '^bind    = "127.0.0.1:9898"$' crates/fetcher/res/docker.toml
       - name: Build fetcher and server images
         run: |
           docker build --file crates/fetcher/Dockerfile --tag pulsewire-fetcher:ci .
