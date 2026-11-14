@@ -118,6 +118,7 @@ mod tests {
   fn installed_binary_uses_nearby_share_directory() {
     let root = temporary_root("executable");
     let exe = root.join("bin/pulsewire-server");
+    std::fs::create_dir_all(root.join("bin")).expect("binary directory");
     let expected = root.join("share/pulsewire/schemas/server");
     std::fs::create_dir_all(&expected).expect("installation schema tree");
     let chosen = resolve_schema_dir(
