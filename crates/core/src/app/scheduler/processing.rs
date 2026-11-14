@@ -40,7 +40,8 @@ pub async fn run_tick<R, H, C, G>(
   ctx: &AppContext<R, H, C, G>,
   concurrency: &ConcurrencyGuards,
   tick_started: Instant,
-  category: &str
+  category: &str,
+  parallelism: usize
 ) -> Result<(), String>
 where
   R: Repo + ?Sized + 'static,
@@ -49,8 +50,6 @@ where
   G: RandomSource + 'static
 {
   let due_batch_size: i64 = 1000;
-
-  let default_parallelism: usize = 64;
 
   let cfg = ctx.cfg.clone();
 
@@ -90,9 +89,7 @@ where
     "Scheduler tick"
   );
 
-  let parallelism = cfg
-    .global_max_concurrent_requests
-    .unwrap_or(default_parallelism);
+  let parallelism = parallelism.max(1);
 
   let repo = ctx.repo.clone();
 
