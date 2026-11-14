@@ -37,8 +37,9 @@ pub async fn create_user(
   let username =
     payload.username.trim();
 
-  let password =
-    payload.password.trim();
+  // Passwords are opaque bytes: trimming silently
+  // changes the credential that a user selected.
+  let password = payload.password.as_str();
 
   if username.is_empty()
     || password.len() < 12
@@ -85,27 +86,22 @@ pub async fn create_user(
             .as_ref()
             .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
 
-    sqlx::query(
+    // The returned id must come from the INSERT itself:
+    // last_insert_rowid() is connection-local and a pooled
+    // follow-up query can observe a different connection.
+    sqlx::query_scalar::<_, i64>(
       "INSERT INTO users (username, \
        password_hash, created_at) \
        VALUES (?1, ?2, \
-       datetime('now'))"
+       datetime('now')) RETURNING id"
     )
     .bind(username)
     .bind(&password_hash)
-    .execute(pool)
+    .fetch_one(pool)
     .await
     .map_err(|e| {
-      map_db_error(
-        e,
-        "user create failed"
-      )
-    })?;
-
-    sqlx::query_scalar::<_, i64>("SELECT last_insert_rowid()")
-            .fetch_one(pool)
-            .await
-            .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
+      map_db_error(e, "user create failed")
+    })?
   };
 
   Ok(Json(UserResponse {
@@ -128,11 +124,9 @@ pub async fn change_password(
     &bearer_token(&headers)?
   );
 
-  let current_password =
-    payload.current_password.trim();
+  let current_password = payload.current_password.as_str();
 
-  let new_password =
-    payload.new_password.trim();
+  let new_password = payload.new_password.as_str();
 
   if current_password.is_empty()
     || new_password.len() < 12
@@ -294,42 +288,192 @@ pub async fn change_password(
   Ok(StatusCode::NO_CONTENT)
 }
 
+/// Self-service deletion. The last administrator
+/// cannot delete themselves, which would leave
+/// the instance without an administrative path.
 pub async fn delete_user(
   State(state): State<AppState>,
   headers: axum::http::HeaderMap
 ) -> Result<StatusCode, ServerError> {
   let user_id =
-    auth_user_id(&state, &headers)
-      .await?;
-
-  let rows = if let Some(pool) =
-    &state.postgres
-  {
+    auth_user_id(&state, &headers).await?;
+  let token_hash = hash_token(
+    &bearer_token(&headers)?
+  );
+  if let Some(pool) = &state.postgres {
+    let mut tx = pool.begin().await.map_err(|e| {
+      ServerError::new(
+        StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+      )
+    })?;
+    // Serialize concurrent admin deletions in a
+    // stable row-lock order. Login and recovery
+    // also lock their account row.
+    let admins: Vec<i64> = sqlx::query_scalar(
+      "SELECT id FROM users WHERE is_admin = TRUE \
+       ORDER BY id FOR UPDATE"
+    )
+    .fetch_all(&mut *tx)
+    .await
+    .map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
+    let is_admin: Option<bool> = sqlx::query_scalar(
+      "SELECT is_admin FROM users WHERE id = $1 FOR UPDATE"
+    )
+    .bind(user_id)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
+    let Some(is_admin) = is_admin else {
+      return Err(ServerError::new(
+        StatusCode::UNAUTHORIZED, "invalid token"
+      ));
+    };
+    let active: Option<i64> = sqlx::query_scalar(
+      "SELECT user_id FROM user_tokens \
+       WHERE user_id = $1 AND token_hash = $2 \
+       AND expires_at > NOW()"
+    )
+    .bind(user_id)
+    .bind(&token_hash)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
+    if active.is_none() {
+      return Err(ServerError::new(
+        StatusCode::UNAUTHORIZED, "invalid token"
+      ));
+    }
+    if is_admin && admins.len() <= 1 {
+      return Err(ServerError::new(
+        StatusCode::CONFLICT,
+        "cannot delete the last administrator"
+      ));
+    }
+    // Explicit token cleanup is intentional, even
+    // where cascading foreign keys are present.
+    sqlx::query(
+      "DELETE FROM user_tokens WHERE user_id = $1"
+    )
+    .bind(user_id)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
+    sqlx::query(
+      "DELETE FROM user_password_resets WHERE user_id = $1"
+    )
+    .bind(user_id)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
     sqlx::query("DELETE FROM users WHERE id = $1")
-            .bind(user_id)
-            .execute(pool)
-            .await
-            .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-            .rows_affected()
+      .bind(user_id)
+      .execute(&mut *tx)
+      .await
+      .map_err(|e| ServerError::new(
+        StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+      ))?;
+    tx.commit().await.map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
   } else {
-    let pool = state
-            .sqlite
-            .as_ref()
-            .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
-
+    let pool = state.sqlite.as_ref().ok_or_else(|| {
+      ServerError::new(
+        StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"
+      )
+    })?;
+    let mut tx = pool.begin().await.map_err(|e| {
+      ServerError::new(
+        StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+      )
+    })?;
+    // Acquire SQLite's writer lock before checking
+    // the admin count or session validity.
+    let is_admin: Option<i64> = sqlx::query_scalar(
+      "UPDATE users SET is_admin = is_admin \
+       WHERE id = ?1 RETURNING is_admin"
+    )
+    .bind(user_id)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
+    let Some(is_admin) = is_admin else {
+      return Err(ServerError::new(
+        StatusCode::UNAUTHORIZED, "invalid token"
+      ));
+    };
+    let active: Option<i64> = sqlx::query_scalar(
+      "SELECT user_id FROM user_tokens \
+       WHERE user_id = ?1 AND token_hash = ?2 \
+       AND expires_at > datetime('now')"
+    )
+    .bind(user_id)
+    .bind(&token_hash)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
+    if active.is_none() {
+      return Err(ServerError::new(
+        StatusCode::UNAUTHORIZED, "invalid token"
+      ));
+    }
+    if is_admin != 0 {
+      let count: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM users WHERE is_admin != 0"
+      )
+      .fetch_one(&mut *tx)
+      .await
+      .map_err(|e| ServerError::new(
+        StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+      ))?;
+      if count <= 1 {
+        return Err(ServerError::new(
+          StatusCode::CONFLICT,
+          "cannot delete the last administrator"
+        ));
+      }
+    }
+    sqlx::query(
+      "DELETE FROM user_tokens WHERE user_id = ?1"
+    )
+    .bind(user_id)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
+    sqlx::query(
+      "DELETE FROM user_password_resets WHERE user_id = ?1"
+    )
+    .bind(user_id)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
     sqlx::query("DELETE FROM users WHERE id = ?1")
-            .bind(user_id)
-            .execute(pool)
-            .await
-            .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-            .rows_affected()
-  };
-
-  if rows == 0 {
-    return Err(ServerError::new(
-      StatusCode::NOT_FOUND,
-      "user not found"
-    ));
+      .bind(user_id)
+      .execute(&mut *tx)
+      .await
+      .map_err(|e| ServerError::new(
+        StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+      ))?;
+    tx.commit().await.map_err(|e| ServerError::new(
+      StatusCode::INTERNAL_SERVER_ERROR, e.to_string()
+    ))?;
   }
 
   Ok(StatusCode::NO_CONTENT)

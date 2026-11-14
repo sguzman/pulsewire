@@ -43,10 +43,17 @@ impl IntoResponse for ServerError {
   fn into_response(
     self
   ) -> axum::response::Response {
+    // Never send SQL, network or configuration errors
+    // back to API clients. Retain stable public error codes.
+    let safe_message = if self.status.is_server_error() {
+      "internal server error".to_string()
+    } else {
+      self.message
+    };
     let body = ErrorEnvelope {
       error: ErrorBody {
         code:    self.code,
-        message: self.message
+        message: safe_message
       }
     };
 
