@@ -375,8 +375,9 @@ fn print_help_and_exit() -> ! {
   );
   println!();
   println!(
-    "Config path lookup order: CLI \
-     flag, CONFIG_PATH, repo defaults."
+    "Config lookup: positional path, \
+     CONFIG_PATH, XDG/HOME, installed \
+     share, then repo defaults."
   );
 
   std::process::exit(0);
