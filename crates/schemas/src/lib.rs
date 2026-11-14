@@ -3,9 +3,12 @@
 //! build machine's source directory
 //! baked into an installed binary.
 
-/// Compatibility symbol only: the build-time source root is not
-/// consulted when locating schemas at runtime.
-pub const SCHEMAS_ROOT: &str = env!("CARGO_MANIFEST_DIR");
+/// Compatibility symbol only: the
+/// build-time source root is not
+/// consulted when locating schemas at
+/// runtime.
+pub const SCHEMAS_ROOT: &str =
+  env!("CARGO_MANIFEST_DIR");
 
 use std::path::{
   Path,
