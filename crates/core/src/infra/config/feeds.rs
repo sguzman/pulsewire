@@ -1414,12 +1414,12 @@ mod disabled_watch_config_tests {
         )
         .expect("clock")
         .as_nanos();
-    let directory =
-      std::env::temp_dir()
-        .join(format!(
-        "pw-disabled-watch-{}-{nonce}",
-        std::process::id()
-      ));
+    let directory = std::env::temp_dir(
+    )
+    .join(format!(
+      "pw-disabled-watch-{}-{nonce}",
+      std::process::id()
+    ));
     fs::create_dir_all(&directory)
       .await
       .expect("fixture directory");
