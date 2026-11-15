@@ -240,8 +240,9 @@ OpenAPI docs:
   [operator recovery](docs/pulsewire/RECOVERY.md),
   [network fetch safety](docs/pulsewire/FETCH_SECURITY.md), and
   [monitoring/readiness](docs/pulsewire/MONITORING.md).
-  All operator procedures are **preflight or isolated CI reference**, not a
-  deployment or release authorization.
+  [PW-070 documentation acceptance](docs/pulsewire/PW070-ACCEPTANCE.md)
+  is verified in isolated CI. All operator procedures are **preflight or
+  isolated CI reference**, not a deployment or release authorization.
 - Changelog config: `cliff.toml`
 - Release config: `release.toml`
 - License inventory:
