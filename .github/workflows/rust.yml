@@ -56,3 +56,13 @@ jobs:
         run: cargo test -p pulsewire-core postgres_watch_emission_roundtrip --locked -- --ignored --test-threads=1
       - name: Rust Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+  reader:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reader JavaScript syntax
+        run: node --check crates/server/res/reader/app.js && node --check tests/reader-browser-smoke.mjs
+      - name: Desktop/mobile Chromium reader smoke (no npm)
+        run: CHROME_BIN=google-chrome node tests/reader-browser-smoke.mjs

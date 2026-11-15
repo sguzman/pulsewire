@@ -80,7 +80,7 @@ Resurrect the **existing Pulsewire** Rust ecosystem as a safe, persistent, multi
 
 | ID | Item (deliverable) | Weight | Priority | Status | Dependencies | Objective acceptance criteria |
 |---|---|---:|---|---|---|---|
-| PW-060 | 📰 Responsive web reader | 4 | P1 | pending | PW-051 | Browser can log in, subscribe, read/search, filter, manage folders/favorites and display errors; Light/Dark/System selector initially System; keyboard/browser QA. |
+| PW-060 | 📰 Responsive web reader | 4 | P1 | active | PW-051 | Browser can log in, subscribe, read/search, filter, manage folders/favorites and display errors; Light/Dark/System selector initially System; keyboard/browser QA. |
 | PW-061 | 🏷️ Stable API and client semantics | 2 | P1 | pending | PW-051,PW-060 | OpenAPI matches handlers; pagination, unread counts, sorting, auth failures and cursor semantics tested against TUI and browser clients. |
 
 ### M7 — Release and home deployment
@@ -492,3 +492,11 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 - **Both exact-head checks passed:** [Rust 43745925813](https://github.com/sguzman/pulsewire/actions/runs/43745925813) (fmt, compile, all tests, scheduler, disposable PostgreSQL acceptance, Clippy) and [container packaging/smoke 43745925819](https://github.com/sguzman/pulsewire/actions/runs/43745925819). Container CI starts an additional metrics-enabled fetcher and a pinned Prometheus v3.7.3 inside a disposable private Docker network, checks the target `up{job="pulsewire-fetcher"} == 1`, stops that fetcher and verifies `up == 0`. The metrics port is **not published on the host** and default production/Compose config remains disabled.
 - **Prior evidence:** [PR #43](https://github.com/sguzman/pulsewire/pull/43) fixed HTTP CRLF framing, correct Prometheus text labels/newlines, status/length and ephemeral loopback regression; [PR #44](https://github.com/sguzman/pulsewire/pull/44) added bounded SQLite/PostgreSQL-backed HTTP `/ready` (503 on unavailable DB) alongside independent `/health` liveness. Server does not own the scheduler; fetcher process loss is observed by Prometheus target `up=0`, not by server `/ready`.
 - **Ledger:** PW-052 advances **active 0/2 → verified complete 2/2**; Pulsewire verified weighted total **84/100 → 86/100 (+2 pp)**. This is disposable CI acceptance only; **home-host deployment, TLS/proxy, trusted network exposure, firewall and monitoring rollout are still unverified** under PW-023 and PW-071. No home port, service, data or release/tag was changed.
+
+
+## Verification checkpoint — 2026-11-15, PW-060 browser reader implementation underway
+
+- **Baseline stays 86/100 (Δ +0 percentage points)**. PW-060 is active but earns no weight until Rust/container CI and automated browser acceptance pass on the final commit; a rendered page or untested UI does not earn completion credit.
+- An isolated feature branch adds the embedded `/reader` app, responsive three-pane layout, login/logout, list/detail, search, read/unread, subscription and favorite-feed management, folder CRUD/feed membership, safe plain-text feed rendering, keyboard shortcuts and immediate System/Light/Dark appearance. It uses the existing Rust API without npm.
+- New Rust static-asset header tests and dependency-free Chrome desktop/mobile mock-API smoke exercise the browser contract; CI results and any needed fixes still pending. PW-061 API stability, PW-023 ingress, PW-032 target-host resource envelope, PW-070 documentation acceptance and PW-071 actual deployment remain separate gates.
+- No home service, database, stored media, CoreDNS, router, Docker network, production secret or release/tag was changed.
