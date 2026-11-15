@@ -189,9 +189,10 @@ function clearDetail() {
   $("read-toggle").hidden = true;
   $("detail-body").replaceChildren();
   const blank = textNode("div", "", "empty-detail");
-  blank.append(textNode("span", "◌", "empty-icon"), textNode("h2", "Choose an article"), textNode("p", "Select a story to read the saved summary and open its original source."));
+  const heading = textNode("h2", "Choose an article");
+  heading.id = "detail-title";
+  blank.append(textNode("span", "◌", "empty-icon"), heading, textNode("p", "Select a story to read the saved summary and open its original source."));
   $("detail-body").append(blank);
-  $("workspace")?.classList.remove("detail-open");
   document.querySelector(".workspace").classList.remove("detail-open");
 }
 async function selectView(view) {
