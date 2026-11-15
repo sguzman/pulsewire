@@ -48,7 +48,7 @@ jobs:
           done
           # PW-023 metrics profile: no public listener, explicit token file,
           # Prometheus is attached only to the internal monitoring bridge.
-          PULSEWIRE_METRICS_CONFIG_SOURCE=crates/fetcher/res/docker.toml \
+          PULSEWIRE_METRICS_CONFIG_SOURCE="$GITHUB_WORKSPACE/crates/fetcher/res/docker.toml" \
           PULSEWIRE_METRICS_TOKEN_SOURCE="$RUNNER_TEMP/pw023-compose-secret" \
             docker compose -f crates/fetcher/docker-compose.yml \
               -f crates/fetcher/docker-compose.metrics.yml config --format json | \

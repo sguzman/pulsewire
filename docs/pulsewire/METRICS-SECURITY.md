@@ -70,7 +70,7 @@ not evidence of real-host retention/access-control compliance.
 To inspect the configuration **without running containers**,
 an operator would first supply privately:
 `PULSEWIRE_DOCKER_NETWORK` (an existing trusted database network),
-`PULSEWIRE_METRICS_CONFIG_SOURCE` (a full private fetcher
+`PULSEWIRE_METRICS_CONFIG_SOURCE` (an **absolute path** to a full private fetcher
 TOML file, based on the reviewed config, with
 `[metrics].enabled = true` and `bind = "0.0.0.0:9898"`),
 `PULSEWIRE_METRICS_TOKEN_SOURCE` (a real private token file),
