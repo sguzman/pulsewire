@@ -1405,6 +1405,164 @@ fn is_immediate_error(
 mod watch_link_tests {
   use super::*;
 
+  fn sample_watch_feed() -> FeedConfig {
+    FeedConfig {
+      id: "sample-watch".into(),
+      url: "https://example.test/list".into(),
+      domain: "example.test".into(),
+      category: "news".into(),
+      base_poll_seconds: 60,
+      provenance: None,
+      tags: None,
+      language: None,
+      content_type: None,
+      cookie_path: None,
+      headers_path: None,
+      headers: None
+    }
+  }
+
+  #[test]
+  fn emission_modes_distinguish_new_items_and_digest()
+   {
+    let feed = sample_watch_feed();
+    let mut watch = observation_watch();
+    watch.item_selector =
+      Some("a.story".into());
+    watch.item_identity = Some(
+      crate::domain::model::WatchItemIdentity::Href
+    );
+
+    let items =
+      extract_watch_items_from_html(
+        &feed,
+        &watch,
+        br#"<a class="story" href="/one">One</a><a class="story" href="/two">Two</a>"#,
+        1000
+      );
+    assert_eq!(items.len(), 2);
+    watch.emit_mode =
+      WatchEmitMode::NewItemsOnly;
+    assert!(
+      build_synthetic_watch_payload(
+        &feed,
+        &watch,
+        1000,
+        Some("hash-1"),
+        Vec::new()
+      )
+      .is_none(),
+      "no new identity means no synthetic item"
+    );
+
+    let one_new = vec![
+      items[1].clone()
+    ];
+    let only_new =
+      build_synthetic_watch_payload(
+        &feed,
+        &watch,
+        1000,
+        Some("hash-1"),
+        one_new
+      )
+      .expect("one unseen item");
+    assert_eq!(only_new.items.len(), 1);
+    assert_eq!(
+      only_new.items[0].title.as_deref(),
+      Some("Two")
+    );
+
+    watch.emit_mode =
+      WatchEmitMode::Digest;
+    let digest =
+      build_synthetic_watch_payload(
+        &feed,
+        &watch,
+        1000,
+        Some("hash-2"),
+        items.clone()
+      )
+      .expect("digest emitted");
+    assert_eq!(
+      digest.items.len(),
+      1,
+      "digest is a single item per changed page"
+    );
+    let summary = digest.items[0]
+      .summary
+      .as_deref()
+      .expect("digest summary");
+    assert!(summary.contains("2 matching items"));
+    assert!(summary.contains("One"));
+    assert!(summary.contains("Two"));
+    assert_eq!(
+      digest.items[0].guid.as_deref(),
+      Some("sample-watch:hash-2")
+    );
+
+    watch.emit_mode =
+      WatchEmitMode::AnyChange;
+    let any =
+      build_synthetic_watch_payload(
+        &feed,
+        &watch,
+        1000,
+        Some("hash-3"),
+        items
+      )
+      .expect("changed list");
+    assert_eq!(any.items.len(), 2);
+    let fallback =
+      build_synthetic_watch_payload(
+        &feed,
+        &watch,
+        1000,
+        Some("hash-4"),
+        Vec::new()
+      )
+      .expect("changed page without selectable items");
+    assert_eq!(fallback.items.len(), 1);
+  }
+
+  #[test]
+  fn html_watch_extracts_at_most_512_items()
+   {
+    let feed = sample_watch_feed();
+    let mut watch = observation_watch();
+    watch.item_selector =
+      Some("a".into());
+    watch.item_identity = Some(
+      crate::domain::model::WatchItemIdentity::Href
+    );
+    let html = (0..600)
+      .map(|n| {
+        format!("<a href='/story/{n}'>Story {n}</a>")
+      })
+      .collect::<String>();
+    let items =
+      extract_watch_items_from_html(
+        &feed,
+        &watch,
+        html.as_bytes(),
+        1000
+      );
+    assert_eq!(items.len(), 512);
+    watch.max_items_per_fetch =
+      Some(7);
+    assert_eq!(
+      extract_watch_items_from_html(
+        &feed,
+        &watch,
+        html.as_bytes(),
+        1000
+      )
+      .len(),
+      7
+    );
+  }
+
+
   fn observation_watch() -> WatchConfig
   {
     WatchConfig {

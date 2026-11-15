@@ -397,3 +397,87 @@ mod watch_observation_tests {
     assert_eq!(count, 2);
   }
 }
+
+#[cfg(test)]
+mod watch_item_lookup_tests {
+  use super::*;
+
+  #[tokio::test]
+  async fn persisted_guids_are_scoped_and_chunked()
+   {
+    let pool = SqlitePool::connect(
+      "sqlite::memory:"
+    )
+    .await
+    .expect("fixture pool");
+
+    sqlx::query(
+      "CREATE TABLE feed_items(\
+       feed_id TEXT NOT NULL, \
+       guid TEXT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("fixture table");
+
+    for n in 0..270 {
+      sqlx::query(
+        "INSERT INTO feed_items(\
+         feed_id, guid) VALUES (?1, ?2)"
+      )
+      .bind("first")
+      .bind(format!("story-{n}"))
+      .execute(&pool)
+      .await
+      .expect("fixture item");
+    }
+    sqlx::query(
+      "INSERT INTO feed_items(\
+       feed_id, guid) VALUES (?1, ?2)"
+    )
+    .bind("other")
+    .bind("foreign")
+    .execute(&pool)
+    .await
+    .expect("foreign item");
+
+    let mut candidates = (0..270)
+      .map(|n| format!("story-{n}"))
+      .collect::<Vec<_>>();
+    candidates.push("foreign".into());
+    candidates.push("unseen".into());
+    let found = known_watch_item_guids(
+      &pool, "first", &candidates
+    )
+    .await
+    .expect("first feed lookup");
+    assert_eq!(found.len(), 270);
+    assert!(!found.contains(
+      &"foreign".to_string()
+    ));
+    assert!(!found.contains(
+      &"unseen".to_string()
+    ));
+
+    assert_eq!(
+      known_watch_item_guids(
+        &pool,
+        "other",
+        &candidates
+      )
+      .await
+      .unwrap(),
+      vec!["foreign".to_string()]
+    );
+    assert!(
+      known_watch_item_guids(
+        &pool,
+        "first",
+        &[]
+      )
+      .await
+      .unwrap()
+      .is_empty()
+    );
+  }
+}
