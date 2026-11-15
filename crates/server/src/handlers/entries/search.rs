@@ -216,8 +216,9 @@ pub async fn search_entries(
 
   builder.push_bind(&pattern);
 
-  // Close both lower(pattern) and the surrounding
-  // WHERE (title OR summary OR description) group.
+  // Close both lower(pattern) and the
+  // surrounding WHERE (title OR summary
+  // OR description) group.
   builder.push("))");
 
   if let Some(filter) = read_filter {
