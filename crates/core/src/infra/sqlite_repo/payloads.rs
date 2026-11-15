@@ -458,14 +458,14 @@ mod watch_item_lookup_tests {
     .await
     .expect("first feed lookup");
     assert_eq!(found.len(), 270);
-    assert!(!found.contains(
-      &"foreign".to_string()
-    ));
-    assert!(
-      !found.contains(
-        &"unseen".to_string()
-      )
-    );
+    let foreign_present = found
+      .iter()
+      .any(|guid| guid == "foreign");
+    let unseen_present = found
+      .iter()
+      .any(|guid| guid == "unseen");
+    assert!(!foreign_present);
+    assert!(!unseen_present);
 
     assert_eq!(
       known_watch_item_guids(
