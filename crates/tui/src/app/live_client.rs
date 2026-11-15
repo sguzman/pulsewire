@@ -97,8 +97,10 @@ fn receive(
       | AppEvent::FolderFeeds { .. } => {
         "FolderFeeds".to_string()
       }
-      | AppEvent::Error { .. } => {
-        "Error".to_string()
+      | AppEvent::Error {
+        message
+      } => {
+        format!("Error: {message}")
       }
     };
     panic!(
