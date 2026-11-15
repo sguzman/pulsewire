@@ -443,3 +443,11 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 - **Regression:** SQLite snapshot scoping/replace-in-place and real disposable PostgreSQL SQL upserts are tested. A semicolon in a SQL comment was caught by the existing legacy SQLite backup/restore test, corrected, and fully verified in the final run.
 - **Still outstanding before PW-053 acceptance:** `NewItemsOnly` and `Digest` item emission semantics, `min_item_count_change`, complete CSS-extraction behavior, and end-to-end restart scenarios across both backends. Full 2/2 weight **not credited**; **82/100 remains unchanged (+0 pp)**.
 - No deployment, release, tag, or household system changes.
+
+## PW-053 emission-mode acceptance — 2026-11-15
+
+- **Merged implementation:** [PR #49](https://github.com/sguzman/pulsewire/pull/49), squash commit [`91cd654`](https://github.com/sguzman/pulsewire/commit/91cd65403d88ebcbf2bfe197e04e8c7f0ebd0825). Exact tested head: `e3417f5c82227ef6f8babfd2f71c98c3f72d30fb`.
+- **Both exact-head CI workflows passed:** [Rust checks 43740764417](https://github.com/sguzman/pulsewire/actions/runs/43740764417) (format, compile, workspace tests including SQLite GUID isolation and extraction/mode checks, synthetic scheduler, disposable PostgreSQL acceptance, Clippy `-D warnings`) and [container smoke 43740764337](https://github.com/sguzman/pulsewire/actions/runs/43740764337).
+- **Behavior:** `NewItemsOnly` consults feed-scoped persisted item GUIDs on both backends and emits only unseen identities; an empty new-item list emits no fallback notification. `Digest` generates one capped summary item instead of all matched items. `AnyChange` keeps the extracted-item behavior. HTML item extraction is capped to 512 per page, and `feed_items(feed_id,guid)` indexes support bounded known-ID lookups. Existing source/item history is retained.
+- **Pending:** `min_item_count_change` semantics and committed threshold baselines, full cross-restart acceptance, broader emission/HTML regression. Weight remains **82/100 (+0 pp)**; PW-053 active and not yet fully credited.
+- No production/home deployment, release or tag performed.
