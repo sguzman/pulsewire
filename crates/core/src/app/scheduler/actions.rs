@@ -253,7 +253,9 @@ where
   let successful_body =
     res.error.is_none()
       && res.status.is_some_and(
-        |status| (200..300).contains(&status)
+        |status| {
+          (200..300).contains(&status)
+        }
       )
       && res.body.is_some();
 
@@ -980,21 +982,20 @@ fn build_synthetic_watch_payload(
   }
 }
 
-
 fn watch_observation(
   watch: &WatchConfig,
   body: &[u8]
 ) -> Result<WatchObservation, String> {
-  let element_hash = if watch
-    .detectors
-    .contains(&WatchDetector::ElementHash)
-  {
-    Some(element_fingerprint(
-      watch, body
-    )?)
-  } else {
-    None
-  };
+  let element_hash =
+    if watch.detectors.contains(
+      &WatchDetector::ElementHash
+    ) {
+      Some(element_fingerprint(
+        watch, body
+      )?)
+    } else {
+      None
+    };
 
   Ok(WatchObservation {
     content_length: body.len() as i64,
@@ -1052,7 +1053,8 @@ fn element_fingerprint(
     .as_ref()
     .filter(|v| !v.is_empty())
     .map(|v| {
-      v.iter().map(String::as_str)
+      v.iter()
+        .map(String::as_str)
         .collect()
     })
     .unwrap_or_else(|| {
@@ -1060,7 +1062,7 @@ fn element_fingerprint(
         watch
           .item_selector
           .as_deref()
-          .unwrap_or("body")
+          .unwrap_or("body"),
       ]
     });
 
@@ -1095,18 +1097,22 @@ fn element_fingerprint(
       }
 
       let mut fragments = Vec::new();
-      for node in element.descendants() {
+      for node in element.descendants()
+      {
         let ignored =
           node.ancestors().any(|anc| {
             ElementRef::wrap(anc)
               .is_some_and(|elem| {
                 matches!(
                   elem.value().name(),
-                  "script" | "style"
-                  | "noscript"
-                ) || excludes.iter().any(
-                  |s| s.matches(&elem)
-                )
+                  "script"
+                    | "style"
+                    | "noscript"
+                ) || excludes
+                  .iter()
+                  .any(|s| {
+                    s.matches(&elem)
+                  })
               })
           });
         if ignored {
@@ -1114,27 +1120,31 @@ fn element_fingerprint(
         }
 
         match node.value() {
-          | scraper::Node::Text(text) => {
-            fragments.push(
-              text.to_string()
-            );
+          | scraper::Node::Text(
+            text
+          ) => {
+            fragments
+              .push(text.to_string());
           }
           | _ => {
             if let Some(elem) =
               ElementRef::wrap(node)
-              && elem.value().name() == "a"
-              && let Some(href) =
-                elem.value().attr("href")
+              && elem.value().name()
+                == "a"
+              && let Some(href) = elem
+                .value()
+                .attr("href")
               && let Some(link) =
                 resolve_watch_href(
                   href,
                   &watch.url,
-                  watch.strip_query_params
+                  watch
+                    .strip_query_params
                 )
             {
-              fragments.push(
-                format!("link:{link}")
-              );
+              fragments.push(format!(
+                "link:{link}"
+              ));
             }
           }
         }
@@ -1225,14 +1235,17 @@ fn compute_body_changed(
     // sources that omit HTTP
     // validators.
     if watch_cfg.fetch_body_on_change
-      && !watch_cfg.detectors.iter().any(
-        |d| matches!(
+      && !watch_cfg
+        .detectors
+        .iter()
+        .any(|d| {
+          matches!(
           d,
           WatchDetector::ContentLength
             | WatchDetector::ContentHash
             | WatchDetector::ElementHash
         )
-      )
+        })
       && let Some(hash) = body_hash
     {
       changed = changed
@@ -1348,8 +1361,8 @@ fn is_immediate_error(
 mod watch_link_tests {
   use super::*;
 
-  fn observation_watch()
-  -> WatchConfig {
+  fn observation_watch() -> WatchConfig
+  {
     WatchConfig {
       id: "snapshot-watch".into(),
       url: "https://example.test/page".into(),
@@ -1398,17 +1411,18 @@ mod watch_link_tests {
   #[test]
   fn length_detector_uses_prior_observation()
    {
-    let mut watch =
-      observation_watch();
+    let mut watch = observation_watch();
     watch.detectors = vec![
-      WatchDetector::ContentLength
+      WatchDetector::ContentLength,
     ];
     let current = WatchObservation {
       content_length: 42,
-      element_hash: None
+      element_hash:   None
     };
     assert!(observation_changed(
-      &watch, Some(&current), None
+      &watch,
+      Some(&current),
+      None
     ));
     assert!(!observation_changed(
       &watch,
@@ -1417,7 +1431,7 @@ mod watch_link_tests {
     ));
     let old = WatchObservation {
       content_length: 40,
-      element_hash: None
+      element_hash:   None
     };
     assert!(observation_changed(
       &watch,
@@ -1429,11 +1443,9 @@ mod watch_link_tests {
   #[test]
   fn element_hash_ignores_css_excluded_noise()
    {
-    let mut watch =
-      observation_watch();
-    watch.detectors = vec![
-      WatchDetector::ElementHash
-    ];
+    let mut watch = observation_watch();
+    watch.detectors =
+      vec![WatchDetector::ElementHash];
 
     let first = br#"<article>
       <h1>Stable headline</h1>
@@ -1467,12 +1479,14 @@ mod watch_link_tests {
     assert_ne!(a, c);
 
     let old = WatchObservation {
-      content_length: first.len() as i64,
-      element_hash: Some(a)
+      content_length: first.len()
+        as i64,
+      element_hash:   Some(a)
     };
     let same = WatchObservation {
-      content_length: noise.len() as i64,
-      element_hash: Some(b)
+      content_length: noise.len()
+        as i64,
+      element_hash:   Some(b)
     };
     assert!(!observation_changed(
       &watch,
@@ -1497,27 +1511,22 @@ mod watch_link_tests {
     let new_link =
       br#"<article><a href="/two?x=2">Same</a></article>"#;
     assert_eq!(
-      element_fingerprint(
-        &watch, base
-      )
-      .unwrap(),
+      element_fingerprint(&watch, base)
+        .unwrap(),
       element_fingerprint(
         &watch, noisy
       )
       .unwrap()
     );
     assert_ne!(
-      element_fingerprint(
-        &watch, base
-      )
-      .unwrap(),
+      element_fingerprint(&watch, base)
+        .unwrap(),
       element_fingerprint(
         &watch, new_link
       )
       .unwrap()
     );
   }
-
 
   #[test]
   fn content_hash_detector_suppresses_identical_body()

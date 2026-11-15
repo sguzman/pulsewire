@@ -400,15 +400,17 @@ mod postgres_due_queue_tests {
     // PostgreSQL service, not user DB.
     sqlx::query(
       "CREATE TEMP TABLE \
-       watch_observations(\
-       feed_id TEXT PRIMARY KEY, \
-       content_length BIGINT NOT NULL, \
-       element_hash TEXT NULL, \
+       watch_observations(feed_id \
+       TEXT PRIMARY KEY, \
+       content_length BIGINT NOT \
+       NULL, element_hash TEXT NULL, \
        observed_at_ms BIGINT NOT NULL)"
     )
     .execute(&pool)
     .await
-    .expect("temporary watch snapshots");
+    .expect(
+      "temporary watch snapshots"
+    );
 
     let initial =
       crate::ports::repo::WatchObservation {
@@ -431,7 +433,10 @@ mod postgres_due_queue_tests {
       )
       .await
       .expect("read postgres snapshot");
-    assert_eq!(recovered, Some(initial));
+    assert_eq!(
+      recovered,
+      Some(initial)
+    );
 
     let updated =
       crate::ports::repo::WatchObservation {

@@ -37,7 +37,10 @@ pub async fn latest_payload_content_hash(
 pub async fn latest_watch_observation(
   pool: &SqlitePool,
   feed_id: &str
-) -> Result<Option<WatchObservation>, String> {
+) -> Result<
+  Option<WatchObservation>,
+  String
+> {
   let value = sqlx::query_as::<
     _,
     (i64, Option<String>)
@@ -54,12 +57,14 @@ pub async fn latest_watch_observation(
     format!("read watch snapshot: {e}")
   })?;
 
-  Ok(value.map(|(content_length, element_hash)| {
-    WatchObservation {
-      content_length,
-      element_hash
+  Ok(value.map(
+    |(content_length, element_hash)| {
+      WatchObservation {
+        content_length,
+        element_hash
+      }
     }
-  }))
+  ))
 }
 
 pub async fn upsert_watch_observation(
@@ -83,7 +88,9 @@ pub async fn upsert_watch_observation(
   )
   .bind(feed_id)
   .bind(observation.content_length)
-  .bind(observation.element_hash.as_deref())
+  .bind(
+    observation.element_hash.as_deref()
+  )
   .bind(observed_at_ms)
   .execute(pool)
   .await
@@ -263,11 +270,13 @@ mod watch_observation_tests {
     .expect("sqlite memory pool");
 
     sqlx::query(
-      "CREATE TABLE watch_observations(\
-       feed_id TEXT PRIMARY KEY, \
-       content_length INTEGER NOT NULL, \
-       element_hash TEXT NULL, \
-       observed_at_ms INTEGER NOT NULL)"
+      "CREATE TABLE \
+       watch_observations(feed_id \
+       TEXT PRIMARY KEY, \
+       content_length INTEGER NOT \
+       NULL, element_hash TEXT NULL, \
+       observed_at_ms INTEGER NOT \
+       NULL)"
     )
     .execute(&pool)
     .await
@@ -275,13 +284,13 @@ mod watch_observation_tests {
 
     let first = WatchObservation {
       content_length: 50,
-      element_hash: Some(
+      element_hash:   Some(
         "initial".into()
       )
     };
     let foreign = WatchObservation {
       content_length: 99,
-      element_hash: None
+      element_hash:   None
     };
 
     upsert_watch_observation(
@@ -305,7 +314,7 @@ mod watch_observation_tests {
 
     let changed = WatchObservation {
       content_length: 60,
-      element_hash: Some(
+      element_hash:   Some(
         "updated".into()
       )
     };
@@ -339,13 +348,14 @@ mod watch_observation_tests {
       .unwrap(),
       None
     );
-    let count: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM \
-       watch_observations"
-    )
-    .fetch_one(&pool)
-    .await
-    .expect("bounded row count");
+    let count: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM \
+         watch_observations"
+      )
+      .fetch_one(&pool)
+      .await
+      .expect("bounded row count");
     assert_eq!(count, 2);
   }
 }

@@ -32,10 +32,12 @@ pub struct StateRow {
   pub consecutive_error_count: i64
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(
+  Debug, Clone, PartialEq, Eq,
+)]
 pub struct WatchObservation {
   pub content_length: i64,
-  pub element_hash: Option<String>
+  pub element_hash:   Option<String>
 }
 
 #[async_trait::async_trait]
@@ -105,7 +107,10 @@ pub trait Repo: Send + Sync {
   async fn latest_watch_observation(
     &self,
     feed_id: &str
-  ) -> Result<Option<WatchObservation>, String>;
+  ) -> Result<
+    Option<WatchObservation>,
+    String
+  >;
 
   async fn upsert_watch_observation(
     &self,

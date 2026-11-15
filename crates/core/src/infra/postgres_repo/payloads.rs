@@ -41,7 +41,10 @@ pub async fn latest_payload_content_hash(
 pub async fn latest_watch_observation(
   pool: &PgPool,
   feed_id: &str
-) -> Result<Option<WatchObservation>, String> {
+) -> Result<
+  Option<WatchObservation>,
+  String
+> {
   let value = sqlx::query_as::<
     _,
     (i64, Option<String>)
@@ -58,12 +61,14 @@ pub async fn latest_watch_observation(
     format!("read watch snapshot: {e}")
   })?;
 
-  Ok(value.map(|(content_length, element_hash)| {
-    WatchObservation {
-      content_length,
-      element_hash
+  Ok(value.map(
+    |(content_length, element_hash)| {
+      WatchObservation {
+        content_length,
+        element_hash
+      }
     }
-  }))
+  ))
 }
 
 pub async fn upsert_watch_observation(
@@ -87,7 +92,9 @@ pub async fn upsert_watch_observation(
   )
   .bind(feed_id)
   .bind(observation.content_length)
-  .bind(observation.element_hash.as_deref())
+  .bind(
+    observation.element_hash.as_deref()
+  )
   .bind(observed_at_ms)
   .execute(pool)
   .await

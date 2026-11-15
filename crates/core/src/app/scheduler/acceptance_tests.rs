@@ -226,8 +226,10 @@ impl Repo for FakeRepo {
   async fn latest_watch_observation(
     &self,
     _feed_id: &str
-  ) -> Result<Option<WatchObservation>, String>
-  {
+  ) -> Result<
+    Option<WatchObservation>,
+    String
+  > {
     Ok(None)
   }
 

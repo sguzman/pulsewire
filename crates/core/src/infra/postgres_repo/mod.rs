@@ -189,8 +189,10 @@ impl Repo for PostgresRepo {
   async fn latest_watch_observation(
     &self,
     feed_id: &str
-  ) -> Result<Option<WatchObservation>, String>
-  {
+  ) -> Result<
+    Option<WatchObservation>,
+    String
+  > {
     payloads::latest_watch_observation(
       &self.pool, feed_id
     )
