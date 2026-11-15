@@ -37,7 +37,8 @@ pub(super) async fn spawn(
     .local_addr()
     .map_err(|e| {
       format!(
-        "failed to determine metrics listener address: {e}"
+        "failed to determine metrics \
+         listener address: {e}"
       )
     })?;
 
@@ -87,8 +88,9 @@ pub(super) async fn spawn(
             )
           };
 
-        let mut resp =
-          format!("HTTP/1.1 {status}\r\n");
+        let mut resp = format!(
+          "HTTP/1.1 {status}\r\n"
+        );
         resp.push_str(
           "Content-Type: text/plain; \
            version=0.0.4\r\n"
@@ -114,8 +116,9 @@ pub(super) async fn spawn(
 
 #[cfg(test)]
 mod metrics_http_tests {
-  use super::*;
   use tokio::net::TcpStream;
+
+  use super::*;
 
   async fn request(
     addr: SocketAddr,
@@ -124,12 +127,18 @@ mod metrics_http_tests {
     let mut stream =
       TcpStream::connect(addr)
         .await
-        .expect("connect metrics listener");
+        .expect(
+          "connect metrics listener"
+        );
     stream
-      .write_all(format!(
-        "GET {path} HTTP/1.1\r\n\
-         Host: localhost\r\n\r\n"
-      ).as_bytes())
+      .write_all(
+        format!(
+          "GET {path} \
+           HTTP/1.1\r\nHost: \
+           localhost\r\n\r\n"
+        )
+        .as_bytes()
+      )
       .await
       .expect("send metrics request");
 
@@ -137,7 +146,9 @@ mod metrics_http_tests {
     stream
       .read_to_end(&mut bytes)
       .await
-      .expect("receive metrics response");
+      .expect(
+        "receive metrics response"
+      );
     String::from_utf8(bytes)
       .expect("UTF-8 metrics reply")
   }
@@ -149,19 +160,24 @@ mod metrics_http_tests {
   ) {
     let (headers, body) = response
       .split_once("\r\n\r\n")
-      .expect("HTTP CRLF header boundary");
+      .expect(
+        "HTTP CRLF header boundary"
+      );
     assert_eq!(
       headers.split("\r\n").next(),
       Some(status)
     );
     assert!(headers.contains(
-      "\r\nContent-Type: text/plain; version=0.0.4"
+      "\r\nContent-Type: text/plain; \
+       version=0.0.4"
     ));
     let length = headers
       .split("\r\n")
-      .find_map(|line| line.strip_prefix(
-        "Content-Length: "
-      ))
+      .find_map(|line| {
+        line.strip_prefix(
+          "Content-Length: "
+        )
+      })
       .expect("Content-Length")
       .parse::<usize>()
       .expect("numeric Content-Length");
@@ -179,7 +195,9 @@ mod metrics_http_tests {
       metrics.clone()
     )
     .await
-    .expect("start isolated metrics listener");
+    .expect(
+      "start isolated metrics listener"
+    );
     assert!(addr.ip().is_loopback());
     let response =
       request(addr, "/metrics").await;
