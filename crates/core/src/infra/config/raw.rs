@@ -322,6 +322,7 @@ pub(crate) struct RawWatchProfile {
 #[derive(Debug, Deserialize)]
 pub(crate) struct RawWatch {
   pub id:                    String,
+  pub enabled: Option<bool>,
   pub url:                   String,
   pub profile: Option<String>,
   pub base_poll_seconds: Option<u64>,

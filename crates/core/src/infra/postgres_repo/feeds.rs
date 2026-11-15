@@ -130,6 +130,42 @@ async fn upsert_chunk(
   Ok(())
 }
 
+pub async fn replace_disabled_watches(
+  pool: &PgPool,
+  ids: &[String]
+) -> Result<(), String> {
+  let mut tx = pool.begin().await
+    .map_err(|e| {
+      format!("begin disabled-watch sync: {e}")
+    })?;
+
+  sqlx::query(
+    "DELETE FROM disabled_watch_feeds"
+  )
+  .execute(&mut *tx)
+  .await
+  .map_err(|e| {
+    format!("clear disabled watches: {e}")
+  })?;
+
+  for id in ids {
+    sqlx::query(
+      "INSERT INTO disabled_watch_feeds(\
+       feed_id) VALUES ($1)"
+    )
+    .bind(id)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| {
+      format!("record disabled watch: {e}")
+    })?;
+  }
+
+  tx.commit().await.map_err(|e| {
+    format!("commit disabled-watch sync: {e}")
+  })
+}
+
 pub async fn due_feeds(
   pool: &PgPool,
   category: &str,
@@ -151,6 +187,11 @@ pub async fn due_feeds(
       LEFT JOIN error_feeds e ON e.feed_id = f.id
       WHERE f.category = $1
         AND e.feed_id IS NULL
+        AND NOT EXISTS (
+          SELECT 1
+          FROM disabled_watch_feeds disabled
+          WHERE disabled.feed_id = f.id
+        )
         AND (s.feed_id IS NULL OR s.next_action_at <= $2)
       ORDER BY COALESCE(s.next_action_at, $2), f.id
       LIMIT $3
@@ -265,7 +306,9 @@ mod postgres_due_queue_tests {
        next_action_at TIMESTAMPTZ NOT \
        NULL)",
       "CREATE TEMP TABLE error_feeds \
-       (feed_id TEXT PRIMARY KEY)"
+       (feed_id TEXT PRIMARY KEY)",
+      "CREATE TEMP TABLE disabled_watch_feeds(\
+       feed_id TEXT PRIMARY KEY)"
     ] {
       sqlx::query(ddl)
         .execute(&pool)
@@ -387,6 +430,36 @@ mod postgres_due_queue_tests {
     );
     assert_eq!(other.len(), 1);
     assert_eq!(other[0].id, "other-1");
+
+    replace_disabled_watches(
+      &pool,
+      &["other-1".to_string()]
+    )
+    .await
+    .expect("disable PG watch");
+    assert!(due_feeds(
+      &pool, "other", now_ms, 1000,
+      &zone
+    )
+    .await
+    .unwrap()
+    .is_empty());
+
+    replace_disabled_watches(
+      &pool, &[]
+    )
+    .await
+    .expect("re-enable PG watch");
+    assert_eq!(
+      due_feeds(
+        &pool, "other", now_ms,
+        1000, &zone
+      )
+      .await
+      .unwrap()
+      .len(),
+      1
+    );
 
     let zero = due_feeds(
       &pool, "news", now_ms, 0, &zone

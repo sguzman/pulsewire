@@ -135,3 +135,8 @@ CREATE TABLE IF NOT EXISTS watch_emit_watermarks(
   item_count INTEGER NOT NULL,
   emitted_at_ms INTEGER NOT NULL
 );
+
+-- Explicit watch disables never delete source or item history.
+CREATE TABLE IF NOT EXISTS disabled_watch_feeds(
+  feed_id TEXT PRIMARY KEY
+);

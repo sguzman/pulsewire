@@ -1399,3 +1399,75 @@ mod suppressed_catalog_tests {
       .expect("remove test fixtures");
   }
 }
+
+#[cfg(test)]
+mod disabled_watch_config_tests {
+  use super::*;
+
+  #[tokio::test]
+  async fn watch_enabled_flag_deserializes_with_default_on()
+   {
+    let nonce = std::time::SystemTime::now()
+      .duration_since(
+        std::time::UNIX_EPOCH
+      )
+      .expect("clock")
+      .as_nanos();
+    let directory =
+      std::env::temp_dir().join(
+        format!(
+          "pw-disabled-watch-{}-{nonce}",
+          std::process::id()
+        )
+      );
+    fs::create_dir_all(&directory)
+      .await
+      .expect("fixture directory");
+    let content = r#"
+[[watches]]
+id = "active-default"
+url = "https://example.test/a"
+
+[[watches]]
+id = "active-explicit"
+url = "https://example.test/b"
+enabled = true
+
+[[watches]]
+id = "disabled"
+url = "https://example.test/c"
+enabled = false
+"#;
+    fs::write(
+      directory.join("watches.toml"),
+      content
+    )
+    .await
+    .expect("fixture TOML");
+    let parsed = load_all_feeds(
+      &directory,
+      "{}",
+      "{}",
+      &HashSet::new()
+    )
+    .await
+    .expect("read mixed watch file");
+
+    assert_eq!(parsed.watches.len(), 3);
+    assert!(parsed.watches[0]
+      .enabled
+      .unwrap_or(true));
+    assert_eq!(
+      parsed.watches[1].enabled,
+      Some(true)
+    );
+    assert_eq!(
+      parsed.watches[2].enabled,
+      Some(false)
+    );
+
+    fs::remove_dir_all(&directory)
+      .await
+      .expect("remove test catalog");
+  }
+}

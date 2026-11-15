@@ -89,6 +89,16 @@ impl Repo for PostgresRepo {
     .await
   }
 
+  async fn replace_disabled_watches(
+    &self,
+    ids: &[String]
+  ) -> Result<(), String> {
+    feeds::replace_disabled_watches(
+      &self.pool, ids
+    )
+    .await
+  }
+
   async fn upsert_categories(
     &self,
     categories: Vec<String>,
