@@ -16,6 +16,7 @@ const files = [
   "docs/pulsewire/DEPLOYMENT.md",
   "docs/pulsewire/COMPATIBILITY.md",
   "docs/pulsewire/TROUBLESHOOTING.md",
+  "docs/pulsewire/SECRETS.md",
   "docs/pulsewire/BACKUP-RESTORE.md",
   "docs/pulsewire/RECOVERY.md",
   "docs/pulsewire/FETCH_SECURITY.md",
@@ -70,6 +71,24 @@ for (const body of [cliDocs, cliSource]) {
 const releaseDocs = read("docs/reference/RELEASE.md");
 for (const requirement of ["PW-071", "git push --tags", "owner approves", "rollback"]) {
   assert.ok(releaseDocs.toLowerCase().includes(requirement.toLowerCase()), "release warning missing " + requirement);
+}
+const secretDocs = read("docs/pulsewire/SECRETS.md");
+const secretCode = read("crates/schemas/src/secrets.rs");
+const coreLoader = read("crates/core/src/infra/config/loader.rs");
+const serverConfig = read("crates/server/src/config.rs");
+for (const body of [secretDocs, secretCode, coreLoader, serverConfig]) {
+  assert.ok(body.includes("PULSEWIRE_POSTGRES_PASSWORD_FILE") || body.includes("postgres_password("), "missing file-secret support");
+}
+for (const service of ["fetcher", "server"]) {
+  const overlay = read("crates/" + service + "/docker-compose.secrets.yml");
+  const baseline = read("crates/" + service + "/docker-compose.yml");
+  assert.ok(overlay.includes("PULSEWIRE_POSTGRES_PASSWORD_FILE: /run/secrets/pulsewire_postgres_password"), "missing file-secret env");
+  assert.ok(overlay.includes('PULSEWIRE_POSTGRES_PASSWORD: ""'), "must clear direct env credential");
+  assert.ok(overlay.includes("PULSEWIRE_POSTGRES_PASSWORD_SOURCE"), "private source must be required");
+  assert.ok(baseline.includes("PULSEWIRE_POSTGRES_PASSWORD_FILE"), "baseline must accept file secret");
+}
+for (const required of ["both", "fail", "Docker", "PW-023"]) {
+  assert.ok(secretDocs.includes(required), "secret runbook missing caveat " + required);
 }
 const compatibility = read("docs/pulsewire/COMPATIBILITY.md");
 const deployment = read("docs/pulsewire/DEPLOYMENT.md");
