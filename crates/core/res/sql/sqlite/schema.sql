@@ -119,3 +119,11 @@ CREATE TABLE IF NOT EXISTS source_cookies(
   cookie_header TEXT NOT NULL,
   updated_at_ms INTEGER NOT NULL
 );
+
+-- A single snapshot per feed, bounded independently of polling count.
+CREATE TABLE IF NOT EXISTS watch_observations(
+  feed_id TEXT PRIMARY KEY REFERENCES feeds(id) ON DELETE CASCADE,
+  content_length INTEGER NOT NULL,
+  element_hash TEXT NULL,
+  observed_at_ms INTEGER NOT NULL
+);

@@ -33,7 +33,10 @@ use crate::feed::parser::{
 };
 use crate::infra::metrics;
 use crate::ports::http::Http;
-use crate::ports::repo::Repo;
+use crate::ports::repo::{
+  Repo,
+  WatchObservation
+};
 
 #[allow(clippy::too_many_arguments)]
 pub async fn do_head<R, H>(
@@ -247,14 +250,52 @@ where
     None
   };
 
-  let body_changed =
-    compute_body_changed(
+  let successful_body =
+    res.error.is_none()
+      && res.status.is_some_and(
+        |status| {
+          (200..300).contains(&status)
+        }
+      )
+      && res.body.is_some();
+
+  let current_observation =
+    if successful_body {
+      watch
+        .zip(res.body.as_deref())
+        .map(|(watch, body)| {
+          watch_observation(watch, body)
+        })
+        .transpose()?
+    } else {
+      None
+    };
+
+  let previous_observation =
+    if current_observation.is_some() {
+      repo
+        .latest_watch_observation(
+          &feed.id
+        )
+        .await?
+    } else {
+      None
+    };
+
+  let body_changed = successful_body
+    && (compute_body_changed(
       &state,
       &res,
       body_hash.as_deref(),
       previous_body_hash.as_deref(),
       watch
-    );
+    ) || watch.is_some_and(|w| {
+      observation_changed(
+        w,
+        current_observation.as_ref(),
+        previous_observation.as_ref()
+      )
+    }));
 
   let updated =
     LinkState::apply_get_result(
@@ -300,6 +341,7 @@ where
   .await?;
 
   if let Some(body) = res.body.as_ref()
+    && successful_body
   {
     persist_payload(
       cfg,
@@ -313,6 +355,18 @@ where
       body_changed
     )
     .await?;
+  }
+
+  if let Some(observation) =
+    current_observation.as_ref()
+  {
+    repo
+      .upsert_watch_observation(
+        &feed.id,
+        observation,
+        now_ms
+      )
+      .await?;
   }
 
   let started = Instant::now();
@@ -928,6 +982,193 @@ fn build_synthetic_watch_payload(
   }
 }
 
+fn watch_observation(
+  watch: &WatchConfig,
+  body: &[u8]
+) -> Result<WatchObservation, String> {
+  let element_hash =
+    if watch.detectors.contains(
+      &WatchDetector::ElementHash
+    ) {
+      Some(element_fingerprint(
+        watch, body
+      )?)
+    } else {
+      None
+    };
+
+  Ok(WatchObservation {
+    content_length: body.len() as i64,
+    element_hash
+  })
+}
+
+fn observation_changed(
+  watch: &WatchConfig,
+  current: Option<&WatchObservation>,
+  previous: Option<&WatchObservation>
+) -> bool {
+  let Some(current) = current else {
+    return false;
+  };
+  watch.detectors.iter().any(|detector| {
+    match detector {
+      | WatchDetector::ContentLength => {
+        previous
+          .map(|old| {
+            old.content_length
+              != current.content_length
+          })
+          .unwrap_or(true)
+      }
+      | WatchDetector::ElementHash => {
+        current
+          .element_hash
+          .as_ref()
+          .is_some_and(|hash| {
+            previous
+              .and_then(|old| {
+                old.element_hash.as_ref()
+              })
+              .map(|old| old != hash)
+              .unwrap_or(true)
+          })
+      }
+      | _ => false
+    }
+  })
+}
+
+fn element_fingerprint(
+  watch: &WatchConfig,
+  body: &[u8]
+) -> Result<String, String> {
+  let raw =
+    String::from_utf8_lossy(body);
+  let document =
+    Html::parse_document(&raw);
+
+  let include: Vec<&str> = watch
+    .include_selectors
+    .as_ref()
+    .filter(|v| !v.is_empty())
+    .map(|v| {
+      v.iter()
+        .map(String::as_str)
+        .collect()
+    })
+    .unwrap_or_else(|| {
+      vec![
+        watch
+          .item_selector
+          .as_deref()
+          .unwrap_or("body"),
+      ]
+    });
+
+  let parse = |raw: &str| {
+    Selector::parse(raw).map_err(|_| {
+      "invalid HTML-watch CSS selector"
+        .to_string()
+    })
+  };
+
+  let includes = include
+    .into_iter()
+    .map(parse)
+    .collect::<Result<Vec<_>, _>>()?;
+
+  let excludes = watch
+    .exclude_selectors
+    .iter()
+    .flatten()
+    .map(|raw| parse(raw))
+    .collect::<Result<Vec<_>, _>>()?;
+
+  let mut seen = HashSet::new();
+  let mut sections = Vec::new();
+
+  for selector in &includes {
+    for element in
+      document.select(selector)
+    {
+      if !seen.insert(element.id()) {
+        continue;
+      }
+
+      let mut fragments = Vec::new();
+      for node in element.descendants()
+      {
+        let ignored =
+          node.ancestors().any(|anc| {
+            ElementRef::wrap(anc)
+              .is_some_and(|elem| {
+                matches!(
+                  elem.value().name(),
+                  "script"
+                    | "style"
+                    | "noscript"
+                ) || excludes
+                  .iter()
+                  .any(|s| {
+                    s.matches(&elem)
+                  })
+              })
+          });
+        if ignored {
+          continue;
+        }
+
+        match node.value() {
+          | scraper::Node::Text(
+            text
+          ) => {
+            fragments
+              .push(text.to_string());
+          }
+          | _ => {
+            if let Some(elem) =
+              ElementRef::wrap(node)
+              && elem.value().name()
+                == "a"
+              && let Some(href) = elem
+                .value()
+                .attr("href")
+              && let Some(link) =
+                resolve_watch_href(
+                  href,
+                  &watch.url,
+                  watch
+                    .strip_query_params
+                )
+            {
+              fragments.push(format!(
+                "link:{link}"
+              ));
+            }
+          }
+        }
+      }
+
+      let section =
+        if watch.normalize_whitespace {
+          fragments
+            .join(" ")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
+        } else {
+          fragments.join("")
+        };
+      sections.push(section);
+    }
+  }
+
+  Ok(sha256_hex(
+    sections.join("\n").as_bytes()
+  ))
+}
+
 fn compute_body_changed(
   state: &LinkState,
   res: &crate::domain::model::GetResult,
@@ -978,14 +1219,12 @@ fn compute_body_changed(
                 .unwrap_or(true);
           }
         }
-        // ContentLength and ElementHash
-        // need independent persisted
-        // detector-specific snapshots.
+        // Compare persisted
+        // detector-specific snapshots
+        // instead of treating every
+        // body as changed.
         WatchDetector::ContentLength
-        | WatchDetector::ElementHash => {
-          changed = changed
-            || body_hash.is_some();
-        }
+        | WatchDetector::ElementHash => {}
       }
     }
 
@@ -996,6 +1235,17 @@ fn compute_body_changed(
     // sources that omit HTTP
     // validators.
     if watch_cfg.fetch_body_on_change
+      && !watch_cfg
+        .detectors
+        .iter()
+        .any(|d| {
+          matches!(
+          d,
+          WatchDetector::ContentLength
+            | WatchDetector::ContentHash
+            | WatchDetector::ElementHash
+        )
+        })
       && let Some(hash) = body_hash
     {
       changed = changed
@@ -1110,6 +1360,173 @@ fn is_immediate_error(
 #[cfg(test)]
 mod watch_link_tests {
   use super::*;
+
+  fn observation_watch() -> WatchConfig
+  {
+    WatchConfig {
+      id: "snapshot-watch".into(),
+      url: "https://example.test/page".into(),
+      domain: "example.test".into(),
+      category: "news".into(),
+      base_poll_seconds: 60,
+      provenance: None,
+      tags: None,
+      language: None,
+      content_type: None,
+      cookie_path: None,
+      headers_path: None,
+      headers: None,
+      check_method:
+        crate::domain::model::WatchCheckMethod::Get,
+      fallback_to_get: false,
+      detectors: vec![
+        WatchDetector::ContentLength,
+        WatchDetector::ElementHash
+      ],
+      fetch_body_on_change: true,
+      max_body_bytes: None,
+      max_items_per_fetch: None,
+      item_selector: None,
+      item_identity: None,
+      item_identity_attr: None,
+      title_selector: None,
+      link_selector: None,
+      summary_selector: None,
+      published_selector: None,
+      published_format: None,
+      include_selectors: Some(vec![
+        "article".into()
+      ]),
+      exclude_selectors: Some(vec![
+        ".advert".into()
+      ]),
+      normalize_whitespace: true,
+      strip_query_params: true,
+      emit_mode: WatchEmitMode::AnyChange,
+      emit_title: None,
+      min_item_count_change: None
+    }
+  }
+
+  #[test]
+  fn length_detector_uses_prior_observation()
+   {
+    let mut watch = observation_watch();
+    watch.detectors = vec![
+      WatchDetector::ContentLength,
+    ];
+    let current = WatchObservation {
+      content_length: 42,
+      element_hash:   None
+    };
+    assert!(observation_changed(
+      &watch,
+      Some(&current),
+      None
+    ));
+    assert!(!observation_changed(
+      &watch,
+      Some(&current),
+      Some(&current)
+    ));
+    let old = WatchObservation {
+      content_length: 40,
+      element_hash:   None
+    };
+    assert!(observation_changed(
+      &watch,
+      Some(&current),
+      Some(&old)
+    ));
+  }
+
+  #[test]
+  fn element_hash_ignores_css_excluded_noise()
+   {
+    let mut watch = observation_watch();
+    watch.detectors =
+      vec![WatchDetector::ElementHash];
+
+    let first = br#"<article>
+      <h1>Stable headline</h1>
+      <span class="advert">Promo 1</span>
+      <a href="/story?id=42">Read</a>
+    </article><aside>noisy sidebar</aside>"#;
+    let noise = br#"<article>
+      <h1> Stable   headline </h1>
+      <span class="advert">Promo 2</span>
+      <a href="/story?id=99">Read</a>
+    </article><aside>different sidebar</aside>"#;
+    let changed = br#"<article>
+      <h1>New headline</h1>
+      <span class="advert">Promo 2</span>
+      <a href="/story?id=99">Read</a>
+    </article>"#;
+
+    let a = element_fingerprint(
+      &watch, first
+    )
+    .unwrap();
+    let b = element_fingerprint(
+      &watch, noise
+    )
+    .unwrap();
+    let c = element_fingerprint(
+      &watch, changed
+    )
+    .unwrap();
+    assert_eq!(a, b);
+    assert_ne!(a, c);
+
+    let old = WatchObservation {
+      content_length: first.len()
+        as i64,
+      element_hash:   Some(a)
+    };
+    let same = WatchObservation {
+      content_length: noise.len()
+        as i64,
+      element_hash:   Some(b)
+    };
+    assert!(!observation_changed(
+      &watch,
+      Some(&same),
+      Some(&old)
+    ));
+    assert!(observation_changed(
+      &watch,
+      Some(&same),
+      None
+    ));
+  }
+
+  #[test]
+  fn element_hash_tracks_links_without_query_noise()
+   {
+    let watch = observation_watch();
+    let base =
+      br#"<article><a href="/one?x=1">Same</a></article>"#;
+    let noisy =
+      br#"<article><a href="/one?x=2">Same</a></article>"#;
+    let new_link =
+      br#"<article><a href="/two?x=2">Same</a></article>"#;
+    assert_eq!(
+      element_fingerprint(&watch, base)
+        .unwrap(),
+      element_fingerprint(
+        &watch, noisy
+      )
+      .unwrap()
+    );
+    assert_ne!(
+      element_fingerprint(&watch, base)
+        .unwrap(),
+      element_fingerprint(
+        &watch, new_link
+      )
+      .unwrap()
+    );
+  }
 
   #[test]
   fn content_hash_detector_suppresses_identical_body()

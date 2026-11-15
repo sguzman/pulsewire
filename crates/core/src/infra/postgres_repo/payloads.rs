@@ -11,6 +11,7 @@ use super::util::{
   ts_from_ms_opt
 };
 use crate::feed::parser::ParsedFeed;
+use crate::ports::repo::WatchObservation;
 
 pub async fn latest_payload_content_hash(
   pool: &PgPool,
@@ -35,6 +36,72 @@ pub async fn latest_payload_content_hash(
        {e}"
     )
   })
+}
+
+pub async fn latest_watch_observation(
+  pool: &PgPool,
+  feed_id: &str
+) -> Result<
+  Option<WatchObservation>,
+  String
+> {
+  let value = sqlx::query_as::<
+    _,
+    (i64, Option<String>)
+  >(
+    r#"SELECT content_length,
+       element_hash
+       FROM watch_observations
+       WHERE feed_id = $1"#
+  )
+  .bind(feed_id)
+  .fetch_optional(pool)
+  .await
+  .map_err(|e| {
+    format!("read watch snapshot: {e}")
+  })?;
+
+  Ok(value.map(
+    |(content_length, element_hash)| {
+      WatchObservation {
+        content_length,
+        element_hash
+      }
+    }
+  ))
+}
+
+pub async fn upsert_watch_observation(
+  pool: &PgPool,
+  feed_id: &str,
+  observation: &WatchObservation,
+  observed_at_ms: i64
+) -> Result<(), String> {
+  sqlx::query(
+    r#"INSERT INTO watch_observations(
+         feed_id, content_length,
+         element_hash, observed_at_ms)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT(feed_id) DO UPDATE
+       SET content_length =
+             excluded.content_length,
+           element_hash =
+             excluded.element_hash,
+           observed_at_ms =
+             excluded.observed_at_ms"#
+  )
+  .bind(feed_id)
+  .bind(observation.content_length)
+  .bind(
+    observation.element_hash.as_deref()
+  )
+  .bind(observed_at_ms)
+  .execute(pool)
+  .await
+  .map_err(|e| {
+    format!("save watch snapshot: {e}")
+  })?;
+  Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]

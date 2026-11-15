@@ -26,7 +26,8 @@ use crate::domain::model::{
 use crate::feed::parser::ParsedFeed;
 use crate::ports::repo::{
   Repo,
-  StateRow
+  StateRow,
+  WatchObservation
 };
 
 pub struct SqliteRepo {
@@ -165,6 +166,34 @@ impl Repo for SqliteRepo {
     payloads::latest_payload_content_hash(
       &self.pool,
       feed_id
+    )
+    .await
+  }
+
+  async fn latest_watch_observation(
+    &self,
+    feed_id: &str
+  ) -> Result<
+    Option<WatchObservation>,
+    String
+  > {
+    payloads::latest_watch_observation(
+      &self.pool, feed_id
+    )
+    .await
+  }
+
+  async fn upsert_watch_observation(
+    &self,
+    feed_id: &str,
+    observation: &WatchObservation,
+    observed_at_ms: i64
+  ) -> Result<(), String> {
+    payloads::upsert_watch_observation(
+      &self.pool,
+      feed_id,
+      observation,
+      observed_at_ms
     )
     .await
   }

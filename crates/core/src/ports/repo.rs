@@ -32,6 +32,14 @@ pub struct StateRow {
   pub consecutive_error_count: i64
 }
 
+#[derive(
+  Debug, Clone, PartialEq, Eq,
+)]
+pub struct WatchObservation {
+  pub content_length: i64,
+  pub element_hash:   Option<String>
+}
+
 #[async_trait::async_trait]
 #[allow(clippy::too_many_arguments)]
 pub trait Repo: Send + Sync {
@@ -93,6 +101,23 @@ pub trait Repo: Send + Sync {
     &self,
     feed_id: &str
   ) -> Result<Option<String>, String>;
+
+  /// Last successful watch GET
+  /// fingerprint, scoped to a feed.
+  async fn latest_watch_observation(
+    &self,
+    feed_id: &str
+  ) -> Result<
+    Option<WatchObservation>,
+    String
+  >;
+
+  async fn upsert_watch_observation(
+    &self,
+    feed_id: &str,
+    observation: &WatchObservation,
+    observed_at_ms: i64
+  ) -> Result<(), String>;
 
   async fn insert_payload_with_items(
     &self,
