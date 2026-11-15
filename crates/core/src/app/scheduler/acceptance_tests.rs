@@ -50,7 +50,8 @@ use crate::ports::http::Http;
 use crate::ports::random::RandomSource;
 use crate::ports::repo::{
   Repo,
-  StateRow
+  StateRow,
+  WatchObservation
 };
 
 struct FakeRepo {
@@ -220,6 +221,23 @@ impl Repo for FakeRepo {
   ) -> Result<Option<String>, String>
   {
     Ok(None)
+  }
+
+  async fn latest_watch_observation(
+    &self,
+    _feed_id: &str
+  ) -> Result<Option<WatchObservation>, String>
+  {
+    Ok(None)
+  }
+
+  async fn upsert_watch_observation(
+    &self,
+    _feed_id: &str,
+    _observation: &WatchObservation,
+    _observed_at_ms: i64
+  ) -> Result<(), String> {
+    Ok(())
   }
 
   async fn insert_payload_with_items(
