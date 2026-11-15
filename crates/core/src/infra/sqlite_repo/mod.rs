@@ -209,6 +209,16 @@ impl Repo for SqliteRepo {
     .await
   }
 
+  async fn latest_watch_emitted_count(
+    &self,
+    feed_id: &str
+  ) -> Result<Option<i64>, String> {
+    payloads::latest_watch_emitted_count(
+      &self.pool, feed_id
+    )
+    .await
+  }
+
   async fn insert_payload_with_items(
     &self,
     feed_id: &str,
@@ -217,6 +227,7 @@ impl Repo for SqliteRepo {
     last_modified_ms: Option<i64>,
     content_hash: Option<&str>,
     parsed: &ParsedFeed,
+    watch_item_count: Option<i64>,
     zone: &Tz
   ) -> Result<(), String> {
     payloads::insert_payload_with_items(
@@ -227,6 +238,7 @@ impl Repo for SqliteRepo {
       last_modified_ms,
       content_hash,
       parsed,
+      watch_item_count,
       zone
     )
     .await
