@@ -231,11 +231,28 @@ where
     .as_ref()
     .map(|body| sha256_hex(body));
 
+  let previous_body_hash = if watch
+    .is_some_and(|w| {
+      w.fetch_body_on_change
+        || w.detectors.contains(
+          &WatchDetector::ContentHash
+        )
+    }) {
+    repo
+      .latest_payload_content_hash(
+        &feed.id
+      )
+      .await?
+  } else {
+    None
+  };
+
   let body_changed =
     compute_body_changed(
       &state,
       &res,
       body_hash.as_deref(),
+      previous_body_hash.as_deref(),
       watch
     );
 
@@ -915,6 +932,7 @@ fn compute_body_changed(
   state: &LinkState,
   res: &crate::domain::model::GetResult,
   body_hash: Option<&str>,
+  previous_body_hash: Option<&str>,
   watch: Option<&WatchConfig>
 ) -> bool {
   if let Some(watch_cfg) = watch {
@@ -948,12 +966,22 @@ fn compute_body_changed(
                 .unwrap_or(true);
           }
         }
-        // Phase 2: no persisted prior
-        // body/element hash yet, so we
-        // treat a present hash as a
-        // potential change signal.
+        WatchDetector::ContentHash => {
+          if let Some(hash) =
+            body_hash
+          {
+            changed = changed
+              || previous_body_hash
+                .map(|previous| {
+                  previous != hash
+                })
+                .unwrap_or(true);
+          }
+        }
+        // ContentLength and ElementHash
+        // need independent persisted
+        // detector-specific snapshots.
         WatchDetector::ContentLength
-        | WatchDetector::ContentHash
         | WatchDetector::ElementHash => {
           changed = changed
             || body_hash.is_some();
@@ -961,11 +989,19 @@ fn compute_body_changed(
       }
     }
 
-    if !changed
-      && watch_cfg.fetch_body_on_change
-      && body_hash.is_some()
+    // When a watch fetches a body, use
+    // its persistent fingerprint as a
+    // fallback instead of treating
+    // every GET as a change. Handles
+    // sources that omit HTTP
+    // validators.
+    if watch_cfg.fetch_body_on_change
+      && let Some(hash) = body_hash
     {
-      changed = true;
+      changed = changed
+        || previous_body_hash
+          .map(|old| old != hash)
+          .unwrap_or(true);
     }
 
     return changed;
@@ -1074,6 +1110,149 @@ fn is_immediate_error(
 #[cfg(test)]
 mod watch_link_tests {
   use super::*;
+
+  #[test]
+  fn content_hash_detector_suppresses_identical_body()
+   {
+    let mut watch = WatchConfig {
+      id: "hash-watch".into(),
+      url: "https://news.example.test/page".into(),
+      domain: "news.example.test".into(),
+      category: "news".into(),
+      base_poll_seconds: 60,
+      provenance: None,
+      tags: None,
+      language: None,
+      content_type: None,
+      cookie_path: None,
+      headers_path: None,
+      headers: None,
+      check_method:
+        crate::domain::model::WatchCheckMethod::Get,
+      fallback_to_get: false,
+      detectors: vec![
+        WatchDetector::ContentHash
+      ],
+      fetch_body_on_change: false,
+      max_body_bytes: None,
+      max_items_per_fetch: None,
+      item_selector: None,
+      item_identity: None,
+      item_identity_attr: None,
+      title_selector: None,
+      link_selector: None,
+      summary_selector: None,
+      published_selector: None,
+      published_format: None,
+      include_selectors: None,
+      exclude_selectors: None,
+      normalize_whitespace: false,
+      strip_query_params: false,
+      emit_mode: WatchEmitMode::AnyChange,
+      emit_title: None,
+      min_item_count_change: None
+    };
+
+    let state = LinkState::initial(
+      "hash-watch".into(),
+      60,
+      600,
+      0.0,
+      1_000
+    );
+    let body = b"<html>Stable</html>";
+    let hash = sha256_hex(body);
+    let response =
+      crate::domain::model::GetResult {
+        status:             Some(200),
+        body:               Some(
+          body.to_vec()
+        ),
+        etag:               None,
+        last_modified:      None,
+        error:              None,
+        latency_ms:         1,
+        set_cookie_headers: Vec::new()
+      };
+
+    // First successful observation
+    // must still create a notification.
+    assert!(compute_body_changed(
+      &state,
+      &response,
+      Some(&hash),
+      None,
+      Some(&watch)
+    ));
+    assert!(!compute_body_changed(
+      &state,
+      &response,
+      Some(&hash),
+      Some(&hash),
+      Some(&watch)
+    ));
+    assert!(compute_body_changed(
+      &state,
+      &response,
+      Some(&hash),
+      Some("different-hash"),
+      Some(&watch)
+    ));
+
+    // fetch_body_on_change is not a
+    // detector: it must not override an
+    // unchanged content hash.
+    watch.fetch_body_on_change = true;
+    assert!(!compute_body_changed(
+      &state,
+      &response,
+      Some(&hash),
+      Some(&hash),
+      Some(&watch)
+    ));
+
+    // A second configured detector can
+    // independently signal a change.
+    watch
+      .detectors
+      .push(WatchDetector::Etag);
+    let mut tagged_state =
+      state.clone();
+    tagged_state.etag =
+      Some("old-etag".into());
+    let mut tagged_response =
+      response.clone();
+    tagged_response.etag =
+      Some("new-etag".into());
+    assert!(compute_body_changed(
+      &tagged_state,
+      &tagged_response,
+      Some(&hash),
+      Some(&hash),
+      Some(&watch)
+    ));
+
+    // Default watches use ETag and
+    // Last-Modified detectors. When a
+    // source sends neither, the body
+    // still establishes a first change
+    // and suppresses identical repeats.
+    watch.detectors.clear();
+    assert!(compute_body_changed(
+      &state,
+      &response,
+      Some(&hash),
+      None,
+      Some(&watch)
+    ));
+    assert!(!compute_body_changed(
+      &state,
+      &response,
+      Some(&hash),
+      Some(&hash),
+      Some(&watch)
+    ));
+  }
 
   #[test]
   fn watch_links_resolve_from_document_url()

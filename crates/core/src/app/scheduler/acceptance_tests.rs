@@ -214,6 +214,14 @@ impl Repo for FakeRepo {
     Ok(())
   }
 
+  async fn latest_payload_content_hash(
+    &self,
+    _feed_id: &str
+  ) -> Result<Option<String>, String>
+  {
+    Ok(None)
+  }
+
   async fn insert_payload_with_items(
     &self,
     _feed_id: &str,

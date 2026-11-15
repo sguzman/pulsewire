@@ -157,6 +157,18 @@ impl Repo for SqliteRepo {
     .await
   }
 
+  async fn latest_payload_content_hash(
+    &self,
+    feed_id: &str
+  ) -> Result<Option<String>, String>
+  {
+    payloads::latest_payload_content_hash(
+      &self.pool,
+      feed_id
+    )
+    .await
+  }
+
   async fn insert_payload_with_items(
     &self,
     feed_id: &str,
