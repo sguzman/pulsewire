@@ -46,6 +46,20 @@ jobs:
                 .PULSEWIRE_POSTGRES_PASSWORD == "" and
                 .PULSEWIRE_POSTGRES_PASSWORD_FILE == "/run/secrets/pulsewire_postgres_password"'
           done
+          # PW-023 metrics profile: no public listener, explicit token file,
+          # Prometheus is attached only to the internal monitoring bridge.
+          PULSEWIRE_METRICS_CONFIG_SOURCE=crates/fetcher/res/docker.toml \
+          PULSEWIRE_METRICS_TOKEN_SOURCE="$RUNNER_TEMP/pw023-compose-secret" \
+            docker compose -f crates/fetcher/docker-compose.yml \
+              -f crates/fetcher/docker-compose.metrics.yml config --format json | \
+              jq -e '
+                (.services.fetcher.ports // [] | length) == 0 and
+                (.services.prometheus.ports // [] | length) == 0 and
+                (.services.fetcher.networks | has("pulsewire_metrics_private")) and
+                (.services.prometheus.networks | has("pulsewire_services") | not) and
+                .networks.pulsewire_metrics_private.internal == true and
+                .services.fetcher.environment.PULSEWIRE_METRICS_TOKEN_FILE == "/run/secrets/pulsewire_metrics_token"
+              '
       - name: Build fetcher and server images
         run: |
           docker build --file crates/fetcher/Dockerfile --tag pulsewire-fetcher:ci .
@@ -246,13 +260,33 @@ jobs:
             "$RUNNER_TEMP/pulsewire-metrics.toml"
           grep -q '^enabled = true$' "$RUNNER_TEMP/pulsewire-metrics.toml"
           grep -q '^bind    = "0.0.0.0:9898"$' "$RUNNER_TEMP/pulsewire-metrics.toml"
+          # A non-loopback metrics bind without a valid token file
+          # must refuse startup even when PostgreSQL is reachable.
+          if docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e CONFIG_PATH=/app/res/metrics-ci.toml \
+            -v "$RUNNER_TEMP/pulsewire-metrics.toml:/app/res/metrics-ci.toml:ro" \
+            pulsewire-fetcher:ci --ingest-benchmark 1 \
+              > "$RUNNER_TEMP/metrics-unprotected.log" 2>&1; then
+            echo "non-loopback metrics unexpectedly accepted no token" >&2
+            exit 1
+          fi
+          grep -q 'requires PULSEWIRE_METRICS_TOKEN_FILE' \
+            "$RUNNER_TEMP/metrics-unprotected.log"
+          # Fixture credential is never placed in metrics container Env.
+          printf '%s\n' 'pw023-private-ci-metrics-token-123456789-abcdef' \
+            > "$RUNNER_TEMP/pw023-metrics-token"
+          chmod 0644 "$RUNNER_TEMP/pw023-metrics-token"
           docker run -d --name pulsewire-ci-metrics --network pulsewire-ci \
             --memory 512m --memory-swap 512m --cpus 0.75 --pids-limit 256 \
             -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
             -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
             -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e PULSEWIRE_METRICS_TOKEN_FILE=/run/secrets/pulsewire_metrics_token \
             -e CONFIG_PATH=/app/res/metrics-ci.toml \
             -e FEEDS_DIR=/app/smoke-feeds \
+            -v "$RUNNER_TEMP/pw023-metrics-token:/run/secrets/pulsewire_metrics_token:ro" \
             -v "$RUNNER_TEMP/pulsewire-metrics.toml:/app/res/metrics-ci.toml:ro" \
             -v "$RUNNER_TEMP/pulsewire-real-feeds:/app/smoke-feeds:ro" \
             pulsewire-fetcher:ci
@@ -260,6 +294,7 @@ jobs:
           metrics_up=0
           for i in {1..30}; do
             if docker exec pulsewire-ci-rss wget -qO- \
+              --header="Authorization: Bearer $(cat "$RUNNER_TEMP/pw023-metrics-token")" \
               http://pulsewire-ci-metrics:9898/metrics \
               > "$RUNNER_TEMP/pulsewire-metrics.prom" 2>/dev/null \
               && grep -q '^pulsewire_up 1$' "$RUNNER_TEMP/pulsewire-metrics.prom"; then
@@ -273,16 +308,28 @@ jobs:
             sleep 2
           done
           test "$metrics_up" = 1
+          test -z "$(docker port pulsewire-ci-metrics 9898/tcp)"
+          # Same connected DB-side client is denied metrics without
+          # the token or with an incorrect token.
+          denied="$(docker exec pulsewire-ci-rss wget -S -O /dev/null \
+            http://pulsewire-ci-metrics:9898/metrics 2>&1 || true)"
+          printf '%s\n' "$denied" | grep -q '401 Unauthorized'
+          denied="$(docker exec pulsewire-ci-rss wget -S -O /dev/null \
+            --header='Authorization: Bearer incorrect-token' \
+            http://pulsewire-ci-metrics:9898/metrics 2>&1 || true)"
+          printf '%s\n' "$denied" | grep -q '401 Unauthorized'
           cat > "$RUNNER_TEMP/pulsewire-prometheus.yml" <<'EOF'
           global:
             scrape_interval: 2s
           scrape_configs:
             - job_name: pulsewire-fetcher
+              bearer_token_file: /run/secrets/pulsewire_metrics_token
               static_configs:
                 - targets: ['pulsewire-ci-metrics:9898']
           EOF
           docker run -d --name pulsewire-ci-prometheus --network pulsewire-ci \
             -v "$RUNNER_TEMP/pulsewire-prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
+            -v "$RUNNER_TEMP/pw023-metrics-token:/run/secrets/pulsewire_metrics_token:ro" \
             prom/prometheus:v3.7.3 \
             --config.file=/etc/prometheus/prometheus.yml \
             --storage.tsdb.path=/prometheus \
@@ -322,6 +369,7 @@ jobs:
             docker logs pulsewire-ci-prometheus
             exit 1
           fi
+          echo "PW-023 authenticated metrics passed: non-loopback fail-closed, anonymous/wrong-token 401, bearer scrape 200, Prometheus up/down"
           # Verify disabled sources produced neither scheduler categories nor feed rows.
           count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
             psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.feeds WHERE category IN ('youtube','podcasts')")"
