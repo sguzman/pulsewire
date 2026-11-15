@@ -1,5 +1,5 @@
 //! Deterministic client-only journey
-//! against the disposable PostgreSQL
+//! against the disposable SQL
 //! server created by CI.
 //! This is intentionally ignored in
 //! ordinary developer test runs and
@@ -67,7 +67,7 @@ fn press(
 #[test]
 #[ignore = "requires isolated CI \
             PostgreSQL HTTP fixture"]
-fn postgres_http_tui_reader_journey() {
+fn isolated_http_tui_reader_journey() {
   let url = std::env::var(
     "PULSEWIRE_TUI_E2E_URL"
   )
@@ -121,6 +121,8 @@ fn postgres_http_tui_reader_journey() {
     .expect("TUI first page");
   assert_eq!(app.entries.len(), 1);
   let first = app.entries[0].id;
+  let first_title =
+    app.entries[0].title.clone();
   assert!(
     app.entries_next_offset.is_some()
   );
@@ -129,13 +131,45 @@ fn postgres_http_tui_reader_journey() {
     .expect("TUI second page");
   assert_eq!(app.entries.len(), 1);
   assert_ne!(app.entries[0].id, first);
+  let second_title =
+    app.entries[0].title.clone();
   app.entries_page_size = 50;
   app
     .open_search_entries(
       "Pulsewire CI Story".into()
     )
     .expect("TUI search");
-  assert!(app.entries.len() >= 2);
+  assert!(
+    app.status.starts_with("Loaded "),
+    "search did not succeed: {}",
+    app.status
+  );
+  assert!(
+    app.entries.len() == 2
+      && app.entries.iter().any(
+        |item| {
+          item.title.as_deref()
+            == Some(
+              "Pulsewire CI Story One"
+            )
+        }
+      )
+      && app.entries.iter().any(
+        |item| {
+          item.title.as_deref()
+            == Some(
+              "Pulsewire CI Story Two"
+            )
+        }
+      ),
+    "search count: {}; first page: \
+     {:?}; second page: {:?}; search \
+     URL: {:?}",
+    app.entries.len(),
+    first_title,
+    second_title,
+    app.entries_url()
+  );
 
   let (tx, rx) = mpsc::channel();
   app.set_event_sender(tx);
@@ -421,7 +455,7 @@ fn postgres_http_tui_reader_journey() {
 #[test]
 #[ignore = "requires restarted CI \
             PostgreSQL HTTP server"]
-fn postgres_http_tui_after_restart() {
+fn isolated_http_tui_after_restart() {
   let url = std::env::var(
     "PULSEWIRE_TUI_E2E_URL"
   )
