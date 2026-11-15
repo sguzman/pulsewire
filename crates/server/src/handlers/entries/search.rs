@@ -23,6 +23,21 @@ use crate::models::{
   SearchQuery
 };
 
+fn literal_like_pattern(
+  query: &str
+) -> String {
+  let mut pattern = String::new();
+  pattern.push('%');
+  for ch in query.chars() {
+    if ['\\', '%', '_'].contains(&ch) {
+      pattern.push('\\');
+    }
+    pattern.push(ch);
+  }
+  pattern.push('%');
+  pattern
+}
+
 pub async fn search_entries(
   State(state): State<AppState>,
   headers: HeaderMap,
@@ -44,9 +59,10 @@ pub async fn search_entries(
     ));
   }
 
-  let limit =
-    query.limit.unwrap_or(50).min(200)
-      as i64;
+  let limit = query
+    .limit
+    .unwrap_or(50)
+    .clamp(1, 200) as i64;
 
   let offset =
     query.offset.unwrap_or(0) as i64;
@@ -57,7 +73,7 @@ pub async fn search_entries(
   let feed_filter =
     query.feed_id.as_deref();
 
-  let pattern = format!("%{}%", q);
+  let pattern = literal_like_pattern(q);
 
   if let Some(pool) = &state.postgres {
     let schema = state
@@ -90,17 +106,20 @@ pub async fn search_entries(
     builder.push("fi.title ILIKE ");
 
     builder.push_bind(&pattern);
+    builder.push(" ESCAPE '\\'");
 
     builder
       .push(" OR fi.summary ILIKE ");
 
     builder.push_bind(&pattern);
+    builder.push(" ESCAPE '\\'");
 
     builder.push(
       " OR fi.description ILIKE "
     );
 
     builder.push_bind(&pattern);
+    builder.push(" ESCAPE '\\'");
 
     builder.push(")");
 
@@ -141,28 +160,33 @@ pub async fn search_entries(
       " ORDER BY fi.id DESC LIMIT "
     );
 
-    builder.push_bind(limit);
+    builder.push_bind(limit + 1);
 
     builder.push(" OFFSET ");
 
     builder.push_bind(offset);
 
-    let rows = builder
+    let mut rows = builder
             .build_query_as::<EntrySummary>()
             .fetch_all(pool)
             .await
             .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let has_more =
+      rows.len() as i64 > limit;
+    if has_more {
+      rows.truncate(limit as usize);
+    }
 
     let next_cursor = rows
       .iter()
       .map(|row| row.id)
       .max();
 
-    let next_offset = if rows.is_empty()
-    {
-      None
+    let next_offset = if has_more {
+      Some(offset + limit)
     } else {
-      Some(offset + rows.len() as i64)
+      None
     };
 
     return Ok(Json(
@@ -203,15 +227,15 @@ pub async fn search_entries(
   builder.push_bind(&pattern);
 
   builder.push(
-    ") OR lower(fi.summary) LIKE \
-     lower("
+    ") ESCAPE '\\' OR \
+     lower(fi.summary) LIKE lower("
   );
 
   builder.push_bind(&pattern);
 
   builder.push(
-    ") OR lower(fi.description) LIKE \
-     lower("
+    ") ESCAPE '\\' OR \
+     lower(fi.description) LIKE lower("
   );
 
   builder.push_bind(&pattern);
@@ -219,7 +243,7 @@ pub async fn search_entries(
   // Close both lower(pattern) and the
   // surrounding WHERE (title OR summary
   // OR description) group.
-  builder.push("))");
+  builder.push(") ESCAPE '\\')");
 
   if let Some(filter) = read_filter {
     match filter {
@@ -256,25 +280,31 @@ pub async fn search_entries(
     " ORDER BY fi.id DESC LIMIT "
   );
 
-  builder.push_bind(limit);
+  builder.push_bind(limit + 1);
 
   builder.push(" OFFSET ");
 
   builder.push_bind(offset);
 
-  let rows = builder
+  let mut rows = builder
         .build_query_as::<EntrySummary>()
         .fetch_all(pool)
         .await
         .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
+  let has_more =
+    rows.len() as i64 > limit;
+  if has_more {
+    rows.truncate(limit as usize);
+  }
+
   let next_cursor =
     rows.iter().map(|row| row.id).max();
 
-  let next_offset = if rows.is_empty() {
-    None
+  let next_offset = if has_more {
+    Some(offset + limit)
   } else {
-    Some(offset + rows.len() as i64)
+    None
   };
 
   Ok(Json(EntryListResponse {

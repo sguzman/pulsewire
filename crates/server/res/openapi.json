@@ -21,6 +21,20 @@
         }
       }
     },
+    "/ready": {
+      "get": {
+        "summary": "Database-backed readiness",
+        "description": "Returns 200 only when the configured database responds; returns 503 on dependency failure. Independent of the fetcher scheduler.",
+        "responses": {
+          "200": {
+            "description": "Ready"
+          },
+          "503": {
+            "description": "Database unavailable"
+          }
+        }
+      }
+    },
     "/openapi.json": {
       "get": {
         "responses": {
@@ -35,6 +49,58 @@
         "responses": {
           "200": {
             "description": "Docs UI"
+          }
+        }
+      }
+    },
+    "/reader": {
+      "get": {
+        "summary": "Responsive browser reader",
+        "description": "Self-contained reader page. Requires a bearer token only for subsequent /v1 API requests.",
+        "responses": {
+          "200": {
+            "description": "Reader HTML",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reader/app.js": {
+      "get": {
+        "summary": "Embedded browser reader JavaScript",
+        "responses": {
+          "200": {
+            "description": "Reader JavaScript",
+            "content": {
+              "text/javascript": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reader/styles.css": {
+      "get": {
+        "summary": "Embedded reader CSS",
+        "responses": {
+          "200": {
+            "description": "Reader stylesheet",
+            "content": {
+              "text/css": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -81,6 +147,16 @@
         "responses": {
           "204": {
             "description": "logged out"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -99,6 +175,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
                 }
               }
             }
@@ -123,6 +209,16 @@
                   "items": {
                     "$ref": "#/components/schemas/TokenSummary"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
                 }
               }
             }
@@ -151,6 +247,16 @@
         "responses": {
           "204": {
             "description": "revoked"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -179,7 +285,14 @@
             }
           },
           "401": {
-            "description": "Bearer token required"
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           },
           "403": {
             "description": "Administrator privileges required"
@@ -202,6 +315,16 @@
         "responses": {
           "204": {
             "description": "deleted"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -226,6 +349,16 @@
         "responses": {
           "204": {
             "description": "updated"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -247,6 +380,16 @@
                   "items": {
                     "$ref": "#/components/schemas/FeedSummary"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
                 }
               }
             }
@@ -281,6 +424,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -298,24 +451,38 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "enum": [
+                "all",
+                "read",
+                "unread"
+              ],
+              "default": "all"
+            },
+            "description": "Per-user read state: all, read, or unread."
           },
           {
             "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer"
-            }
+              "type": "integer",
+              "minimum": 0,
+              "default": 50,
+              "description": "Values outside 1–200 are clamped to that range."
+            },
+            "description": "Maximum results per page (1–200 after clamping)."
           },
           {
             "name": "offset",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer"
-            }
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Zero-based offset into descending item IDs."
           },
           {
             "name": "feed_id",
@@ -332,7 +499,8 @@
             "schema": {
               "type": "integer",
               "format": "int64"
-            }
+            },
+            "description": "Only item IDs strictly greater than this number; response echoes the supplied value."
           }
         ],
         "responses": {
@@ -345,8 +513,29 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid read filter, missing search query, or invalid query type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "Entries are ordered by descending ingestion item ID (not publication timestamp). Limit defaults to 50 and is clamped to [1,200]; offset defaults to zero. next_offset is null when there is no subsequent page. next_cursor is the highest returned ID for page-local high-watermark polling with since; it is not an offset pagination token. since, when supplied, filters to item IDs strictly greater than that value."
       }
     },
     "/v1/entries/search": {
@@ -363,23 +552,31 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Trimmed case-insensitive literal text to search."
           },
           {
             "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer"
-            }
+              "type": "integer",
+              "minimum": 0,
+              "default": 50,
+              "description": "Values outside 1–200 are clamped to that range."
+            },
+            "description": "Maximum results per page (1–200 after clamping)."
           },
           {
             "name": "offset",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer"
-            }
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Zero-based offset into descending item IDs."
           },
           {
             "name": "feed_id",
@@ -394,8 +591,15 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "enum": [
+                "all",
+                "read",
+                "unread"
+              ],
+              "default": "all"
+            },
+            "description": "Per-user read state: all, read, or unread."
           }
         ],
         "responses": {
@@ -408,8 +612,29 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid read filter, missing search query, or invalid query type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "Entries are ordered by descending ingestion item ID (not publication timestamp). Limit defaults to 50 and is clamped to [1,200]; offset defaults to zero. next_offset is null when there is no subsequent page. next_cursor is the highest returned ID for page-local high-watermark polling with since; it is not an offset pagination token. since, when supplied, filters to item IDs strictly greater than that value. The trimmed q parameter is a case-insensitive literal substring across title, summary and description, not a SQL wildcard pattern."
       }
     },
     "/v1/entries/{item_id}": {
@@ -440,6 +665,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -461,8 +696,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "Unread entries in feeds subscribed to by this account, not all ingested feeds."
       }
     },
     "/v1/feeds/unread/counts": {
@@ -485,8 +731,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "Unread entry counts for subscribed feeds with unread items; feeds with zero unread items may be omitted."
       }
     },
     "/v1/feeds/{feed_id}/entries": {
@@ -510,24 +767,38 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "enum": [
+                "all",
+                "read",
+                "unread"
+              ],
+              "default": "all"
+            },
+            "description": "Per-user read state: all, read, or unread."
           },
           {
             "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer"
-            }
+              "type": "integer",
+              "minimum": 0,
+              "default": 50,
+              "description": "Values outside 1–200 are clamped to that range."
+            },
+            "description": "Maximum results per page (1–200 after clamping)."
           },
           {
             "name": "offset",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer"
-            }
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Zero-based offset into descending item IDs."
           },
           {
             "name": "since",
@@ -536,7 +807,8 @@
             "schema": {
               "type": "integer",
               "format": "int64"
-            }
+            },
+            "description": "Only item IDs strictly greater than this number; response echoes the supplied value."
           }
         ],
         "responses": {
@@ -549,8 +821,29 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid read filter, missing search query, or invalid query type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "Entries are ordered by descending ingestion item ID (not publication timestamp). Limit defaults to 50 and is clamped to [1,200]; offset defaults to zero. next_offset is null when there is no subsequent page. next_cursor is the highest returned ID for page-local high-watermark polling with since; it is not an offset pagination token. since, when supplied, filters to item IDs strictly greater than that value."
       }
     },
     "/v1/entries/read": {
@@ -573,6 +866,16 @@
         "responses": {
           "204": {
             "description": "marked"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       },
@@ -595,6 +898,16 @@
         "responses": {
           "204": {
             "description": "unmarked"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -621,8 +934,18 @@
           "204": {
             "description": "read"
           },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "unread"
+            "description": "Entry is unread or not found; GET is a read-state probe, not an entry existence probe."
           }
         }
       },
@@ -646,6 +969,16 @@
         "responses": {
           "204": {
             "description": "marked"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       },
@@ -669,6 +1002,16 @@
         "responses": {
           "204": {
             "description": "unmarked"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -690,6 +1033,16 @@
                   "items": {
                     "$ref": "#/components/schemas/SubscriptionRow"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
                 }
               }
             }
@@ -715,6 +1068,16 @@
         "responses": {
           "201": {
             "description": "created"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -739,6 +1102,16 @@
         "responses": {
           "204": {
             "description": "deleted"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -781,6 +1154,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       },
@@ -803,6 +1186,16 @@
         "responses": {
           "201": {
             "description": "created"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -821,6 +1214,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnreadCountResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
                 }
               }
             }
@@ -848,6 +1251,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -869,6 +1282,16 @@
                   "items": {
                     "$ref": "#/components/schemas/FolderRow"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
                 }
               }
             }
@@ -898,6 +1321,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FolderRow"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
                 }
               }
             }
@@ -936,6 +1369,16 @@
         "responses": {
           "204": {
             "description": "updated"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       },
@@ -959,6 +1402,16 @@
         "responses": {
           "204": {
             "description": "deleted"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -991,6 +1444,16 @@
                   "items": {
                     "$ref": "#/components/schemas/FolderFeedRow"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
                 }
               }
             }
@@ -1027,6 +1490,16 @@
         "responses": {
           "201": {
             "description": "added"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -1060,6 +1533,16 @@
         "responses": {
           "204": {
             "description": "removed"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -1086,24 +1569,38 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "enum": [
+                "all",
+                "read",
+                "unread"
+              ],
+              "default": "all"
+            },
+            "description": "Per-user read state: all, read, or unread."
           },
           {
             "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer"
-            }
+              "type": "integer",
+              "minimum": 0,
+              "default": 50,
+              "description": "Values outside 1–200 are clamped to that range."
+            },
+            "description": "Maximum results per page (1–200 after clamping)."
           },
           {
             "name": "offset",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer"
-            }
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Zero-based offset into descending item IDs."
           },
           {
             "name": "since",
@@ -1112,7 +1609,8 @@
             "schema": {
               "type": "integer",
               "format": "int64"
-            }
+            },
+            "description": "Only item IDs strictly greater than this number; response echoes the supplied value."
           }
         ],
         "responses": {
@@ -1125,8 +1623,29 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid read filter, missing search query, or invalid query type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "Entries are ordered by descending ingestion item ID (not publication timestamp). Limit defaults to 50 and is clamped to [1,200]; offset defaults to zero. next_offset is null when there is no subsequent page. next_cursor is the highest returned ID for page-local high-watermark polling with since; it is not an offset pagination token. since, when supplied, filters to item IDs strictly greater than that value."
       }
     },
     "/v1/folders/unread/counts": {
@@ -1149,8 +1668,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "Counts for owned folders containing unread entries; empty and fully read folders may be omitted."
       }
     },
     "/v1/folders/{folder_id}/unread/counts": {
@@ -1184,6 +1714,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -1208,6 +1748,16 @@
         "responses": {
           "204": {
             "description": "deleted"
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -1233,8 +1783,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "Per-feed total/read/unread counts for the full feed catalog, including feeds with zero entries; counts are personalized to the bearer token."
       }
     }
   },
@@ -1400,7 +1961,10 @@
       "EntryListResponse": {
         "type": "object",
         "required": [
-          "items"
+          "items",
+          "next_cursor",
+          "next_offset",
+          "since"
         ],
         "properties": {
           "items": {
@@ -1412,17 +1976,20 @@
           "next_cursor": {
             "type": "integer",
             "format": "int64",
-            "nullable": true
+            "nullable": true,
+            "description": "Maximum item ID from this returned page, or null when empty; not an older-page cursor."
           },
           "next_offset": {
             "type": "integer",
             "format": "int64",
-            "nullable": true
+            "nullable": true,
+            "description": "Offset for next older page when one exists; otherwise null."
           },
           "since": {
             "type": "integer",
             "format": "int64",
-            "nullable": true
+            "nullable": true,
+            "description": "Echo of requested since ID, or null when not provided."
           }
         }
       },
@@ -1657,48 +2224,6 @@
           },
           "new_password": {
             "type": "string"
-          }
-        }
-      },
-      "PasswordResetRequest": {
-        "type": "object",
-        "required": [
-          "username"
-        ],
-        "properties": {
-          "username": {
-            "type": "string"
-          }
-        }
-      },
-      "PasswordResetConfirm": {
-        "type": "object",
-        "required": [
-          "token",
-          "new_password"
-        ],
-        "properties": {
-          "token": {
-            "type": "string"
-          },
-          "new_password": {
-            "type": "string"
-          }
-        }
-      },
-      "PasswordResetResponse": {
-        "type": "object",
-        "required": [
-          "reset_token",
-          "expires_in"
-        ],
-        "properties": {
-          "reset_token": {
-            "type": "string"
-          },
-          "expires_in": {
-            "type": "integer",
-            "format": "int64"
           }
         }
       },

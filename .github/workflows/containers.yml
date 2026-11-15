@@ -322,6 +322,9 @@ jobs:
           CHROME_BIN=google-chrome node tests/reader-live-smoke.mjs
 
           token="$(jq -er '.token' "$RUNNER_TEMP/login.json")"
+          PULSEWIRE_API_E2E_URL=http://127.0.0.1:18091 \
+          PULSEWIRE_API_E2E_TOKEN="$token" \
+            bash tests/api-live-contract.sh
           curl -fsS -H "Authorization: Bearer $token" \
             'http://127.0.0.1:18091/v1/entries?feed_id=pulsewire-ci-real-rss' \
             > "$RUNNER_TEMP/entries.json"
@@ -651,6 +654,9 @@ jobs:
             exit 1
           fi
           docker stop pulsewire-ci-sqlite-fetcher
+          PULSEWIRE_API_E2E_URL=http://127.0.0.1:18092 \
+          PULSEWIRE_API_E2E_TOKEN="$sqlite_token" \
+            bash tests/api-live-contract.sh
           PULSEWIRE_TUI_E2E_URL=http://127.0.0.1:18092 \
           PULSEWIRE_TUI_E2E_PASSWORD="$TEST_ADMIN_PASSWORD" \
             cargo test -p pulsewire-tui --locked isolated_http_tui_reader_journey \

@@ -241,7 +241,7 @@ async function loadEntries(reset) {
     if (generation !== state.generation || !state.token) return;
     state.entries.push(...payload.items);
     state.nextOffset = payload.next_offset ?? (offset + payload.items.length);
-    state.hasMore = payload.items.length === state.pageSize;
+    state.hasMore = payload.next_offset != null;
     renderEntries();
   } catch (error) {
     if (generation === state.generation) {
