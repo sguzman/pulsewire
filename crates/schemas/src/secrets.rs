@@ -75,9 +75,9 @@ fn resolve_sources(
 
     if content.is_empty()
       || content.len() > MAX_SECRET_BYTES
-      || content.contains([
-        '\n', '\r', '\0'
-      ])
+      || content.chars().any(|ch| {
+        matches!(ch, '\n' | '\r' | '\0')
+      })
     {
       return Err(
         "PostgreSQL password file \
