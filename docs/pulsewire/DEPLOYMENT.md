@@ -58,6 +58,12 @@ can also aggregate clients into one quota; account lockout is possible.
 
 ## Secret handling and debugging
 
+An opt-in [file-backed PostgreSQL password](SECRETS.md) removes secret
+**bytes** from the application's container environment, but does not hide
+them from the Docker administrator, host filesystem access or a compromised
+container. Default direct-environment credentials remain supported for
+compatibility and are exposed through Docker metadata.
+
 PostgreSQL configuration objects in the server and core/fetcher now redact
 passwords in Rust `Debug` output. API auth payloads and token responses also
 redact their passwords/bearer tokens in `Debug`. This limits accidental logging
@@ -83,10 +89,15 @@ publicly or migrate an existing household database.
 2. Set `PULSEWIRE_POSTGRES_HOST` to the database service's **Docker DNS hostname**
    on that network (default `postgres`). No router, CoreDNS or fixed resolver
    address is assumed.
-3. Supply `PULSEWIRE_POSTGRES_PASSWORD` securely in the container environment.
-   The checked-in TOML examples contain an empty password. Database usernames,
-   database name and schemas still come from each service's `res/docker.toml`.
-   If your database uses different values, prepare a **private** config first.
+3. Choose a **private PostgreSQL credential source**: an operator-provided
+   mounted secret with `PULSEWIRE_POSTGRES_PASSWORD_FILE`, a nonempty
+   `PULSEWIRE_POSTGRES_PASSWORD` environment value, or private TOML.
+   A file and nonempty environment password **cannot** be combined. If using
+   Compose secret-file overrides, see [SECRETS.md](SECRETS.md), ensure the
+   source file is readable by the non-root container, and validate the
+   overlay without starting it. An empty effective password fails at
+   startup. Database usernames, database name and schemas still come from
+   each service's `res/docker.toml` unless private config is provided.
 4. Check that the selected PostgreSQL schema names are correct and that you
    have a current verified backup. The server currently requires the fetcher
    schema and tables, so initialize the fetcher **before** the server.

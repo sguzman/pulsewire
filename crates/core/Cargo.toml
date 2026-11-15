@@ -5,6 +5,7 @@ name    = "pulsewire-core"
 version = { workspace = true }
 
 [dependencies]
+pulsewire-schemas = { path = "../schemas" }
 futures = "0.3.31"
 tokio = { features = [
   "fs",

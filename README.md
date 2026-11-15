@@ -104,11 +104,16 @@ File-level defaults can be set at top-level (`base_poll_seconds`, `id_prefix`,
 `category`, `provenance`, `tags`, `language`, `content_type`) and are inherited
 by feeds that omit them.
 
-PostgreSQL credentials: checked-in examples have an empty password. Set
-`PULSEWIRE_POSTGRES_PASSWORD` in the environment for both fetcher and server,
-or use a private, non-checked-in TOML config. The environment value overrides
-a configured `postgres.password`. The Docker Compose examples require this
-variable; never commit real database credentials.
+PostgreSQL credentials: checked-in examples have an empty password. The fetcher
+and server support a private mounted file with
+`PULSEWIRE_POSTGRES_PASSWORD_FILE` (recommended where possible), or a nonempty
+`PULSEWIRE_POSTGRES_PASSWORD` environment variable, or private TOML
+configuration. A file and direct env password cannot be set together.
+Missing/invalid files fail closed. The default Compose examples allow empty
+direct-password environment values so their optional file-secret overrides
+can be parsed; **database startup still rejects an empty effective password**.
+Never commit real credentials or treat a mount as a full secret manager.
+See [file-backed secrets](docs/pulsewire/SECRETS.md).
 
 Container deployment note: use an explicit existing Docker network shared with
 PostgreSQL (`PULSEWIRE_DOCKER_NETWORK`) and optionally override its DNS hostname
@@ -239,7 +244,8 @@ OpenAPI docs:
   [backup/restore](docs/pulsewire/BACKUP-RESTORE.md),
   [operator recovery](docs/pulsewire/RECOVERY.md),
   [network fetch safety](docs/pulsewire/FETCH_SECURITY.md), and
-  [monitoring/readiness](docs/pulsewire/MONITORING.md).
+  [monitoring/readiness](docs/pulsewire/MONITORING.md), and
+  [file-backed database secrets](docs/pulsewire/SECRETS.md).
   [PW-070 documentation acceptance](docs/pulsewire/PW070-ACCEPTANCE.md)
   is verified in isolated CI. All operator procedures are **preflight or
   isolated CI reference**, not a deployment or release authorization.

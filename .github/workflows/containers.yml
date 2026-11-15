@@ -31,6 +31,20 @@ jobs:
           docker compose -f crates/server/docker-compose.yml config --format json | jq -e '(.services.server.ports | length) == 1 and all(.services.server.ports[]; .host_ip == "127.0.0.1")'
           grep -q '^enabled = false$' crates/fetcher/res/docker.toml
           grep -q '^bind    = "127.0.0.1:9898"$' crates/fetcher/res/docker.toml
+          # Compose overlays must clear direct credential environment values.
+          printf '%s\n' 'ci-example-only' > "$RUNNER_TEMP/pw023-compose-secret"
+          chmod 0644 "$RUNNER_TEMP/pw023-compose-secret"
+          for service in fetcher server; do
+            PULSEWIRE_POSTGRES_PASSWORD_SOURCE="$RUNNER_TEMP/pw023-compose-secret" \
+              docker compose -f "crates/$service/docker-compose.yml" \
+                -f "crates/$service/docker-compose.secrets.yml" config --quiet
+            PULSEWIRE_POSTGRES_PASSWORD_SOURCE="$RUNNER_TEMP/pw023-compose-secret" \
+              docker compose -f "crates/$service/docker-compose.yml" \
+                -f "crates/$service/docker-compose.secrets.yml" config --format json | \
+              jq -e --arg service "$service" '.services[$service].environment |
+                .PULSEWIRE_POSTGRES_PASSWORD == "" and
+                .PULSEWIRE_POSTGRES_PASSWORD_FILE == "/run/secrets/pulsewire_postgres_password"'
+          done
       - name: Build fetcher and server images
         run: |
           docker build --file crates/fetcher/Dockerfile --tag pulsewire-fetcher:ci .
@@ -66,7 +80,8 @@ jobs:
             fi
             docker rm -f pulsewire-ci-fetcher pulsewire-ci-rss pulsewire-ci-server pulsewire-ci-postgres \
               pulsewire-ci-metrics pulsewire-ci-prometheus \
-              pulsewire-ci-sqlite-fetcher pulsewire-ci-sqlite-server >/dev/null 2>&1 || true
+              pulsewire-ci-sqlite-fetcher pulsewire-ci-sqlite-server \
+              pulsewire-ci-secret-server >/dev/null 2>&1 || true
             docker network rm pulsewire-ci >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
@@ -675,3 +690,49 @@ jobs:
           PULSEWIRE_TUI_E2E_PASSWORD="$TEST_ADMIN_PASSWORD" \
             cargo test -p pulsewire-tui --locked isolated_http_tui_after_restart \
               -- --ignored --test-threads=1
+          # PW-023: a mounted password file must work with BOTH actual
+          # binaries, without putting secret bytes in Docker Env metadata.
+          printf '%s\n' "$TEST_DB_PASSWORD" > "$RUNNER_TEMP/pw023-runtime-secret"
+          chmod 0644 "$RUNNER_TEMP/pw023-runtime-secret"
+          docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_POSTGRES_PASSWORD_FILE=/run/secrets/pulsewire_postgres_password \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e FEEDS_DIR=/app/ci-feeds \
+            -v "$RUNNER_TEMP/pw023-runtime-secret:/run/secrets/pulsewire_postgres_password:ro" \
+            -v "$RUNNER_TEMP/pulsewire-real-feeds:/app/ci-feeds:ro" \
+            pulsewire-fetcher:ci --ingest-benchmark 1
+          docker run -d --name pulsewire-ci-secret-server --network pulsewire-ci \
+            -p 127.0.0.1:18093:8091 \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_POSTGRES_PASSWORD_FILE=/run/secrets/pulsewire_postgres_password \
+            -v "$RUNNER_TEMP/pw023-runtime-secret:/run/secrets/pulsewire_postgres_password:ro" \
+            pulsewire-server:ci
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18093/ready >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:18093/health
+          curl -fsS http://127.0.0.1:18093/ready
+          if docker inspect -f '{{json .Config.Env}}' pulsewire-ci-secret-server | \
+            grep -F "$TEST_DB_PASSWORD"; then
+            echo "DB secret leaked through container environment" >&2
+            exit 1
+          fi
+          test "$(docker port pulsewire-ci-secret-server 8091/tcp)" = '127.0.0.1:18093'
+          docker rm -f pulsewire-ci-secret-server
+          # Explicit file failure must reject startup with a generic
+          # error; no insecure fallback and no password in diagnostics.
+          if docker run --rm --network pulsewire-ci \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_POSTGRES_PASSWORD_FILE=/run/secrets/missing \
+            pulsewire-server:ci > "$RUNNER_TEMP/pw023-bad-secret.log" 2>&1; then
+            echo "Missing password file unexpectedly accepted" >&2
+            exit 1
+          fi
+          grep -qi 'password file' "$RUNNER_TEMP/pw023-bad-secret.log"
+          if grep -F "$TEST_DB_PASSWORD" "$RUNNER_TEMP/pw023-bad-secret.log"; then
+            echo "Secret included in error log" >&2
+            exit 1
+          fi
+          echo "PW-023 file-backed credentials: both real binaries passed against disposable PostgreSQL"

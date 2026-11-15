@@ -519,6 +519,12 @@ The pre-adoption roadmap is preserved verbatim in [ROADMAP-LEGACY.md](ROADMAP-LE
 - **Scope and limitations:** `next_cursor` is the highest ID **in the returned page**, suitable as a local high-watermark for `since`, not a cursor for older items; `next_offset` is for older page navigation and can shift if concurrent ingestion inserts earlier IDs. `/v1/entries/unread/count` counts subscribed feeds, whereas `/v1/feeds/counts` includes the entire catalog. SQLite/PostgreSQL acceptance uses only disposable CI fixtures; no real household data, network, deployment, TLS/proxy configuration, release or tag was touched.
 - **Next incomplete gates:** PW-023 ingress/secrets, PW-032 realistic target-host resource envelope, PW-070 full documentation/runbook acceptance and PW-071 owner-approved deployment/release. The score remains 92/100 until one of those meets its own acceptance contract.
 
+## PW-023 supplementary secret-file hardening — in progress, 2026-11-15
+
+- **No weighted credit awarded** for PW-023 here. This opt-in credential hardening supports the remaining P0 network/secrets milestone but does not prove trusted TLS ingress, isolated Docker network membership, edge per-real-client throttling, protected metrics access or real-host firewall behavior. Project baseline remains 93/100 until all acceptance requirements pass.
+- The shared resolver and optional Compose overlays replace environment-exposed DB password bytes with a private mounted file path, reject conflicting inputs and invalid file content without fallback, and preserve direct-environment/private-TOML compatibility. See [SECRETS.md](SECRETS.md).
+- Disposable CI and follow-up source verification are required; no home host, real secrets, production network, shared database, DNS, proxy, service, release or tag will be modified by this work.
+
 ## PW-070 documentation/runbook/compatibility — verified complete, 2026-11-15
 
 - **Accepted:** PW-070 **1/1 weighted point verified**; Pulsewire's canonical accepted total advances **92/100 → 93/100 (Δ +1 percentage point)**. [PR #56](https://github.com/sguzman/pulsewire/pull/56) was squash-merged as [`e7811b1`](https://github.com/sguzman/pulsewire/commit/e7811b107917bcdd524ca3fdbc8925ca65890618), with exact verified PR head `26aeffdfa692133e4b1d5dce5e1e396dbb2d96f5`. Details: [PW070-ACCEPTANCE.md](PW070-ACCEPTANCE.md).

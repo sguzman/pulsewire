@@ -1,6 +1,11 @@
 # Changelog
 ## [Unreleased]
 
+### 🔐 PostgreSQL secret-file hardening (PW-023 partial)
+- Add the shared `PULSEWIRE_POSTGRES_PASSWORD_FILE` resolver for fetcher and reader server, rejecting ambiguous env/file sources and failing closed on unreadable/malformed file secrets without logging contents.
+- Provide opt-in secret-file Compose overlays and source/CI checks. Default env/private-config credentials remain compatible; server and fetcher continue rejecting an empty effective PostgreSQL password.
+- This is an isolated code/CI hardening step only; no public ingress, TLS, per-real-client proxy protections or household network verification is claimed.
+
 ### 📚 Operator documentation
 - Reconcile deployment, compatibility, privacy, recovery, troubleshooting and release runbooks with actual container/source defaults, and prevent unsafe documentation of development cleanup and tag/push steps (PW-070).
 - Add a dependency-free documentation contract check for local links, Compose/runtime security boundaries and claimed `just` commands.

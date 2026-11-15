@@ -11,12 +11,15 @@ pub const SCHEMAS_ROOT: &str =
   env!("CARGO_MANIFEST_DIR");
 
 mod config_paths;
+mod secrets;
+
 use std::path::{
   Path,
   PathBuf
 };
 
 pub use config_paths::config_path;
+pub use secrets::postgres_password;
 
 /// Locate a service's schema directory.
 ///
