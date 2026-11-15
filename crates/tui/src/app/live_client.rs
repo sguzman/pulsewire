@@ -105,7 +105,8 @@ fn receive(
       }
     };
     panic!(
-      "{label}: unexpected TUI event: {kind}"
+      "{label}: unexpected TUI event: \
+       {kind}"
     );
   }
 }
@@ -285,15 +286,20 @@ fn isolated_http_tui_reader_journey() {
     &mut app,
     subscribe_key.clone()
   );
-  receive(&mut app, &rx, "subscription toggle 1", |event| {
-    matches!(
-      event,
-      AppEvent::ToggleSubscribe {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "subscription toggle 1",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleSubscribe {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_subscriptions()
     .expect("changed subscription");
@@ -305,15 +311,20 @@ fn isolated_http_tui_reader_journey() {
     &mut app,
     subscribe_key.clone()
   );
-  receive(&mut app, &rx, "subscription toggle 2", |event| {
-    matches!(
-      event,
-      AppEvent::ToggleSubscribe {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "subscription toggle 2",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleSubscribe {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_subscriptions()
     .expect("restored subscription");
@@ -328,15 +339,20 @@ fn isolated_http_tui_reader_journey() {
       &mut app,
       subscribe_key.clone()
     );
-    receive(&mut app, &rx, "subscription persistence", |event| {
-      matches!(
-        event,
-        AppEvent::ToggleSubscribe {
-          ok: true,
-          ..
-        }
-      )
-    });
+    receive(
+      &mut app,
+      &rx,
+      "subscription persistence",
+      |event| {
+        matches!(
+          event,
+          AppEvent::ToggleSubscribe {
+            ok: true,
+            ..
+          }
+        )
+      }
+    );
     app
       .refresh_subscriptions()
       .expect("persist subscription");
@@ -350,15 +366,20 @@ fn isolated_http_tui_reader_journey() {
   let favorite =
     app.favorite_ids.contains(CI_FEED);
   press(&mut app, favorite_key.clone());
-  receive(&mut app, &rx, "favorite toggle 1", |event| {
-    matches!(
-      event,
-      AppEvent::ToggleFavorite {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "favorite toggle 1",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleFavorite {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_favorites()
     .expect("changed favorites");
@@ -367,15 +388,20 @@ fn isolated_http_tui_reader_journey() {
     favorite
   );
   press(&mut app, favorite_key.clone());
-  receive(&mut app, &rx, "favorite toggle 2", |event| {
-    matches!(
-      event,
-      AppEvent::ToggleFavorite {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "favorite toggle 2",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleFavorite {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_favorites()
     .expect("restored favorites");
@@ -388,15 +414,20 @@ fn isolated_http_tui_reader_journey() {
       &mut app,
       favorite_key.clone()
     );
-    receive(&mut app, &rx, "favorite persistence", |event| {
-      matches!(
-        event,
-        AppEvent::ToggleFavorite {
-          ok: true,
-          ..
-        }
-      )
-    });
+    receive(
+      &mut app,
+      &rx,
+      "favorite persistence",
+      |event| {
+        matches!(
+          event,
+          AppEvent::ToggleFavorite {
+            ok: true,
+            ..
+          }
+        )
+      }
+    );
     app
       .refresh_favorites()
       .expect("persist favorite");
@@ -414,15 +445,20 @@ fn isolated_http_tui_reader_journey() {
     app.entries[0].is_read;
   let item = app.entries[0].id;
   press(&mut app, read_key.clone());
-  receive(&mut app, &rx, "read toggle 1", |event| {
-    matches!(
-      event,
-      AppEvent::ToggleEntryRead {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "read toggle 1",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleEntryRead {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_entries()
     .expect("changed read state");
@@ -432,15 +468,20 @@ fn isolated_http_tui_reader_journey() {
     original_read
   );
   press(&mut app, read_key.clone());
-  receive(&mut app, &rx, "read toggle 2", |event| {
-    matches!(
-      event,
-      AppEvent::ToggleEntryRead {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "read toggle 2",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleEntryRead {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_entries()
     .expect("restored read state");
@@ -468,15 +509,20 @@ fn isolated_http_tui_reader_journey() {
   );
   app.selected_entry = story_one_index;
   press(&mut app, read_key.clone());
-  receive(&mut app, &rx, "Story One persisted read", |event| {
-    matches!(
-      event,
-      AppEvent::ToggleEntryRead {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "Story One persisted read",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleEntryRead {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app.refresh_entries().expect(
     "persist Story One read state"
   );
@@ -493,12 +539,17 @@ fn isolated_http_tui_reader_journey() {
   app.queue_create_folder(
     folder_name.to_string()
   );
-  receive(&mut app, &rx, "folder creation", |event| {
-    matches!(
-      event,
-      AppEvent::RefreshFolders { .. }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "folder creation",
+    |event| {
+      matches!(
+        event,
+        AppEvent::RefreshFolders { .. }
+      )
+    }
+  );
   let folder_index = app
     .folders
     .iter()
@@ -513,32 +564,47 @@ fn isolated_http_tui_reader_journey() {
   // RefreshFolders schedules a
   // folder-feed request; consume it
   // before assignment.
-  receive(&mut app, &rx, "initial folder-feed listing", |event| {
-    matches!(
-      event,
-      AppEvent::FolderFeeds { .. }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "initial folder-feed listing",
+    |event| {
+      matches!(
+        event,
+        AppEvent::FolderFeeds { .. }
+      )
+    }
+  );
   app.queue_assign_folder_feed(
     folder_id,
     CI_FEED.to_string()
   );
-  receive(&mut app, &rx, "folder feed assignment", |event| {
-    matches!(
-      event,
-      AppEvent::FolderFeedUpdate {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "folder feed assignment",
+    |event| {
+      matches!(
+        event,
+        AppEvent::FolderFeedUpdate {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app.request_folder_feeds();
-  receive(&mut app, &rx, "updated folder-feed listing", |event| {
-    matches!(
-      event,
-      AppEvent::FolderFeeds { .. }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "updated folder-feed listing",
+    |event| {
+      matches!(
+        event,
+        AppEvent::FolderFeeds { .. }
+      )
+    }
+  );
   assert!(
     app
       .folder_feed_ids
@@ -687,12 +753,17 @@ fn isolated_http_tui_after_restart() {
   let (tx, rx) = mpsc::channel();
   app.set_event_sender(tx);
   app.request_folder_feeds();
-  receive(&mut app, &rx, "post-restart folder listing", |event| {
-    matches!(
-      event,
-      AppEvent::FolderFeeds { .. }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "post-restart folder listing",
+    |event| {
+      matches!(
+        event,
+        AppEvent::FolderFeeds { .. }
+      )
+    }
+  );
   assert!(
     app
       .folder_feed_ids
