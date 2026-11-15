@@ -146,14 +146,22 @@ fn isolated_http_tui_reader_journey() {
   );
   assert!(
     app.entries.len() == 2
-      && app.entries.iter().any(|item| {
-        item.title.as_deref()
-          == Some("Pulsewire CI Story One")
-      })
-      && app.entries.iter().any(|item| {
-        item.title.as_deref()
-          == Some("Pulsewire CI Story Two")
-      }),
+      && app.entries.iter().any(
+        |item| {
+          item.title.as_deref()
+            == Some(
+              "Pulsewire CI Story One"
+            )
+        }
+      )
+      && app.entries.iter().any(
+        |item| {
+          item.title.as_deref()
+            == Some(
+              "Pulsewire CI Story Two"
+            )
+        }
+      ),
     "search count: {}; first page: \
      {:?}; second page: {:?}; search \
      URL: {:?}",
