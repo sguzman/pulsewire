@@ -24,6 +24,8 @@ The fetcher's Prometheus-text endpoint is **disabled by default**. Its example D
 
 When enabled, `GET /metrics` exposes `pulsewire_up`, start time, scheduler ticks, due-feed gauges and counters, HTTP action outcomes and latency, database query timing, and in-flight actions. The core's isolated loopback regression tests check a parseable HTTP response, proper content length, and Prometheus sample framing.
 
+**CI-verified real Prometheus scrape:** [PR #46](https://github.com/sguzman/pulsewire/pull/46) runs a second metrics-enabled fetcher and a pinned Prometheus container on a disposable, private test network without host port publishing. Its [exact-head container run 43745925819](https://github.com/sguzman/pulsewire/actions/runs/43745925819) checks `up{job="pulsewire-fetcher"} == 1` while the fetcher runs and `up == 0` after it stops. This proves real scrape acceptance and process-loss visibility in CI, **not** that monitoring or alerts have been installed on the owner's home host. Production metrics remain disabled by default.
+
 Metrics indicate activity, **not** comprehensive data freshness. A scrape failure or a missing target should be treated as a fetcher outage; `pulsewire_up 1` is only emitted while the endpoint responds. Configure Prometheus target `up` alerts and separately monitor reader `/ready` failures, fetcher process exits, feed backlog and scrape staleness.
 
 ## Exposure and release boundary
