@@ -46,6 +46,10 @@ pub(crate) struct UiConfig {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Keybindings {
+  #[serde(
+    default = "default_logout_key"
+  )]
+  pub(crate) logout: String,
   pub(crate) quit: String,
   pub(crate) refresh: String,
   pub(crate) next_tab: String,
@@ -92,6 +96,7 @@ pub(crate) struct KeyBinding {
 }
 
 pub(crate) struct ResolvedKeybindings {
+  pub(crate) logout: KeyBinding,
   pub(crate) quit: KeyBinding,
   pub(crate) refresh: KeyBinding,
   pub(crate) next_tab: KeyBinding,
@@ -221,6 +226,9 @@ impl TuiConfig {
     ConfigError
   > {
     Ok(ResolvedKeybindings {
+      logout:                parse_key(
+        &self.keybindings.logout
+      )?,
       quit:                  parse_key(
         &self.keybindings.quit
       )?,
@@ -353,6 +361,10 @@ impl TuiConfig {
   }
 }
 
+fn default_logout_key() -> String {
+  "L".to_string()
+}
+
 pub(crate) fn default_config_path()
 -> PathBuf {
   PathBuf::from(
@@ -474,4 +486,41 @@ fn parse_key(
     code,
     modifiers
   })
+}
+
+#[cfg(test)]
+mod logout_defaults_tests {
+  use super::*;
+
+  #[test]
+  fn legacy_tui_config_defaults_logout_key()
+   {
+    let text = include_str!(
+      "../res/config.toml"
+    )
+    .replace(
+      "logout                = \"L\"\n",
+      ""
+    );
+    let config: TuiConfig =
+      toml::from_str(&text)
+        .expect("legacy TUI config");
+    assert_eq!(
+      config.keybindings.logout,
+      "L"
+    );
+    let keys = config
+      .resolved_keybindings()
+      .expect("legacy bindings");
+    assert_eq!(
+      keys.logout.code,
+      KeyCode::Char('L')
+    );
+    assert!(
+      keys
+        .logout
+        .modifiers
+        .contains(KeyModifiers::SHIFT)
+    );
+  }
 }

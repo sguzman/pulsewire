@@ -137,6 +137,9 @@
         "folder_unassign"
       ],
       "properties": {
+        "logout": {
+          "type": "string"
+        },
         "quit": {
           "type": "string"
         },

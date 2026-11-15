@@ -34,6 +34,13 @@ impl App {
     }
 
     if self.key_matches(
+      &self.keys.logout,
+      key
+    ) {
+      return Ok(self.logout_and_exit());
+    }
+
+    if self.key_matches(
       &self.keys.tab_feeds,
       key
     ) {

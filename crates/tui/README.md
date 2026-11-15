@@ -40,7 +40,11 @@ Controls (defaults, configurable in `config.toml`):
 - Feeds paging: `[`/`]`.
 - List paging (favorites, folders, subscriptions): `n`/`p`.
 - Refresh: `r`.
-- Quit: `q`.
+- Logout: `L` revokes the bearer with the server and exits; restart the TUI
+  to log in again. If revocation fails, the client stays signed in and shows an
+  error rather than pretending the session ended. Existing configs without a
+  `logout` key continue to use `L` by default.
+- Quit without revoking the server session: `q`.
 
 ## Config
 Default config: `crates/tui/res/config.toml`. Schema:
