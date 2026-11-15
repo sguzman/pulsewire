@@ -135,7 +135,18 @@ fn isolated_http_tui_reader_journey() {
       "Pulsewire CI Story".into()
     )
     .expect("TUI search");
-  assert!(app.entries.len() >= 2);
+  assert!(
+    app.entries.len() >= 2,
+    "search returned {} entries; titles: {:?}",
+    app.entries.len(),
+    app
+      .entries
+      .iter()
+      .map(|item| {
+        item.title.as_deref()
+      })
+      .collect::<Vec<_>>()
+  );
 
   let (tx, rx) = mpsc::channel();
   app.set_event_sender(tx);
