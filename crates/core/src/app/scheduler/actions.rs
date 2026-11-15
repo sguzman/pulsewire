@@ -991,9 +991,10 @@ fn compute_body_changed(
 
     // When a watch fetches a body, use
     // its persistent fingerprint as a
-    // fallback instead of treating every
-    // GET as a change. Handles sources
-    // that omit HTTP validators.
+    // fallback instead of treating
+    // every GET as a change. Handles
+    // sources that omit HTTP
+    // validators.
     if watch_cfg.fetch_body_on_change
       && let Some(hash) = body_hash
     {
