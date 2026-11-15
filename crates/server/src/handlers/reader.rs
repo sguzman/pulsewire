@@ -24,7 +24,10 @@ fn asset(
   (
     [
       (header::CONTENT_TYPE, mime),
-      (header::CACHE_CONTROL, "no-store"),
+      (
+        header::CACHE_CONTROL,
+        "no-store"
+      ),
       (
         HeaderName::from_static(
           "x-content-type-options"
@@ -35,7 +38,13 @@ fn asset(
         HeaderName::from_static(
           "content-security-policy"
         ),
-        "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'"
+        "default-src 'none'; \
+         script-src 'self'; style-src \
+         'self'; connect-src 'self'; \
+         img-src 'self'; base-uri \
+         'none'; form-action 'none'; \
+         object-src 'none'; \
+         frame-ancestors 'none'"
       )
     ],
     body
@@ -81,19 +90,28 @@ mod tests {
         axum::http::StatusCode::OK
       );
       assert_eq!(
-        response.headers()
+        response
+          .headers()
           .get("x-content-type-options")
           .unwrap(),
         "nosniff"
       );
-      assert!(response.headers()
-        .get("content-security-policy")
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .contains("script-src 'self'"));
+      assert!(
+        response
+          .headers()
+          .get(
+            "content-security-policy"
+          )
+          .unwrap()
+          .to_str()
+          .unwrap()
+          .contains(
+            "script-src 'self'"
+          )
+      );
       assert_eq!(
-        response.headers()
+        response
+          .headers()
           .get(header::CACHE_CONTROL)
           .unwrap(),
         "no-store"
