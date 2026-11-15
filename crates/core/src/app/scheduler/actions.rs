@@ -422,13 +422,49 @@ where
     | Err(parse_err) => {
       if let Some(watch_cfg) = watch {
         if body_changed {
-          Some(build_synthetic_watch_payload(
-            feed,
-            watch_cfg,
-            now_ms,
-            body_hash,
-            body,
-          ))
+          let extracted =
+            extract_watch_items_from_html(
+              feed,
+              watch_cfg,
+              body,
+              now_ms
+            );
+          let emitted =
+            if watch_cfg.emit_mode
+              == WatchEmitMode::NewItemsOnly
+            {
+              let candidates = extracted
+                .iter()
+                .filter_map(|item| {
+                  item.guid.clone()
+                })
+                .collect::<Vec<_>>();
+              let known = repo
+                .known_watch_item_guids(
+                  &feed.id,
+                  &candidates
+                )
+                .await?
+                .into_iter()
+                .collect::<HashSet<_>>();
+              extracted
+                .into_iter()
+                .filter(|item| {
+                  item.guid
+                    .as_ref()
+                    .is_some_and(|guid| {
+                      !known.contains(guid)
+                    })
+                })
+                .collect()
+            } else {
+              extracted
+            };
+
+          build_synthetic_watch_payload(
+            feed, watch_cfg, now_ms,
+            body_hash, emitted
+          )
         } else {
           tracing::debug!(feed_id = %feed.id, error = %parse_err, "Watch parse failed but no body change detected; skipping synthetic emit");
           None
@@ -627,16 +663,18 @@ fn extract_watch_items_from_html(
   let mut seen = HashSet::new();
   let mut items = Vec::new();
 
-  let selected: Vec<_> = document
-    .select(&item_selector)
-    .collect();
-
+  // Bound work and database lookup
+  // input, even for large or malformed
+  // HTML.
   let max_items = watch
     .max_items_per_fetch
-    .unwrap_or(usize::MAX as u64)
+    .unwrap_or(512)
+    .min(512)
     as usize;
 
-  for node in selected {
+  for node in
+    document.select(&item_selector)
+  {
     if items.len() >= max_items {
       break;
     }
@@ -886,8 +924,8 @@ fn build_synthetic_watch_payload(
   watch: &WatchConfig,
   now_ms: i64,
   body_hash: Option<&str>,
-  body: &[u8]
-) -> ParsedFeed {
+  extracted_items: Vec<FeedItem>
+) -> Option<ParsedFeed> {
   let title = watch
     .emit_title
     .clone()
@@ -901,60 +939,95 @@ fn build_synthetic_watch_payload(
       format!("{}:{}", feed.id, now_ms)
     });
 
-  let summary = match watch.emit_mode {
+  let items = match watch.emit_mode {
     | WatchEmitMode::NewItemsOnly => {
-      Some(
-        "watch detected new items"
-          .to_string()
-      )
+      if extracted_items.is_empty() {
+        return None;
+      }
+      extracted_items
+    }
+    | WatchEmitMode::AnyChange
+      if !extracted_items
+        .is_empty() =>
+    {
+      extracted_items
     }
     | WatchEmitMode::AnyChange => {
-      Some(
-        "watch detected content change"
-          .to_string()
-      )
+      vec![FeedItem {
+        title:           Some(
+          title.clone()
+        ),
+        link:            Some(
+          feed.url.clone()
+        ),
+        guid:            Some(guid),
+        published_at_ms: Some(now_ms),
+        category:        Some(
+          feed.category.clone()
+        ),
+        description:     Some(
+          "watch detected content \
+           change"
+            .to_string()
+        ),
+        summary:         Some(
+          "watch detected content \
+           change"
+            .to_string()
+        )
+      }]
     }
     | WatchEmitMode::Digest => {
-      Some(
-        "watch emitted digest update"
-          .to_string()
-      )
+      let preview = extracted_items
+        .iter()
+        .take(8)
+        .map(|item| {
+          item
+            .title
+            .as_deref()
+            .or(item.link.as_deref())
+            .unwrap_or("Untitled")
+            .chars()
+            .take(100)
+            .collect::<String>()
+        })
+        .collect::<Vec<_>>()
+        .join(" | ");
+      let summary =
+        if preview.is_empty() {
+          "watch content changed with \
+           no matching items"
+            .to_string()
+        } else {
+          format!(
+            "{} matching items: \
+             {preview}",
+            extracted_items.len()
+          )
+        };
+      vec![FeedItem {
+        title:           Some(
+          title.clone()
+        ),
+        link:            Some(
+          feed.url.clone()
+        ),
+        guid:            Some(guid),
+        published_at_ms: Some(now_ms),
+        category:        Some(
+          feed.category.clone()
+        ),
+        description:     Some(
+          summary.clone()
+        ),
+        summary:         Some(summary)
+      }]
     }
   };
 
-  let extracted_items =
-    extract_watch_items_from_html(
-      feed, watch, body, now_ms
-    );
-
-  if !extracted_items.is_empty() {
-    return ParsedFeed {
-      metadata: FeedMetadata {
-        title:         Some(
-          title.clone()
-        ),
-        link:          Some(
-          feed.url.clone()
-        ),
-        description:   Some(
-          "synthetic payload from \
-           ad-hoc watch"
-            .to_string()
-        ),
-        language:      watch
-          .language
-          .clone(),
-        updated_at_ms: Some(now_ms)
-      },
-      items:    extracted_items
-    };
-  }
-
-  ParsedFeed {
+  Some(ParsedFeed {
     metadata: FeedMetadata {
-      title:         Some(
-        title.clone()
-      ),
+      title:         Some(title),
       link:          Some(
         feed.url.clone()
       ),
@@ -968,18 +1041,8 @@ fn build_synthetic_watch_payload(
         .clone(),
       updated_at_ms: Some(now_ms)
     },
-    items:    vec![FeedItem {
-      title: Some(title),
-      link: Some(feed.url.clone()),
-      guid: Some(guid),
-      published_at_ms: Some(now_ms),
-      category: Some(
-        feed.category.clone()
-      ),
-      description: summary.clone(),
-      summary
-    }]
-  }
+    items
+  })
 }
 
 fn watch_observation(
@@ -1360,6 +1423,178 @@ fn is_immediate_error(
 #[cfg(test)]
 mod watch_link_tests {
   use super::*;
+
+  fn sample_watch_feed() -> FeedConfig {
+    FeedConfig {
+      id:                "sample-watch"
+        .into(),
+      url:
+        "https://example.test/list"
+          .into(),
+      domain:            "example.test"
+        .into(),
+      category:          "news".into(),
+      base_poll_seconds: 60,
+      provenance:        None,
+      tags:              None,
+      language:          None,
+      content_type:      None,
+      cookie_path:       None,
+      headers_path:      None,
+      headers:           None
+    }
+  }
+
+  #[test]
+  fn emission_modes_distinguish_new_items_and_digest()
+   {
+    let feed = sample_watch_feed();
+    let mut watch = observation_watch();
+    watch.item_selector =
+      Some("a.story".into());
+    watch.item_identity = Some(
+      crate::domain::model::WatchItemIdentity::Href
+    );
+
+    let items =
+      extract_watch_items_from_html(
+        &feed,
+        &watch,
+        br#"<a class="story" href="/one">One</a><a class="story" href="/two">Two</a>"#,
+        1000
+      );
+    assert_eq!(items.len(), 2);
+    watch.emit_mode =
+      WatchEmitMode::NewItemsOnly;
+    assert!(
+      build_synthetic_watch_payload(
+        &feed,
+        &watch,
+        1000,
+        Some("hash-1"),
+        Vec::new()
+      )
+      .is_none(),
+      "no new identity means no \
+       synthetic item"
+    );
+
+    let one_new =
+      vec![items[1].clone()];
+    let only_new =
+      build_synthetic_watch_payload(
+        &feed,
+        &watch,
+        1000,
+        Some("hash-1"),
+        one_new
+      )
+      .expect("one unseen item");
+    assert_eq!(only_new.items.len(), 1);
+    assert_eq!(
+      only_new.items[0]
+        .title
+        .as_deref(),
+      Some("Two")
+    );
+
+    watch.emit_mode =
+      WatchEmitMode::Digest;
+    let digest =
+      build_synthetic_watch_payload(
+        &feed,
+        &watch,
+        1000,
+        Some("hash-2"),
+        items.clone()
+      )
+      .expect("digest emitted");
+    assert_eq!(
+      digest.items.len(),
+      1,
+      "digest is a single item per \
+       changed page"
+    );
+    let summary = digest.items[0]
+      .summary
+      .as_deref()
+      .expect("digest summary");
+    assert!(
+      summary
+        .contains("2 matching items")
+    );
+    assert!(summary.contains("One"));
+    assert!(summary.contains("Two"));
+    assert_eq!(
+      digest.items[0].guid.as_deref(),
+      Some("sample-watch:hash-2")
+    );
+
+    watch.emit_mode =
+      WatchEmitMode::AnyChange;
+    let any =
+      build_synthetic_watch_payload(
+        &feed,
+        &watch,
+        1000,
+        Some("hash-3"),
+        items
+      )
+      .expect("changed list");
+    assert_eq!(any.items.len(), 2);
+    let fallback =
+      build_synthetic_watch_payload(
+        &feed,
+        &watch,
+        1000,
+        Some("hash-4"),
+        Vec::new()
+      )
+      .expect(
+        "changed page without \
+         selectable items"
+      );
+    assert_eq!(fallback.items.len(), 1);
+  }
+
+  #[test]
+  fn html_watch_extracts_at_most_512_items()
+   {
+    let feed = sample_watch_feed();
+    let mut watch = observation_watch();
+    watch.item_selector =
+      Some("a".into());
+    watch.item_identity = Some(
+      crate::domain::model::WatchItemIdentity::Href
+    );
+    let html = (0..600)
+      .map(|n| {
+        format!(
+          "<a href='/story/{n}'>Story \
+           {n}</a>"
+        )
+      })
+      .collect::<String>();
+    let items =
+      extract_watch_items_from_html(
+        &feed,
+        &watch,
+        html.as_bytes(),
+        1000
+      );
+    assert_eq!(items.len(), 512);
+    watch.max_items_per_fetch = Some(7);
+    assert_eq!(
+      extract_watch_items_from_html(
+        &feed,
+        &watch,
+        html.as_bytes(),
+        1000
+      )
+      .len(),
+      7
+    );
+  }
 
   fn observation_watch() -> WatchConfig
   {

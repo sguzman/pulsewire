@@ -223,6 +223,14 @@ impl Repo for FakeRepo {
     Ok(None)
   }
 
+  async fn known_watch_item_guids(
+    &self,
+    _feed_id: &str,
+    _candidates: &[String]
+  ) -> Result<Vec<String>, String> {
+    Ok(Vec::new())
+  }
+
   async fn latest_watch_observation(
     &self,
     _feed_id: &str

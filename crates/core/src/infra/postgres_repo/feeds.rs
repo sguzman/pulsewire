@@ -470,5 +470,60 @@ mod postgres_due_queue_tests {
         .unwrap()
         .is_none()
     );
+
+    // SQL queries operate on the
+    // isolated TEMP feed_items table,
+    // never on a user database.
+    sqlx::query(
+      "CREATE TEMP TABLE \
+       feed_items(feed_id TEXT NOT \
+       NULL, guid TEXT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("temporary GUID history");
+
+    for (feed, guid) in [
+      ("feed-0001", "known"),
+      ("other-1", "foreign")
+    ] {
+      sqlx::query(
+        "INSERT INTO \
+         feed_items(feed_id, guid) \
+         VALUES ($1, $2)"
+      )
+      .bind(feed)
+      .bind(guid)
+      .execute(&pool)
+      .await
+      .expect("insert GUID fixture");
+    }
+    let requested = vec![
+      "known".into(),
+      "foreign".into(),
+      "new".into(),
+    ];
+    assert_eq!(
+      super::super::payloads::
+        known_watch_item_guids(
+          &pool,
+          "feed-0001",
+          &requested
+        )
+        .await
+        .unwrap(),
+      vec!["known".to_string()]
+    );
+    assert_eq!(
+      super::super::payloads::
+        known_watch_item_guids(
+          &pool,
+          "other-1",
+          &requested
+        )
+        .await
+        .unwrap(),
+      vec!["foreign".to_string()]
+    );
   }
 }

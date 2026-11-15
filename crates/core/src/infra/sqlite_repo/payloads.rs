@@ -9,6 +9,46 @@ use tracing::debug;
 use crate::feed::parser::ParsedFeed;
 use crate::ports::repo::WatchObservation;
 
+pub async fn known_watch_item_guids(
+  pool: &SqlitePool,
+  feed_id: &str,
+  candidates: &[String]
+) -> Result<Vec<String>, String> {
+  let mut found = Vec::new();
+  for chunk in candidates.chunks(250) {
+    if chunk.is_empty() {
+      continue;
+    }
+
+    let mut builder =
+      sqlx::QueryBuilder::<sqlx::Sqlite>::new(
+        "SELECT DISTINCT guid FROM feed_items WHERE feed_id = "
+      );
+    builder.push_bind(feed_id);
+    builder.push(" AND guid IN (");
+    {
+      let mut values =
+        builder.separated(", ");
+      for guid in chunk {
+        values.push_bind(guid);
+      }
+      values.push_unseparated(")");
+    }
+
+    let mut batch = builder
+      .build_query_scalar::<String>()
+      .fetch_all(pool)
+      .await
+      .map_err(|e| {
+        format!(
+          "lookup watch GUIDs: {e}"
+        )
+      })?;
+    found.append(&mut batch);
+  }
+  Ok(found)
+}
+
 pub async fn latest_payload_content_hash(
   pool: &SqlitePool,
   feed_id: &str
@@ -357,5 +397,95 @@ mod watch_observation_tests {
       .await
       .expect("bounded row count");
     assert_eq!(count, 2);
+  }
+}
+
+#[cfg(test)]
+mod watch_item_lookup_tests {
+  use super::*;
+
+  #[tokio::test]
+  async fn persisted_guids_are_scoped_and_chunked()
+   {
+    let pool = SqlitePool::connect(
+      "sqlite::memory:"
+    )
+    .await
+    .expect("fixture pool");
+
+    sqlx::query(
+      "CREATE TABLE \
+       feed_items(feed_id TEXT NOT \
+       NULL, guid TEXT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("fixture table");
+
+    for n in 0..270 {
+      sqlx::query(
+        "INSERT INTO \
+         feed_items(feed_id, guid) \
+         VALUES (?1, ?2)"
+      )
+      .bind("first")
+      .bind(format!("story-{n}"))
+      .execute(&pool)
+      .await
+      .expect("fixture item");
+    }
+    sqlx::query(
+      "INSERT INTO \
+       feed_items(feed_id, guid) \
+       VALUES (?1, ?2)"
+    )
+    .bind("other")
+    .bind("foreign")
+    .execute(&pool)
+    .await
+    .expect("foreign item");
+
+    let mut candidates = (0..270)
+      .map(|n| format!("story-{n}"))
+      .collect::<Vec<_>>();
+    candidates.push("foreign".into());
+    candidates.push("unseen".into());
+    let found = known_watch_item_guids(
+      &pool,
+      "first",
+      &candidates
+    )
+    .await
+    .expect("first feed lookup");
+    assert_eq!(found.len(), 270);
+    let foreign_present = found
+      .iter()
+      .any(|guid| guid == "foreign");
+    let unseen_present = found
+      .iter()
+      .any(|guid| guid == "unseen");
+    assert!(!foreign_present);
+    assert!(!unseen_present);
+
+    assert_eq!(
+      known_watch_item_guids(
+        &pool,
+        "other",
+        &candidates
+      )
+      .await
+      .unwrap(),
+      vec!["foreign".to_string()]
+    );
+    assert!(
+      known_watch_item_guids(
+        &pool,
+        "first",
+        &[]
+      )
+      .await
+      .unwrap()
+      .is_empty()
+    );
   }
 }

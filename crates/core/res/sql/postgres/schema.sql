@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS feed_items(
 
 CREATE INDEX IF NOT EXISTS idx_feed_items_payload ON feed_items(payload_id);
 CREATE INDEX IF NOT EXISTS idx_feed_items_feed ON feed_items(feed_id);
+CREATE INDEX IF NOT EXISTS idx_feed_items_feed_guid ON feed_items(feed_id, guid);
 CREATE INDEX IF NOT EXISTS idx_feeds_domain ON feeds(domain);
 CREATE INDEX IF NOT EXISTS idx_feeds_category ON feeds(category);
 
