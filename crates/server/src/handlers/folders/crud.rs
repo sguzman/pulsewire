@@ -422,7 +422,10 @@ mod sqlite_pool_folder_tests {
         .bind(folder.id)
         .fetch_one(&pool)
         .await
-        .expect("folder belongs to own insert");
+        .expect(
+          "folder belongs to own \
+           insert"
+        );
       assert_eq!(stored, name);
     }
     assert_eq!(ids.len(), 32);
