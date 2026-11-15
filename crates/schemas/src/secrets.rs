@@ -40,7 +40,8 @@ fn resolve_sources(
   file: Option<&str>,
   direct: Option<&str>
 ) -> Result<String, &'static str> {
-  if file.is_some() && direct.is_some() {
+  if file.is_some() && direct.is_some()
+  {
     return Err(
       "use only one PostgreSQL \
        password source: environment \
@@ -74,14 +75,15 @@ fn resolve_sources(
     }
 
     if content.is_empty()
-      || content.len() > MAX_SECRET_BYTES
+      || content.len()
+        > MAX_SECRET_BYTES
       || content.chars().any(|ch| {
         matches!(ch, '\n' | '\r' | '\0')
       })
     {
       return Err(
-        "PostgreSQL password file \
-         has invalid content"
+        "PostgreSQL password file has \
+         invalid content"
       );
     }
 
@@ -101,21 +103,20 @@ mod tests {
 
   use super::*;
 
-  fn fixture_path(label: &str) -> PathBuf {
-    std::env::temp_dir().join(
-      format!(
+  fn fixture_path(
+    label: &str
+  ) -> PathBuf {
+    std::env::temp_dir().join(format!(
         "pulsewire-password-file-\
          {}-{label}.txt",
         std::process::id()
-      )
-    )
+      ))
   }
 
   #[test]
   fn secret_file_overrides_config_and_newline_is_removed()
    {
-    let path =
-      fixture_path("valid");
+    let path = fixture_path("valid");
     fs::write(&path, b"from-file\r\n")
       .expect("fixture");
     let result = resolve_sources(
@@ -131,23 +132,23 @@ mod tests {
 
   #[test]
   fn conflicting_sources_are_rejected()
-   {
+  {
     let result = resolve_sources(
       "from-toml".into(),
       Some("/invalid/path"),
       Some("from-env")
     );
     assert!(result.is_err());
-    assert!(!result.unwrap_err().contains(
-      "from-env"
-    ));
+    assert!(
+      !result
+        .unwrap_err()
+        .contains("from-env")
+    );
   }
 
   #[test]
-  fn invalid_file_never_falls_back()
-   {
-    let path =
-      fixture_path("invalid");
+  fn invalid_file_never_falls_back() {
+    let path = fixture_path("invalid");
     fs::write(
       &path,
       b"very-secret-value\nsecond-line"
@@ -159,9 +160,11 @@ mod tests {
       None
     );
     assert!(result.is_err());
-    assert!(!result.unwrap_err().contains(
-      "very-secret-value"
-    ));
+    assert!(
+      !result
+        .unwrap_err()
+        .contains("very-secret-value")
+    );
     fs::remove_file(path)
       .expect("remove fixture");
 

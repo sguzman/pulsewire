@@ -216,15 +216,13 @@ impl ServerConfig {
         })
         .unwrap_or(true)
     {
-      return Err(
-        ConfigError::Invalid(
-          "postgres password required: \
-           supply a secret file, \
-           environment override, \
-           or private config password"
-            .into()
-        )
-      );
+      return Err(ConfigError::Invalid(
+        "postgres password required: \
+         supply a secret file, \
+         environment override, or \
+         private config password"
+          .into()
+      ));
     }
 
     Ok(config)
