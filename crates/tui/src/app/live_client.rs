@@ -30,6 +30,7 @@ const CI_FEED: &str =
 fn receive(
   app: &mut App,
   rx: &Receiver<AppEvent>,
+  label: &str,
   expected: fn(&AppEvent) -> bool
 ) {
   loop {
@@ -104,7 +105,7 @@ fn receive(
       }
     };
     panic!(
-      "unexpected TUI event: {kind}"
+      "{label}: unexpected TUI event: {kind}"
     );
   }
 }
@@ -284,7 +285,7 @@ fn isolated_http_tui_reader_journey() {
     &mut app,
     subscribe_key.clone()
   );
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "subscription toggle 1", |event| {
     matches!(
       event,
       AppEvent::ToggleSubscribe {
@@ -304,7 +305,7 @@ fn isolated_http_tui_reader_journey() {
     &mut app,
     subscribe_key.clone()
   );
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "subscription toggle 2", |event| {
     matches!(
       event,
       AppEvent::ToggleSubscribe {
@@ -327,7 +328,7 @@ fn isolated_http_tui_reader_journey() {
       &mut app,
       subscribe_key.clone()
     );
-    receive(&mut app, &rx, |event| {
+    receive(&mut app, &rx, "subscription persistence", |event| {
       matches!(
         event,
         AppEvent::ToggleSubscribe {
@@ -349,7 +350,7 @@ fn isolated_http_tui_reader_journey() {
   let favorite =
     app.favorite_ids.contains(CI_FEED);
   press(&mut app, favorite_key.clone());
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "favorite toggle 1", |event| {
     matches!(
       event,
       AppEvent::ToggleFavorite {
@@ -366,7 +367,7 @@ fn isolated_http_tui_reader_journey() {
     favorite
   );
   press(&mut app, favorite_key.clone());
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "favorite toggle 2", |event| {
     matches!(
       event,
       AppEvent::ToggleFavorite {
@@ -387,7 +388,7 @@ fn isolated_http_tui_reader_journey() {
       &mut app,
       favorite_key.clone()
     );
-    receive(&mut app, &rx, |event| {
+    receive(&mut app, &rx, "favorite persistence", |event| {
       matches!(
         event,
         AppEvent::ToggleFavorite {
@@ -413,7 +414,7 @@ fn isolated_http_tui_reader_journey() {
     app.entries[0].is_read;
   let item = app.entries[0].id;
   press(&mut app, read_key.clone());
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "read toggle 1", |event| {
     matches!(
       event,
       AppEvent::ToggleEntryRead {
@@ -431,7 +432,7 @@ fn isolated_http_tui_reader_journey() {
     original_read
   );
   press(&mut app, read_key.clone());
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "read toggle 2", |event| {
     matches!(
       event,
       AppEvent::ToggleEntryRead {
@@ -467,7 +468,7 @@ fn isolated_http_tui_reader_journey() {
   );
   app.selected_entry = story_one_index;
   press(&mut app, read_key.clone());
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "Story One persisted read", |event| {
     matches!(
       event,
       AppEvent::ToggleEntryRead {
@@ -492,7 +493,7 @@ fn isolated_http_tui_reader_journey() {
   app.queue_create_folder(
     folder_name.to_string()
   );
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "folder creation", |event| {
     matches!(
       event,
       AppEvent::RefreshFolders { .. }
@@ -512,7 +513,7 @@ fn isolated_http_tui_reader_journey() {
   // RefreshFolders schedules a
   // folder-feed request; consume it
   // before assignment.
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "initial folder-feed listing", |event| {
     matches!(
       event,
       AppEvent::FolderFeeds { .. }
@@ -522,7 +523,7 @@ fn isolated_http_tui_reader_journey() {
     folder_id,
     CI_FEED.to_string()
   );
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "folder feed assignment", |event| {
     matches!(
       event,
       AppEvent::FolderFeedUpdate {
@@ -532,7 +533,7 @@ fn isolated_http_tui_reader_journey() {
     )
   });
   app.request_folder_feeds();
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "updated folder-feed listing", |event| {
     matches!(
       event,
       AppEvent::FolderFeeds { .. }
@@ -686,7 +687,7 @@ fn isolated_http_tui_after_restart() {
   let (tx, rx) = mpsc::channel();
   app.set_event_sender(tx);
   app.request_folder_feeds();
-  receive(&mut app, &rx, |event| {
+  receive(&mut app, &rx, "post-restart folder listing", |event| {
     matches!(
       event,
       AppEvent::FolderFeeds { .. }
