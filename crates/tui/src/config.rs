@@ -166,7 +166,10 @@ impl std::fmt::Debug for AuthConfig {
     f: &mut std::fmt::Formatter<'_>
   ) -> std::fmt::Result {
     f.debug_struct("AuthConfig")
-      .field("auto_login", &self.auto_login)
+      .field(
+        "auto_login",
+        &self.auto_login
+      )
       .field("username", &self.username)
       .field("password", &"<redacted>")
       .finish()
@@ -221,9 +224,8 @@ impl TuiConfig {
       &path.display().to_string()
     )?;
 
-    let config = parse_tui_config(
-      &content
-    )?;
+    let config =
+      parse_tui_config(&content)?;
 
     Ok(config)
   }
@@ -384,15 +386,15 @@ pub(crate) fn default_config_path()
 fn parse_tui_config(
   content: &str
 ) -> Result<TuiConfig, ConfigError> {
-  toml::from_str(content)
-    .map_err(|_| {
+  toml::from_str(content).map_err(
+    |_| {
       ConfigError(
-        "config parse error \
-         (source omitted to protect \
-         secrets)"
+        "config parse error (source \
+         omitted to protect secrets)"
           .into()
       )
-    })
+    }
+  )
 }
 
 fn validate_toml(
@@ -432,7 +434,8 @@ fn validate_toml(
       .map_err(|_| {
         ConfigError(
           "config conversion failed \
-           (values omitted)".into()
+           (values omitted)"
+            .into()
         )
       })?;
 
@@ -583,16 +586,16 @@ mod credential_redaction_tests {
     let malformed = format!(
       "[auth]\npassword = \"{SECRET}"
     );
-    let err = parse_tui_config(
-      &malformed
-    )
-    .expect_err("malformed source");
+    let err =
+      parse_tui_config(&malformed)
+        .expect_err("malformed source");
     for message in [
       err.to_string(),
       format!("{err:?}")
     ] {
       assert!(
-        message.contains("source omitted")
+        message
+          .contains("source omitted")
       );
       assert!(
         !message.contains(SECRET)
@@ -629,9 +632,7 @@ mod credential_redaction_tests {
       "[auth]\npassword = \"{SECRET}\""
     );
     let err = validate_toml(
-      schema,
-      &content,
-      "tui"
+      schema, &content, "tui"
     )
     .expect_err(
       "invalid password field type"
@@ -641,7 +642,8 @@ mod credential_redaction_tests {
       format!("{err:?}")
     ] {
       assert!(
-        message.contains("values omitted")
+        message
+          .contains("values omitted")
       );
       assert!(
         !message.contains(SECRET)
