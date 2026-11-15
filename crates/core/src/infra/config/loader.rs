@@ -265,17 +265,20 @@ impl ConfigLoader {
     {
       postgres.host = value;
     }
-    if let Ok(value) = env::var(
-      "PULSEWIRE_POSTGRES_PASSWORD"
-    ) && !value.trim().is_empty()
-    {
-      postgres.password = value;
-    }
+    postgres.password =
+      pulsewire_schemas::postgres_password(
+        postgres.password
+      )
+      .map_err(|message| {
+        ConfigError::Invalid(
+          message.into()
+        )
+      })?;
     if matches!(db_dialect, crate::domain::model::SqlDialect::Postgres)
       && postgres.password.trim().is_empty()
     {
       return Err(ConfigError::Invalid(
-        "postgres password required: set PULSEWIRE_POSTGRES_PASSWORD or a private config password".into()
+        "postgres password required: supply PULSEWIRE_POSTGRES_PASSWORD_FILE, PULSEWIRE_POSTGRES_PASSWORD, or a private config password".into()
       ));
     }
 

@@ -11,6 +11,9 @@ pub const SCHEMAS_ROOT: &str =
   env!("CARGO_MANIFEST_DIR");
 
 mod config_paths;
+mod secrets;
+
+pub use secrets::postgres_password;
 use std::path::{
   Path,
   PathBuf

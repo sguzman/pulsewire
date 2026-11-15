@@ -191,13 +191,20 @@ impl ServerConfig {
     {
       pg.host = value;
     }
-    if let Ok(value) = env::var(
-      "PULSEWIRE_POSTGRES_PASSWORD"
-    ) && !value.trim().is_empty()
-      && let Some(pg) =
-        config.postgres.as_mut()
+    if let Some(pg) =
+      config.postgres.as_mut()
     {
-      pg.password = value;
+      pg.password =
+        pulsewire_schemas::postgres_password(
+          std::mem::take(
+            &mut pg.password
+          )
+        )
+        .map_err(|message| {
+          ConfigError::Invalid(
+            message.into()
+          )
+        })?;
     }
     if config.dialect()?
       == SqlDialect::Postgres
@@ -211,11 +218,10 @@ impl ServerConfig {
     {
       return Err(
         ConfigError::Invalid(
-          "postgres password \
-           required: set \
-           PULSEWIRE_POSTGRES_PASSWORD \
-           or a private config \
-           password"
+          "postgres password required: \
+           supply a secret file, \
+           environment override, \
+           or private config password"
             .into()
         )
       );
