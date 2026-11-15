@@ -191,9 +191,11 @@ mod get_json_error_tests {
         drop(reader);
         let body =
           r#"{"error":"synthetic"}"#;
-        // Build CRLF headers independently:
-        // rustfmt line wrapping must not
-        // split an HTTP header delimiter.
+        // Build CRLF headers
+        // independently: rustfmt line
+        // wrapping must not
+        // split an HTTP header
+        // delimiter.
         let headers = [
           "HTTP/1.1 500 ".to_string(),
           "Internal Server Error\r\n"
@@ -209,7 +211,9 @@ mod get_json_error_tests {
         .concat();
         socket
           .write_all(headers.as_bytes())
-          .expect("send response headers");
+          .expect(
+            "send response headers"
+          );
         socket
           .write_all(body.as_bytes())
           .expect("send response body");
