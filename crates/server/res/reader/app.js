@@ -229,6 +229,7 @@ async function loadEntries(reset) {
   $("load-more").disabled = true;
   $("page-caption").textContent = "Loading…";
   if (reset) {
+    notify("");
     state.entries = [];
     state.nextOffset = 0;
     state.hasMore = false;
@@ -449,14 +450,15 @@ function registerEvents() {
   $("search-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     state.search = $("search-input").value.trim();
-    if (state.search && state.view.kind === "folder") {
+    const scopeChanged = Boolean(state.search && state.view.kind === "folder");
+    if (scopeChanged) {
       state.view = { kind: "all", id: null };
       $("stream-title").textContent = "Search all ingested entries";
       renderNavigation();
-      notify("Search is across all ingested entries, not restricted to the folder.");
     }
     clearDetail();
     await loadEntries(true);
+    if (scopeChanged) notify("Search is across all ingested entries, not restricted to the folder.");
   });
   $("read-filter").addEventListener("change", (event) => {
     state.readFilter = event.target.value;
@@ -480,7 +482,7 @@ function registerEvents() {
     if ($("reader-app").hidden) return;
     if (event.key === "Escape") { closeSidebar(); document.querySelector(".workspace").classList.remove("detail-open"); return; }
     if (document.querySelector("dialog[open]")) return;
-    if (event.target.closest("input, textarea, select, [contenteditable]")) return;
+    if (event.target instanceof Element && event.target.closest("input, textarea, select, [contenteditable]")) return;
     if (event.key === "/") { event.preventDefault(); $("search-input").focus(); }
     if (event.key === "?") window.alert("Shortcuts: / search · j next · k previous · r toggle read · Escape back");
     if (event.key === "r") toggleRead();
