@@ -207,6 +207,7 @@ async function selectView(view) {
     const rows = await api("/v1/folders/" + encodeURIComponent(view.id) + "/feeds");
     if (state.view.kind !== "folder" || state.view.id !== view.id) return;
     state.folderFeeds = rows.map((item) => item.feed_id);
+    if ($("source-dialog").open) renderSourceResults();
   }
   await loadEntries(true);
 }
