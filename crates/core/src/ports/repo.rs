@@ -104,6 +104,14 @@ pub trait Repo: Send + Sync {
 
   /// Last successful watch GET
   /// fingerprint, scoped to a feed.
+  /// GUIDs already persisted for this
+  /// feed, limited to candidate items.
+  async fn known_watch_item_guids(
+    &self,
+    feed_id: &str,
+    candidates: &[String]
+  ) -> Result<Vec<String>, String>;
+
   async fn latest_watch_observation(
     &self,
     feed_id: &str

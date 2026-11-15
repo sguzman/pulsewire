@@ -13,6 +13,44 @@ use super::util::{
 use crate::feed::parser::ParsedFeed;
 use crate::ports::repo::WatchObservation;
 
+pub async fn known_watch_item_guids(
+  pool: &PgPool,
+  feed_id: &str,
+  candidates: &[String]
+) -> Result<Vec<String>, String> {
+  let mut found = Vec::new();
+  for chunk in candidates.chunks(250) {
+    if chunk.is_empty() {
+      continue;
+    }
+
+    let mut builder =
+      sqlx::QueryBuilder::<sqlx::Postgres>::new(
+        "SELECT DISTINCT guid FROM feed_items WHERE feed_id = "
+      );
+    builder.push_bind(feed_id);
+    builder.push(" AND guid IN (");
+    {
+      let mut values =
+        builder.separated(", ");
+      for guid in chunk {
+        values.push_bind(guid);
+      }
+      values.push_unseparated(")");
+    }
+
+    let mut batch = builder
+      .build_query_scalar::<String>()
+      .fetch_all(pool)
+      .await
+      .map_err(|e| {
+        format!("lookup watch GUIDs: {e}")
+      })?;
+    found.append(&mut batch);
+  }
+  Ok(found)
+}
+
 pub async fn latest_payload_content_hash(
   pool: &PgPool,
   feed_id: &str
