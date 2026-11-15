@@ -1247,5 +1247,4 @@ mod watch_link_tests {
       Some("https://news.example.test/article")
     );
   }
-
 }
