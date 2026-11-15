@@ -140,7 +140,20 @@ fn isolated_http_tui_reader_journey() {
     )
     .expect("TUI search");
   assert!(
-    app.entries.len() >= 2,
+    app.status.starts_with("Loaded "),
+    "search did not succeed: {}",
+    app.status
+  );
+  assert!(
+    app.entries.len() == 2
+      && app.entries.iter().any(|item| {
+        item.title.as_deref()
+          == Some("Pulsewire CI Story One")
+      })
+      && app.entries.iter().any(|item| {
+        item.title.as_deref()
+          == Some("Pulsewire CI Story Two")
+      }),
     "search count: {}; first page: \
      {:?}; second page: {:?}; search \
      URL: {:?}",
