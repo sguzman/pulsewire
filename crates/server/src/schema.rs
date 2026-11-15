@@ -471,7 +471,8 @@ mod sqlite_recovery_tests {
   };
   use crate::models::{
     EntryListQuery,
-    LoginRequest
+    LoginRequest,
+    SearchQuery
   };
 
   fn state(
@@ -673,6 +674,16 @@ mod sqlite_recovery_tests {
     .execute(&pool)
     .await
     .expect("feed item");
+    sqlx::query(
+      "INSERT INTO feed_items (id, \
+       payload_id, feed_id, title, \
+       published_at_ms) VALUES (12, \
+       3, 'fixture', 'Preserved \
+       SQLite Article Two', 101)"
+    )
+    .execute(&pool)
+    .await
+    .expect("second search fixture item");
 
     // Conservative retention: archived
     // payload, event and state history
@@ -794,6 +805,26 @@ mod sqlite_recovery_tests {
       Some("Preserved SQLite Article")
     );
     assert!(before.items[0].is_read);
+
+    // Real SQLite search must return
+    // both matching titles. This guards
+    // against malformed grouped SQL,
+    // not merely article list success.
+    let Json(matches) =
+      entries::search_entries(
+        State(initial.clone()),
+        headers.clone(),
+        Query(SearchQuery {
+          q: "sQLite ARTICLE".into(),
+          limit: None,
+          offset: None,
+          feed_id: None,
+          read: None
+        })
+      )
+      .await
+      .expect("search SQLite articles");
+    assert_eq!(matches.items.len(), 2);
 
     // VACUUM INTO creates a consistent
     // online snapshot, not an unsafe
