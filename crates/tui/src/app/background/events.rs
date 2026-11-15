@@ -427,19 +427,24 @@ mod async_refresh_state_tests {
   }
 
   #[test]
-  fn folder_feed_response_releases_pending_request() {
+  fn folder_feed_response_releases_pending_request()
+   {
     let mut app = test_app();
     app.folders.push(FolderRow {
-      id: 42,
+      id:   42,
       name: "News".to_string()
     });
     app.pending_requests = 2;
     app.loading = true;
 
-    app.apply_event(AppEvent::FolderFeeds {
-      folder_id: 42,
-      feed_ids: vec!["fixture".to_string()]
-    });
+    app.apply_event(
+      AppEvent::FolderFeeds {
+        folder_id: 42,
+        feed_ids:  vec![
+          "fixture".to_string(),
+        ]
+      }
+    );
     assert_eq!(app.pending_requests, 1);
     assert!(app.loading);
     assert_eq!(
@@ -447,12 +452,17 @@ mod async_refresh_state_tests {
       vec!["fixture".to_string()]
     );
 
-    // A stale response still frees its request slot,
-    // without overwriting the currently selected folder.
-    app.apply_event(AppEvent::FolderFeeds {
-      folder_id: 99,
-      feed_ids: vec!["stale".to_string()]
-    });
+    // A stale response still frees its
+    // request slot, without overwriting
+    // the currently selected folder.
+    app.apply_event(
+      AppEvent::FolderFeeds {
+        folder_id: 99,
+        feed_ids:  vec![
+          "stale".to_string(),
+        ]
+      }
+    );
     assert_eq!(app.pending_requests, 0);
     assert!(!app.loading);
     assert_eq!(
@@ -462,12 +472,14 @@ mod async_refresh_state_tests {
   }
 
   #[test]
-  fn failed_refresh_preserves_visible_error() {
+  fn failed_refresh_preserves_visible_error()
+   {
     let mut app = test_app();
     app.pending_requests = 1;
     app.loading = true;
     app.apply_event(AppEvent::Error {
-      message: "temporary HTTP failure".into()
+      message: "temporary HTTP failure"
+        .into()
     });
 
     assert_eq!(app.pending_requests, 0);
