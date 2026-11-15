@@ -297,21 +297,35 @@ mod refresh_failure_tests {
             } else {
               ("200 OK", "[]")
             };
-          // Keep each HTTP header separate so the
-          // narrow rustfmt width cannot split CRLF.
+          // Keep each HTTP header
+          // separate so the
+          // narrow rustfmt width cannot
+          // split CRLF.
           let headers = [
-            format!("HTTP/1.1 {status}\r\n"),
-            format!("Content-Length: {}\r\n", body.len()),
-            "Connection: close\r\n".to_string(),
+            format!(
+              "HTTP/1.1 {status}\r\n"
+            ),
+            format!(
+              "Content-Length: {}\r\n",
+              body.len()
+            ),
+            "Connection: close\r\n"
+              .to_string(),
             "\r\n".to_string()
           ]
           .concat();
           socket
-            .write_all(headers.as_bytes())
-            .expect("serve fixture headers");
+            .write_all(
+              headers.as_bytes()
+            )
+            .expect(
+              "serve fixture headers"
+            );
           socket
             .write_all(body.as_bytes())
-            .expect("serve fixture body");
+            .expect(
+              "serve fixture body"
+            );
         }
       });
 
