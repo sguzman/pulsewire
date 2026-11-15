@@ -5,6 +5,7 @@ mod favorites;
 mod feeds;
 mod folders;
 mod health;
+mod reader;
 mod subscriptions;
 pub(crate) mod users;
 
@@ -26,6 +27,9 @@ pub fn router(
         .route("/ready", get(health::ready))
         .route("/openapi.json", get(docs::openapi))
         .route("/docs", get(docs::openapi_html))
+        .route("/reader", get(reader::page))
+        .route("/reader/app.js", get(reader::script))
+        .route("/reader/styles.css", get(reader::style))
         .route("/v1/feeds", get(feeds::list_feeds))
         .route("/v1/feeds/:feed_id", get(feeds::feed_detail))
         .route("/v1/favorites", get(favorites::list_favorites))

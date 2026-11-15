@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <title>Pulsewire · Reader</title>
+  <link rel="stylesheet" href="/reader/styles.css">
+  <script src="/reader/app.js" defer></script>
+</head>
+<body>
+  <section id="login-view" class="login-screen" aria-labelledby="login-title">
+    <form id="login-form" class="login-card">
+      <div class="brand">◉ <span>pulsewire</span></div>
+      <p class="eyebrow">Your open-web reading desk</p>
+      <h1 id="login-title">Welcome back.</h1>
+      <p class="muted">Sign in with your Pulsewire account. Your session stays in this browser tab.</p>
+      <label for="username">Username</label>
+      <input id="username" name="username" autocomplete="username" required autofocus>
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" autocomplete="current-password" required>
+      <button id="login-button" type="submit" class="primary">Sign in</button>
+      <p id="login-error" class="error" role="alert" hidden></p>
+      <p class="footnote">An administrator must create your account first.</p>
+    </form>
+  </section>
+
+  <div id="reader-app" class="shell" hidden>
+    <header class="topbar">
+      <button id="menu-button" class="icon-button mobile-only" type="button" aria-label="Open sources" aria-expanded="false">☰</button>
+      <div class="brand">◉ <span>pulsewire</span><small> / reader</small></div>
+      <div class="top-actions">
+        <button id="refresh-button" type="button" title="Refresh current list">↻ <span class="desktop-label">Refresh</span></button>
+        <label class="theme-label" for="theme-select">Theme</label>
+        <select id="theme-select" aria-label="Appearance">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+        <button id="logout-button" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <p id="notice" class="notice" role="alert" hidden></p>
+    <div class="workspace">
+      <nav id="sidebar" class="sidebar" aria-label="Reading sources">
+        <div class="sidebar-title">
+          <span>YOUR LIBRARY</span>
+          <button id="sources-button" type="button" class="small accent">+ Source</button>
+        </div>
+        <button id="all-button" class="nav-item" type="button">All ingested entries</button>
+        <h2>Subscriptions <span id="subscription-count"></span></h2>
+        <div id="subscription-list" class="nav-group"></div>
+        <h2>Favorite feeds <span id="favorite-count"></span></h2>
+        <div id="favorite-list" class="nav-group"></div>
+        <div class="sidebar-title"><h2>Folders</h2><button id="folder-button" type="button" class="small">Manage</button></div>
+        <div id="folder-list" class="nav-group"></div>
+        <p class="sidebar-note">All entries includes every ingested feed. Select a subscription, favorite, or folder to narrow the list.</p>
+      </nav>
+
+      <section id="stream-pane" class="stream" aria-labelledby="stream-title">
+        <div class="stream-header">
+          <p class="eyebrow">LATEST FROM THE WEB</p>
+          <h1 id="stream-title">All ingested entries</h1>
+          <form id="search-form" class="search-row" role="search">
+            <label class="sr-only" for="search-input">Search entries</label>
+            <input id="search-input" type="search" placeholder="Search titles and articles  /" autocomplete="off">
+            <button type="submit">Search</button>
+          </form>
+          <div class="filters">
+            <label for="read-filter">Show</label>
+            <select id="read-filter">
+              <option value="all">All</option>
+              <option value="unread">Unread</option>
+              <option value="read">Read</option>
+            </select>
+            <span id="page-caption" class="muted" aria-live="polite"></span>
+          </div>
+        </div>
+        <div id="entry-list" class="entry-list" aria-live="polite"></div>
+        <div class="load-row"><button id="load-more" type="button" hidden>Load more</button></div>
+      </section>
+
+      <article id="detail-pane" class="detail" aria-labelledby="detail-title">
+        <div class="detail-toolbar">
+          <button id="back-button" type="button" class="mobile-only">← Back</button>
+          <span id="detail-feed" class="eyebrow"></span>
+          <button id="read-toggle" type="button" hidden>Mark unread</button>
+        </div>
+        <div id="detail-body" class="detail-body">
+          <div class="empty-detail">
+            <span class="empty-icon">◌</span>
+            <h2 id="detail-title">Find something worth reading.</h2>
+            <p>Choose a story from the list. Use <kbd>j</kbd>/<kbd>k</kbd> to move, <kbd>/</kbd> to search, or <kbd>?</kbd> for shortcuts.</p>
+          </div>
+        </div>
+      </article>
+    </div>
+    <div id="sidebar-shade" class="shade" hidden></div>
+  </div>
+
+  <dialog id="source-dialog" aria-labelledby="sources-title">
+    <div class="dialog-head"><h2 id="sources-title">Find a source</h2><button class="close-dialog" type="button" aria-label="Close">×</button></div>
+    <p class="muted">Subscribe to feeds already in the Pulsewire catalog. Favorites are feeds, not individual stories.</p>
+    <label for="source-search">Filter by domain, ID, or category</label>
+    <input id="source-search" type="search" placeholder="Search catalog" autocomplete="off">
+    <div id="source-results" class="source-results"></div>
+  </dialog>
+
+  <dialog id="folder-dialog" aria-labelledby="folders-title">
+    <div class="dialog-head"><h2 id="folders-title">Manage folders</h2><button class="close-dialog" type="button" aria-label="Close">×</button></div>
+    <form id="new-folder-form" class="form-inline">
+      <label class="sr-only" for="folder-name">New folder name</label>
+      <input id="folder-name" maxlength="120" placeholder="New folder name" required>
+      <button type="submit" class="primary">Create</button>
+    </form>
+    <div id="folder-manager" class="folder-manager"></div>
+    <p class="muted">Open a folder, then use + Source to add or remove feeds from it.</p>
+  </dialog>
+</body>
+</html>
