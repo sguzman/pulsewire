@@ -686,42 +686,49 @@ fn extract_link(
   base_url: &str,
   strip_query_params: bool
 ) -> Option<String> {
-  let mut raw =
-    if let Some(sel) = selector {
+  let href = selector
+    .and_then(|selector| {
       node
-        .select(sel)
+        .select(selector)
         .next()
-        .and_then(|n| {
-          n.value().attr("href")
+        .and_then(|node| {
+          node.value().attr("href")
         })
-        .map(str::to_string)
-    } else {
-      None
-    };
+    })
+    .or_else(|| {
+      node.value().attr("href")
+    })?;
 
-  if raw.is_none() {
-    raw = node
-      .value()
-      .attr("href")
-      .map(str::to_string);
-  }
+  resolve_watch_href(
+    href,
+    base_url,
+    strip_query_params
+  )
+}
 
-  let mut href = raw?;
-  if href.starts_with('/') {
-    let base =
-      base_url.trim_end_matches('/');
-    href = format!("{}{}", base, href);
+fn resolve_watch_href(
+  href: &str,
+  base_url: &str,
+  strip_query_params: bool
+) -> Option<String> {
+  // URL joining follows the document
+  // origin/path, not raw string
+  // concatenation. Reject non-HTTP
+  // targets, including javascript:.
+  let base =
+    reqwest::Url::parse(base_url).ok()?;
+  let mut target = base.join(href).ok()?;
+  if !matches!(
+    target.scheme(),
+    "http" | "https"
+  ) {
+    return None;
   }
 
   if strip_query_params {
-    href = href
-      .split('?')
-      .next()
-      .unwrap_or(&href)
-      .to_string();
+    target.set_query(None);
   }
-
-  Some(href)
+  Some(target.to_string())
 }
 
 fn extract_published_at_ms(
@@ -1067,4 +1074,104 @@ fn is_immediate_error(
   cfg
     .immediate_error_statuses
     .contains(&code)
+}
+
+#[cfg(test)]
+mod watch_link_tests {
+  use super::*;
+
+  #[test]
+  fn watch_links_resolve_from_document_url()
+   {
+    let base =
+      "https://news.example.test/archive/index.html";
+
+    assert_eq!(
+      resolve_watch_href(
+        "/articles/1", base, false
+      )
+      .as_deref(),
+      Some("https://news.example.test/articles/1")
+    );
+    assert_eq!(
+      resolve_watch_href(
+        "../articles/2", base, false
+      )
+      .as_deref(),
+      Some("https://news.example.test/articles/2")
+    );
+    assert_eq!(
+      resolve_watch_href(
+        "https://other.example.test/story",
+        base,
+        false
+      )
+      .as_deref(),
+      Some("https://other.example.test/story")
+    );
+  }
+
+  #[test]
+  fn watch_links_strip_query_without_discarding_fragment()
+   {
+    assert_eq!(
+      resolve_watch_href(
+        "/article?id=42#section",
+        "https://news.example.test/feed",
+        true
+      )
+      .as_deref(),
+      Some(
+        "https://news.example.test/article#section"
+      )
+    );
+  }
+
+  #[test]
+  fn watch_links_reject_non_http_targets()
+   {
+    for href in [
+      "javascript:alert(1)",
+      "data:text/html,unsafe",
+      "mailto:example@example.test"
+    ] {
+      assert!(
+        resolve_watch_href(
+          href,
+          "https://news.example.test/feed",
+          false
+        )
+        .is_none()
+      );
+    }
+  }
+
+  #[test]
+  fn html_watch_link_selector_resolves_relative_href()
+   {
+    let html = Html::parse_document(
+      r#"<div class="item"><a class="story" href="../post?id=2">Story</a></div>"#
+    );
+    let item_selector =
+      Selector::parse("div.item")
+        .expect("valid item selector");
+    let link_selector =
+      Selector::parse("a.story")
+        .expect("valid link selector");
+    let item = html
+      .select(&item_selector)
+      .next()
+      .expect("fixture item");
+
+    assert_eq!(
+      extract_link(
+        &item,
+        Some(&link_selector),
+        "https://news.example.test/archive/page",
+        false
+      )
+      .as_deref(),
+      Some("https://news.example.test/post?id=2")
+    );
+  }
 }
