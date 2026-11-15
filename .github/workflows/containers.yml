@@ -162,6 +162,8 @@ jobs:
             docker logs pulsewire-ci-server
             exit 1
           fi
+          # A live server is only ready if its actual DB is reachable.
+          test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:18091/ready)" = 200
           code="$(curl -sS -o "$RUNNER_TEMP/login.json" -w '%{http_code}' \
             -H 'Content-Type: application/json' \
             -d "{\"username\":\"owner\",\"password\":\"$TEST_ADMIN_PASSWORD\"}" \

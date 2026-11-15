@@ -23,6 +23,7 @@ pub fn router(
 ) -> Router {
   Router::new()
         .route("/health", get(health::health))
+        .route("/ready", get(health::ready))
         .route("/openapi.json", get(docs::openapi))
         .route("/docs", get(docs::openapi_html))
         .route("/v1/feeds", get(feeds::list_feeds))
