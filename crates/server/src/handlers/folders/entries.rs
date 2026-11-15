@@ -40,7 +40,7 @@ pub async fn list_folder_entries(
       .await?;
 
   let limit =
-    query.limit.unwrap_or(50).min(200)
+    query.limit.unwrap_or(50).clamp(1, 200)
       as i64;
 
   let offset =
@@ -125,13 +125,13 @@ pub async fn list_folder_entries(
       " ORDER BY fi.id DESC LIMIT "
     );
 
-    builder.push_bind(limit);
+    builder.push_bind(limit + 1);
 
     builder.push(" OFFSET ");
 
     builder.push_bind(offset);
 
-    let rows = builder
+    let mut rows = builder
       .build_query_as::<EntrySummary>()
       .fetch_all(pool)
       .await
@@ -142,16 +142,20 @@ pub async fn list_folder_entries(
         )
       })?;
 
+    let has_more = rows.len() as i64 > limit;
+    if has_more {
+      rows.truncate(limit as usize);
+    }
+
     let next_cursor = rows
       .iter()
       .map(|row| row.id)
       .max();
 
-    let next_offset = if rows.is_empty()
-    {
-      None
+    let next_offset = if has_more {
+      Some(offset + limit)
     } else {
-      Some(offset + rows.len() as i64)
+      None
     };
 
     return Ok(Json(
@@ -235,13 +239,13 @@ pub async fn list_folder_entries(
     " ORDER BY fi.id DESC LIMIT "
   );
 
-  builder.push_bind(limit);
+  builder.push_bind(limit + 1);
 
   builder.push(" OFFSET ");
 
   builder.push_bind(offset);
 
-  let rows = builder
+  let mut rows = builder
     .build_query_as::<EntrySummary>()
     .fetch_all(pool)
     .await
@@ -252,14 +256,18 @@ pub async fn list_folder_entries(
       )
     })?;
 
-  let next_cursor =
-    rows.iter().map(|row| row.id).max();
+  let has_more = rows.len() as i64 > limit;
+  if has_more {
+    rows.truncate(limit as usize);
+  }
 
-  let next_offset = if rows.is_empty() {
-    None
-  } else {
-    Some(offset + rows.len() as i64)
-  };
+  let next_cursor = rows.iter().map(|row| row.id).max();
+
+  let next_offset = if has_more {
+      Some(offset + limit)
+    } else {
+      None
+    };
 
   Ok(Json(EntryListResponse {
     items: rows,
