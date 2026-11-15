@@ -262,6 +262,13 @@ jobs:
           curl -fsS -H "Authorization: Bearer $token" \
             'http://127.0.0.1:18091/v1/entries?read=unread&feed_id=pulsewire-ci-real-rss' \
             | jq -e '(.items | length) == 1'
+          # Run the actual TUI App and keyboard handlers against the
+          # already-seeded disposable PostgreSQL HTTP service. No
+          # additional feed ingest or household services are involved.
+          PULSEWIRE_TUI_E2E_URL=http://127.0.0.1:18091 \
+          PULSEWIRE_TUI_E2E_PASSWORD="$TEST_ADMIN_PASSWORD" \
+            cargo test -p pulsewire-tui --locked postgres_http_tui_reader_journey \
+              -- --ignored --test-threads=1
           docker restart pulsewire-ci-server
           ready=0
           for i in {1..30}; do
@@ -273,6 +280,12 @@ jobs:
             -H "Authorization: Bearer $token" \
             "http://127.0.0.1:18091/v1/entries/$item_id/read")"
           test "$code" = 204
+          # Confirm the TUI reads stored folder membership and articles
+          # after a real server restart on the same disposable database.
+          PULSEWIRE_TUI_E2E_URL=http://127.0.0.1:18091 \
+          PULSEWIRE_TUI_E2E_PASSWORD="$TEST_ADMIN_PASSWORD" \
+            cargo test -p pulsewire-tui --locked postgres_http_tui_after_restart \
+              -- --ignored --test-threads=1
 
           # Backup then restore into a new database: never DROP or overwrite.
           docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \

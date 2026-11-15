@@ -5,6 +5,8 @@ mod entries;
 mod filters;
 mod folders;
 mod input;
+#[cfg(test)]
+mod live_client;
 mod modal;
 mod pagination;
 mod sort;
