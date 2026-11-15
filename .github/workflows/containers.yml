@@ -58,7 +58,8 @@ jobs:
         run: |
           set -euo pipefail
           cleanup() {
-            docker rm -f pulsewire-ci-fetcher pulsewire-ci-rss pulsewire-ci-server pulsewire-ci-postgres >/dev/null 2>&1 || true
+            docker rm -f pulsewire-ci-fetcher pulsewire-ci-rss pulsewire-ci-server pulsewire-ci-postgres \
+              pulsewire-ci-sqlite-fetcher pulsewire-ci-sqlite-server >/dev/null 2>&1 || true
             docker network rm pulsewire-ci >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
@@ -267,7 +268,7 @@ jobs:
           # additional feed ingest or household services are involved.
           PULSEWIRE_TUI_E2E_URL=http://127.0.0.1:18091 \
           PULSEWIRE_TUI_E2E_PASSWORD="$TEST_ADMIN_PASSWORD" \
-            cargo test -p pulsewire-tui --locked postgres_http_tui_reader_journey \
+            cargo test -p pulsewire-tui --locked isolated_http_tui_reader_journey \
               -- --ignored --test-threads=1
           docker restart pulsewire-ci-server
           ready=0
@@ -284,7 +285,7 @@ jobs:
           # after a real server restart on the same disposable database.
           PULSEWIRE_TUI_E2E_URL=http://127.0.0.1:18091 \
           PULSEWIRE_TUI_E2E_PASSWORD="$TEST_ADMIN_PASSWORD" \
-            cargo test -p pulsewire-tui --locked postgres_http_tui_after_restart \
+            cargo test -p pulsewire-tui --locked isolated_http_tui_after_restart \
               -- --ignored --test-threads=1
 
           # Backup then restore into a new database: never DROP or overwrite.
@@ -460,3 +461,111 @@ jobs:
               http://127.0.0.1:18091/v1/auth/login)"
             test "$code" = 429
           done
+
+          # PW-051 SQLite variant: create a completely separate
+          # disposable file, ingest the same local RSS fixture, and
+          # verify the identical TUI contract on the second backend.
+          sqlite_root="$RUNNER_TEMP/pw051-sqlite"
+          mkdir -p "$sqlite_root/config/fetcher" \
+                   "$sqlite_root/config/server/sql/sqlite" \
+                   "$sqlite_root/feeds/news" "$sqlite_root/db"
+          chmod 0777 "$sqlite_root/db"
+          cp crates/fetcher/res/docker.toml "$sqlite_root/config/fetcher/config.toml"
+          cp crates/fetcher/res/domains.toml "$sqlite_root/config/fetcher/domains.toml"
+          cp crates/fetcher/res/categories.toml "$sqlite_root/config/fetcher/categories.toml"
+          cp crates/server/res/docker.toml "$sqlite_root/config/server/config.toml"
+          cp crates/server/res/sql/sqlite/schema.sql \
+            "$sqlite_root/config/server/sql/sqlite/schema.sql"
+          sed -i 's/^dialect = "postgres"$/dialect = "sqlite"/' \
+            "$sqlite_root/config/fetcher/config.toml" \
+            "$sqlite_root/config/server/config.toml"
+          sed -i 's@^path = "rss.db"$@path = "/app/ci-db/rss.sqlite"@' \
+            "$sqlite_root/config/fetcher/config.toml"
+          sed -i 's@^path = "res/db/server.sqlite"$@path = "/app/ci-db/rss.sqlite"@' \
+            "$sqlite_root/config/server/config.toml"
+          cat > "$sqlite_root/feeds/news/ci.toml" <<'EOF'
+          [[feeds]]
+          id = "pulsewire-ci-real-rss"
+          url = "http://ci-rss/feed.xml"
+          category = "news"
+          base_poll_seconds = 1800
+          EOF
+          docker run -d --name pulsewire-ci-sqlite-fetcher --network pulsewire-ci \
+            -e CONFIG_PATH=/app/ci-config/fetcher/config.toml \
+            -e FEEDS_DIR=/app/ci-feeds \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -v "$sqlite_root/config:/app/ci-config:ro" \
+            -v "$sqlite_root/feeds:/app/ci-feeds:ro" \
+            -v "$sqlite_root/db:/app/ci-db" \
+            pulsewire-fetcher:ci
+          for i in {1..30}; do
+            if test -s "$sqlite_root/db/rss.sqlite"; then break; fi
+            sleep 2
+          done
+          test -s "$sqlite_root/db/rss.sqlite"
+          # Bootstrap only this new SQLite file; the PostgreSQL CI
+          # database and the operator's machine remain untouched.
+          docker run --rm --network pulsewire-ci \
+            -e SERVER_CONFIG_PATH=/app/ci-config/server/config.toml \
+            -e PULSEWIRE_BOOTSTRAP_USERNAME=owner \
+            -e PULSEWIRE_BOOTSTRAP_PASSWORD="$TEST_ADMIN_PASSWORD" \
+            -v "$sqlite_root/config:/app/ci-config:ro" \
+            -v "$sqlite_root/db:/app/ci-db" \
+            pulsewire-server:ci --bootstrap-admin
+          docker run -d --name pulsewire-ci-sqlite-server \
+            --network pulsewire-ci -p 127.0.0.1:18092:8091 \
+            -e SERVER_CONFIG_PATH=/app/ci-config/server/config.toml \
+            -v "$sqlite_root/config:/app/ci-config:ro" \
+            -v "$sqlite_root/db:/app/ci-db" \
+            pulsewire-server:ci
+          sqlite_ready=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18092/health >/dev/null 2>&1; then
+              sqlite_ready=1
+              break
+            fi
+            sleep 2
+          done
+          if test "$sqlite_ready" -ne 1; then
+            docker logs pulsewire-ci-sqlite-server
+            exit 1
+          fi
+          sqlite_token="$(jq -nc --arg username owner \
+            --arg password "$TEST_ADMIN_PASSWORD" \
+            '{username:$username,password:$password}' | \
+            curl -fsS -H 'Content-Type: application/json' --data-binary @- \
+              http://127.0.0.1:18092/v1/auth/login | jq -er '.token')"
+          sqlite_fetched=0
+          for i in {1..45}; do
+            count="$(curl -fsS -H "Authorization: Bearer $sqlite_token" \
+              http://127.0.0.1:18092/v1/entries | jq -r '.items | length' || echo 0)"
+            if test "$count" -ge 2; then sqlite_fetched=1; break; fi
+            if test "$(docker inspect -f '{{.State.Running}}' pulsewire-ci-sqlite-fetcher)" != true; then
+              docker logs pulsewire-ci-sqlite-fetcher
+              exit 1
+            fi
+            sleep 2
+          done
+          if test "$sqlite_fetched" -ne 1; then
+            docker logs pulsewire-ci-sqlite-fetcher
+            exit 1
+          fi
+          docker stop pulsewire-ci-sqlite-fetcher
+          PULSEWIRE_TUI_E2E_URL=http://127.0.0.1:18092 \
+          PULSEWIRE_TUI_E2E_PASSWORD="$TEST_ADMIN_PASSWORD" \
+            cargo test -p pulsewire-tui --locked isolated_http_tui_reader_journey \
+              -- --ignored --test-threads=1
+          docker restart pulsewire-ci-sqlite-server
+          sqlite_ready=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18092/health >/dev/null 2>&1; then
+              sqlite_ready=1
+              break
+            fi
+            sleep 2
+          done
+          test "$sqlite_ready" = 1
+          PULSEWIRE_TUI_E2E_URL=http://127.0.0.1:18092 \
+          PULSEWIRE_TUI_E2E_PASSWORD="$TEST_ADMIN_PASSWORD" \
+            cargo test -p pulsewire-tui --locked isolated_http_tui_after_restart \
+              -- --ignored --test-threads=1

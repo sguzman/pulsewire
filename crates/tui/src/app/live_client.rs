@@ -1,5 +1,5 @@
 //! Deterministic client-only journey
-//! against the disposable PostgreSQL
+//! against the disposable SQL
 //! server created by CI.
 //! This is intentionally ignored in
 //! ordinary developer test runs and
@@ -67,7 +67,7 @@ fn press(
 #[test]
 #[ignore = "requires isolated CI \
             PostgreSQL HTTP fixture"]
-fn postgres_http_tui_reader_journey() {
+fn isolated_http_tui_reader_journey() {
   let url = std::env::var(
     "PULSEWIRE_TUI_E2E_URL"
   )
@@ -421,7 +421,7 @@ fn postgres_http_tui_reader_journey() {
 #[test]
 #[ignore = "requires restarted CI \
             PostgreSQL HTTP server"]
-fn postgres_http_tui_after_restart() {
+fn isolated_http_tui_after_restart() {
   let url = std::env::var(
     "PULSEWIRE_TUI_E2E_URL"
   )
