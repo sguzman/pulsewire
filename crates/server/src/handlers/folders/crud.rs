@@ -130,14 +130,20 @@ pub async fn create_folder(
     )
     })?;
 
-  sqlx::query(
+  // SQLite last_insert_rowid() is scoped
+  // to an individual connection, not a
+  // connection pool. Use one RETURNING
+  // statement so the ID always belongs
+  // to this insert.
+  let row = sqlx::query_as::<_, FolderRow>(
     "INSERT INTO folders (user_id, \
      name, created_at) VALUES (?1, \
-     ?2, datetime('now'))"
+     ?2, datetime('now')) \
+     RETURNING id, name"
   )
   .bind(user_id)
   .bind(name)
-  .execute(pool)
+  .fetch_one(pool)
   .await
   .map_err(|e| {
     map_db_error(
@@ -145,20 +151,6 @@ pub async fn create_folder(
       "folder create failed"
     )
   })?;
-
-  let row =
-    sqlx::query_as::<_, FolderRow>(
-      "SELECT id, name FROM folders \
-       WHERE id = last_insert_rowid()"
-    )
-    .fetch_one(pool)
-    .await
-    .map_err(|e| {
-      ServerError::new(
-      StatusCode::INTERNAL_SERVER_ERROR,
-      e.to_string(),
-    )
-    })?;
 
   Ok(Json(row))
 }
