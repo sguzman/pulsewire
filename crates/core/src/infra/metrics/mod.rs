@@ -139,6 +139,7 @@ pub async fn init(
 
   server::spawn(&cfg.bind, metrics)
     .await
+    .map(|_| ())
 }
 
 pub fn record_tick(

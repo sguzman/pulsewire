@@ -67,24 +67,21 @@ pub(super) fn render(
 
   out.push_str(
     "# HELP pulsewire_due_feeds_total \
-     \\\n     Due feeds seen per \
-     category.\n"
+     Due feeds seen per category.\n"
   );
-
   out.push_str(
     "# TYPE pulsewire_due_feeds_total \
-     \\
      counter\n"
   );
-
   for (category, count) in
     sorted_map(&due)
   {
     out.push_str(&format!(
-      r#"pulsewire_due_feeds_total{{category=\"{}\"}} {}\n"#,
+      r#"pulsewire_due_feeds_total{{category="{}"}} {}"#,
       escape_label(&category),
       count
     ));
+    out.push('\n');
   }
 
   let due_current = metrics
@@ -93,23 +90,22 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP pulsewire_due_feeds \\\n     Current due feeds per \\
-     category.\n",
+    "# HELP pulsewire_due_feeds \
+     Current due feeds per category.\n"
   );
-
   out.push_str(
-    "# TYPE pulsewire_due_feeds \\
+    "# TYPE pulsewire_due_feeds \
      gauge\n"
   );
-
   for (category, count) in
     sorted_map(&due_current)
   {
     out.push_str(&format!(
-      r#"pulsewire_due_feeds{{category=\"{}\"}} {}\n"#,
+      r#"pulsewire_due_feeds{{category="{}"}} {}"#,
       escape_label(&category),
       count
     ));
+    out.push('\n');
   }
 
   out.push_str(
@@ -190,17 +186,12 @@ pub(super) fn render(
 
   out.push_str(
     "# HELP pulsewire_http_latency_ms \
-     \\
-     HTTP latency by \\
-     action/domain.\n"
+     HTTP latency by action/domain.\n"
   );
-
   out.push_str(
     "# TYPE pulsewire_http_latency_ms \
-     \\
      histogram\n"
   );
-
   for ((action, domain), hist) in
     sorted_hist_map(&http_latency)
   {
@@ -222,15 +213,13 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP pulsewire_db_query_ms \\
+    "# HELP pulsewire_db_query_ms \
      Database query timings.\n"
   );
-
   out.push_str(
-    "# TYPE pulsewire_db_query_ms \\
+    "# TYPE pulsewire_db_query_ms \
      histogram\n"
   );
-
   for (query, hist) in
     sorted_hist_map_single(&db_timings)
   {
@@ -427,4 +416,42 @@ fn format_labels(
   out.push('}');
 
   out
+}
+
+#[cfg(test)]
+mod prometheus_text_tests {
+  use super::*;
+
+  #[test]
+  fn category_samples_use_real_newlines_and_quoted_labels()
+   {
+    let metrics = Metrics::new(&[]);
+    metrics
+      .due_feeds_by_category
+      .lock()
+      .expect("total due lock")
+      .insert("news".into(), 3);
+    metrics
+      .due_feeds_current_by_category
+      .lock()
+      .expect("current due lock")
+      .insert("news".into(), 2);
+    let body = render(&metrics);
+
+    assert!(body.lines().any(|line| {
+      line == r#"pulsewire_due_feeds_total{category="news"} 3"#
+    }));
+    assert!(body.lines().any(|line| {
+      line == r#"pulsewire_due_feeds{category="news"} 2"#
+    }));
+    assert!(!body.contains(r#"\n"#));
+    for line in body.lines() {
+      if line.starts_with("# HELP")
+        || line.starts_with("# TYPE")
+      {
+        assert!(!line.contains('\\'));
+      }
+    }
+    assert!(body.ends_with('\n'));
+  }
 }
