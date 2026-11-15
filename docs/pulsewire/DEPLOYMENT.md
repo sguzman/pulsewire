@@ -8,9 +8,13 @@ else's PostgreSQL schemas.
 ## What is built and tested
 
 - CI builds non-root musl fetcher/server images from the workspace using the
-  locked dependencies. A disposable PostgreSQL service verifies initial fetcher
-  database migration, offline admin bootstrap, server launch, login and denied
-  unauthenticated account creation.
+  locked dependencies. Disposable PostgreSQL **and SQLite** fixtures verify
+  RSS ingestion, schema migrations, authenticated HTTP APIs, read-state,
+  subscriptions/favorites/folders, TUI journeys and service restart. The
+  browser is tested on desktop/mobile against a real PostgreSQL API fixture.
+  These are **CI integration tests**, not human QA against a household host.
+  See [PW-051](PW051-ACCEPTANCE.md), [PW-061](PW061-ACCEPTANCE.md) and
+  [PW-043](PW043-ACCEPTANCE.md).
 - The default fetcher image contains **non-YouTube, non-podcast** feed catalogs
   only. Original source definitions remain in Git. The loader also skips these
   categories when their directories are mounted.
@@ -105,9 +109,76 @@ tables, then bootstrap the first administrator with the server image's
 `PULSEWIRE_BOOTSTRAP_USERNAME` and `PULSEWIRE_BOOTSTRAP_PASSWORD` privately.
 The bootstrap command exits without exposing an HTTP listener.
 
-**Not yet accepted for real deployment:** backup/restore against the actual
-host database (isolated PostgreSQL and SQLite recovery tests are now green),
-repeatable upgrades with real datasets, feed fetching at steady state,
-TLS/reverse-proxy configuration, browser/TUI workflow QA, and migration from
-any existing Pulsewire database. See [RECOVERY.md](RECOVERY.md) for the tested
-recovery approach and its limitations.
+**Still not accepted for real deployment:** backup/restore on the actual
+host dataset (isolated SQLite/PostgreSQL tests are green), repeatable upgrades
+and rollback with real data, steady-state host resource measurements,
+TLS/reverse-proxy and firewall trust boundaries, real-device/browser/TUI
+human QA, and migration from an existing Pulsewire database. See
+[RECOVERY.md](RECOVERY.md) for tested copy-only recovery, and
+[COMPATIBILITY.md](COMPATIBILITY.md) for the verified platform matrix.
+
+## Operator decision and read-only inspection
+
+**Do not run the following preflight against an assumed home host or network.**
+These are observations to use **after** operator approval identifies the exact
+service, database, Docker network, backup destination and maintenance window:
+
+- Record the exact source commit, local architecture, selected backend,
+  deployment schema names, config locations, and installed binaries/images.
+  The default Dockerfiles target `x86_64-unknown-linux-musl`; the current
+  container CI uses a disposable PostgreSQL 16 database, not the owner's
+  existing service.
+- Review `crates/server/res/docker.toml` and
+  `crates/fetcher/res/docker.toml` **without printing secret fields**.
+  Both examples use the DNS name `postgres` and database `data`, with
+  separate server/fetcher schemas. They are not guaranteed to match an
+  actual home deployment.
+- Review Compose with `config --quiet`, and separately verify that the
+  selected external Docker network actually exists and the database service
+  is reachable from the isolated test clients. Compose does **not** create
+  that network or configure router/CoreDNS, TLS or firewall.
+- Remember the internal/external bind distinction: the server listens
+  on `0.0.0.0:8091` **inside** its container; Compose only publishes
+  `127.0.0.1:8091:8091` at the host. Containers attached to the selected
+  network can contact the internal port. HTTP traffic over an untrusted
+  network is not approved. Fetcher metrics remain disabled/unpublished.
+- Check private storage permissions and the existence of the optional
+  cookies/headers directories **before** attempting an approved Compose
+  startup. These are read-only mounts, but their contents are sensitive.
+
+## First install versus upgrade (approval required)
+
+On a completely **new, empty, isolated database**, fetcher schema initialization
+comes first. The server then applies its own reader schema and a trusted
+operator can invoke one-shot `--bootstrap-admin` with private credentials.
+Do not use a default credential or ask the service to create an admin
+automatically. The normal browser is accessible at `/reader` only once
+the separately approved server is up, and API bearer authentication still
+applies. A live `/health` success is process liveness, while `/ready`
+also tests database connectivity but not the fetcher scheduler.
+
+For an **existing** installation, do not treat `up --build` as a migration
+plan. Before any write, record the current executable/image and config/schema
+versions, take a consistent backup, rehearse a restore into a **new**
+destination, run upgrades/migrations against that **copy**, and verify
+accounts, feed items, subscriptions, favorites, folders and read state.
+Do not assume old binaries can open newer migrated schemas. A rollback plan
+restores a separately tested snapshot into a separately authorized location;
+it does not DROP or overwrite a live shared database. See
+[BACKUP-RESTORE.md](BACKUP-RESTORE.md).
+
+## Privacy, troubleshooting and release boundary
+
+Use [COMPATIBILITY.md](COMPATIBILITY.md) for exact config precedence,
+supported CI environments, browser token storage and catalog defaults;
+[TROUBLESHOOTING.md](TROUBLESHOOTING.md) for non-mutating diagnosis;
+[MONITORING.md](MONITORING.md) for liveness versus readiness; and
+[FETCH_SECURITY.md](FETCH_SECURITY.md) for outbound URL/DNS restrictions.
+Do not leak Docker environment/passwords, RSS content, bearer tokens, cookies,
+read state or SQL dumps. Public self-service password reset stays disabled:
+[RECOVERY.md](RECOVERY.md) documents trusted offline recovery.
+
+The operator must separately accept PW-023 (ingress/TLS/secrets/network),
+PW-032 (actual target-host resource envelope), and PW-071 (deployment and
+release) before any host change or tag. CI green is **not** approval to
+start containers, publish ports, modify household networks or expose the API.

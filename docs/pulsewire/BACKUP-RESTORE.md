@@ -88,6 +88,24 @@ Until a specific deletion policy and FK/read-state preservation tests pass:
 - Snapshot/restore drills must show that historical data and reader state
   survive, not merely that the database starts.
 
+## Migration compatibility and rollback boundary
+
+SQLite and PostgreSQL schema migrations are covered by small, isolated
+CI fixtures, and the restart and API/TUI tests verify preservation of
+those synthetic records. They are **not** evidence that arbitrary older
+Pulsewire databases can be upgraded or downgraded in place, or that a
+large real dataset will fit a maintenance window. Treat a service release,
+config/schema pair, and database snapshot as a single versioned unit.
+
+For a future approved upgrade, retain a source-compatible copy of the
+original configuration and record the exact deployed commit and database
+snapshot identifier before any migration. Rehearse against an isolated
+new destination; verify SQL integrity and HTTP reader state after **both**
+fetcher/server migrations. Never try an older binary on an already migrated
+real database without a separately validated downgrade; favor an
+independently restored **copy** and a rollback rehearsal. No automatic
+pruning or destructive recovery is part of the accepted contract.
+
 ## What CI proves and what it does not
 
 The existing server SQLite test performs an isolated `VACUUM INTO` snapshot,

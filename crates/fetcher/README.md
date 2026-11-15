@@ -7,7 +7,10 @@ Feed polling daemon that ingests RSS/Atom feeds into SQLite or Postgres. It uses
 - Periodic scheduler with per-domain concurrency limits.
 - HEAD/GET flow with adaptive backoff and jitter.
 - Stores payloads, items, and fetch events.
-- Dev mode can wipe DB on startup.
+- `app.mode = "dev"` **preserves** databases on startup, just like
+  `prod`. There is no startup deletion. For explicit development-only
+  cleanup, see the guarded CLI command and its required isolated directory
+  in [`crates/cli/README.md`](../cli/README.md).
 
 ## Running
 

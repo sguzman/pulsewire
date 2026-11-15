@@ -68,10 +68,16 @@ access, and follow the [deployment security runbook](docs/pulsewire/DEPLOYMENT.m
 before exposing the server.
 
 ## Configuration
-Fetcher config resolution order: 1) CLI argument path (if provided), else 2)
-`CONFIG_PATH` environment variable (if set), else 3)
-`crates/fetcher/res/config.toml` when present. Feed definitions default to
-`feeds/` under the config directory, but can be overridden with `FEEDS_DIR`.
+Fetcher configuration lookup: 1) explicit positional config path, 2)
+`CONFIG_PATH`, then 3) the shared user/installed/checkout lookup (existing
+XDG configuration, HOME configuration, installed share paths, checkout
+`crates/fetcher/res/config.toml`). The server uses `SERVER_CONFIG_PATH`
+before its own shared fallback path. The ops CLI is different: it uses an
+explicit command path, then `CONFIG_PATH`, then the checkout fetcher config.
+An explicitly supplied invalid path fails rather than silently falling back.
+Feed definitions default to `feeds/` under the selected config directory,
+overridable with `FEEDS_DIR`. See
+[compatibility and config lookup](docs/pulsewire/COMPATIBILITY.md).
 
 `config.toml` (fetcher app sections):
 
@@ -191,7 +197,7 @@ OpenAPI docs:
   `cargo run -p pulsewire-fetcher --release -- --ingest-benchmark 50000`
 - Validate config + semantic checks:
   `cargo run -p pulsewire-cli -- validate /path/to/config.toml`
-- Clean *isolated* SQLite development files only: the configuration must have
+- Clean *isolated* SQLite development files only (**destructive; do not run on an existing home database**): the configuration must have
   `app.mode = "dev"` and `database.dialect = "sqlite"`, both targets must be
   inside an existing dedicated `PULSEWIRE_DEV_DATA_DIR`, and the command requires
   `--confirm` plus `PULSEWIRE_ALLOW_DESTRUCTIVE_DEV_RESET=YES`. Production data
@@ -221,12 +227,21 @@ OpenAPI docs:
 
 ## Development
 
-- Tooling guidance: `docs/ai/tools/ADDING.md`
+- Tooling guidance: [`docs/reference/ai/tools/ADDING.md`](docs/reference/ai/tools/ADDING.md)
 - Tooling: cargo-release, git-cliff, just, biome, taplo, rustfmt, lychee, typos
 - Justfile: `just build`, `just fmt`, `just validate`, `just test`,
-  `just post-change`, `just all`
-- Release policy: `docs/RELEASE.md`
+  `just all`
+- Release policy: [`docs/reference/RELEASE.md`](docs/reference/RELEASE.md)
 - Roadmap: [`docs/pulsewire/ROADMAP.md`](docs/pulsewire/ROADMAP.md)
+- Operator docs: [deployment preflight](docs/pulsewire/DEPLOYMENT.md),
+  [compatibility/defaults/privacy](docs/pulsewire/COMPATIBILITY.md),
+  [troubleshooting](docs/pulsewire/TROUBLESHOOTING.md),
+  [backup/restore](docs/pulsewire/BACKUP-RESTORE.md),
+  [operator recovery](docs/pulsewire/RECOVERY.md),
+  [network fetch safety](docs/pulsewire/FETCH_SECURITY.md), and
+  [monitoring/readiness](docs/pulsewire/MONITORING.md).
+  All operator procedures are **preflight or isolated CI reference**, not a
+  deployment or release authorization.
 - Changelog config: `cliff.toml`
 - Release config: `release.toml`
 - License inventory:
