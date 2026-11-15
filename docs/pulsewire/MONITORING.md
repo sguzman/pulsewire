@@ -1,0 +1,31 @@
+# Pulsewire monitoring and readiness
+
+Pulsewire runs its HTTP reader server and RSS fetcher as separate processes. Their health signals therefore cover **different dependencies**.
+
+## Reader server
+
+- `GET /health` is a liveness probe: HTTP 200 with `ok` whenever the HTTP server is running. It does not query storage.
+- `GET /ready` is a readiness probe: HTTP 200 with `ready` only when the configured SQLite or PostgreSQL pool can execute `SELECT 1` within two seconds. A missing, closed, unavailable or timed-out database returns HTTP 503 with `not ready`.
+- Neither route returns connection strings, credentials, or detailed database errors.
+- The server does **not** own the RSS scheduler. A successful `/ready` means the reader API has database connectivity, not that the fetcher is processing feeds.
+
+For a deliberately approved loopback deployment:
+
+```sh
+curl -fsS http://127.0.0.1:8091/health
+curl -fsS http://127.0.0.1:8091/ready
+```
+
+The container workflow checks `/ready` against a disposable PostgreSQL-backed server; Rust tests check SQLite success, missing database state and closed-pool failure.
+
+## Fetcher metrics
+
+The fetcher's Prometheus-text endpoint is **disabled by default**. Its example Docker config sets `[metrics].enabled = false` and `bind = "127.0.0.1:9898"`; the fetcher Compose service publishes no metrics port. A monitoring operator must explicitly enable a private, reviewed scrape path. Do not bind or publish the endpoint on an untrusted network.
+
+When enabled, `GET /metrics` exposes `pulsewire_up`, start time, scheduler ticks, due-feed gauges and counters, HTTP action outcomes and latency, database query timing, and in-flight actions. The core's isolated loopback regression tests check a parseable HTTP response, proper content length, and Prometheus sample framing.
+
+Metrics indicate activity, **not** comprehensive data freshness. A scrape failure or a missing target should be treated as a fetcher outage; `pulsewire_up 1` is only emitted while the endpoint responds. Configure Prometheus target `up` alerts and separately monitor reader `/ready` failures, fetcher process exits, feed backlog and scrape staleness.
+
+## Exposure and release boundary
+
+The open [PW-023 security gate](https://github.com/sguzman/pulsewire/issues/9) still requires trust boundaries, firewall, TLS/proxy, credentials and metrics network access to be verified before a home deployment. These probes do **not** authorize opening firewall ports, exposing API/metrics to the internet, changing household services, or enabling monitoring against production data.
