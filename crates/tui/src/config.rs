@@ -547,3 +547,105 @@ mod logout_defaults_tests {
     );
   }
 }
+
+#[cfg(test)]
+mod credential_redaction_tests {
+  use super::*;
+
+  const SECRET: &str =
+    "pw023-tui-credential-sentinel";
+
+  #[test]
+  fn auth_debug_and_tui_debug_hide_password()
+   {
+    let mut cfg: TuiConfig =
+      toml::from_str(include_str!(
+        "../res/config.toml"
+      ))
+      .expect("TUI fixture config");
+    cfg.auth.password = SECRET.into();
+    for printed in [
+      format!("{:?}", cfg.auth),
+      format!("{cfg:?}")
+    ] {
+      assert!(
+        !printed.contains(SECRET)
+      );
+      assert!(
+        printed.contains("<redacted>")
+      );
+    }
+  }
+
+  #[test]
+  fn parse_errors_discard_config_source()
+   {
+    let malformed = format!(
+      "[auth]\npassword = \"{SECRET}"
+    );
+    let err = parse_tui_config(
+      &malformed
+    )
+    .expect_err("malformed source");
+    for message in [
+      err.to_string(),
+      format!("{err:?}")
+    ] {
+      assert!(
+        message.contains("source omitted")
+      );
+      assert!(
+        !message.contains(SECRET)
+      );
+    }
+    let err = validate_toml(
+      r#"{"type":"object"}"#,
+      &malformed,
+      "tui"
+    )
+    .expect_err("malformed TOML");
+    assert!(
+      !err.to_string().contains(SECRET)
+    );
+  }
+
+  #[test]
+  fn schema_errors_discard_rejected_values()
+   {
+    let schema = r#"{
+      "type":"object",
+      "properties":{
+        "auth":{
+          "type":"object",
+          "properties":{
+            "password":{
+              "type":"integer"
+            }
+          }
+        }
+      }
+    }"#;
+    let content = format!(
+      "[auth]\npassword = \"{SECRET}\""
+    );
+    let err = validate_toml(
+      schema,
+      &content,
+      "tui"
+    )
+    .expect_err(
+      "invalid password field type"
+    );
+    for message in [
+      err.to_string(),
+      format!("{err:?}")
+    ] {
+      assert!(
+        message.contains("values omitted")
+      );
+      assert!(
+        !message.contains(SECRET)
+      );
+    }
+  }
+}
