@@ -23,6 +23,21 @@ use crate::models::{
   SearchQuery
 };
 
+fn literal_like_pattern(
+  query: &str
+) -> String {
+  let mut pattern = String::new();
+  pattern.push('%');
+  for ch in query.chars() {
+    if ['\\', '%', '_'].contains(&ch) {
+      pattern.push('\\');
+    }
+    pattern.push(ch);
+  }
+  pattern.push('%');
+  pattern
+}
+
 pub async fn search_entries(
   State(state): State<AppState>,
   headers: HeaderMap,
@@ -57,7 +72,7 @@ pub async fn search_entries(
   let feed_filter =
     query.feed_id.as_deref();
 
-  let pattern = format!("%{}%", q);
+  let pattern = literal_like_pattern(q);
 
   if let Some(pool) = &state.postgres {
     let schema = state
@@ -90,17 +105,20 @@ pub async fn search_entries(
     builder.push("fi.title ILIKE ");
 
     builder.push_bind(&pattern);
+    builder.push(" ESCAPE '\\'");
 
     builder
       .push(" OR fi.summary ILIKE ");
 
     builder.push_bind(&pattern);
+    builder.push(" ESCAPE '\\'");
 
     builder.push(
       " OR fi.description ILIKE "
     );
 
     builder.push_bind(&pattern);
+    builder.push(" ESCAPE '\\'");
 
     builder.push(")");
 
@@ -207,14 +225,14 @@ pub async fn search_entries(
   builder.push_bind(&pattern);
 
   builder.push(
-    ") OR lower(fi.summary) LIKE \
+    ") ESCAPE '\\' OR lower(fi.summary) LIKE \
      lower("
   );
 
   builder.push_bind(&pattern);
 
   builder.push(
-    ") OR lower(fi.description) LIKE \
+    ") ESCAPE '\\' OR lower(fi.description) LIKE \
      lower("
   );
 
@@ -223,7 +241,7 @@ pub async fn search_entries(
   // Close both lower(pattern) and the
   // surrounding WHERE (title OR summary
   // OR description) group.
-  builder.push("))");
+  builder.push(") ESCAPE '\\')");
 
   if let Some(filter) = read_filter {
     match filter {
