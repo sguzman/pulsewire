@@ -251,9 +251,9 @@ pub async fn feed_entry_counts(
     "SELECT f.id AS feed_id, \
      COUNT(fi.id) AS total_count, \
      COALESCE(SUM(CASE WHEN \
-     es.read_at IS NULL AND fi.id \
-     IS NOT NULL THEN 1 ELSE 0 END), \
-     0) AS unread_count, \
+     es.read_at IS NULL AND fi.id IS \
+     NOT NULL THEN 1 ELSE 0 END), 0) \
+     AS unread_count, \
      MAX(fi.published_at_ms) AS \
      last_published_at_ms FROM feeds \
      f LEFT JOIN feed_items fi ON \

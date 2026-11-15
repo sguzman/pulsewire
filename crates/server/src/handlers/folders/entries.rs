@@ -39,9 +39,10 @@ pub async fn list_folder_entries(
     auth_user_id(&state, &headers)
       .await?;
 
-  let limit =
-    query.limit.unwrap_or(50).clamp(1, 200)
-      as i64;
+  let limit = query
+    .limit
+    .unwrap_or(50)
+    .clamp(1, 200) as i64;
 
   let offset =
     query.offset.unwrap_or(0) as i64;
@@ -142,7 +143,8 @@ pub async fn list_folder_entries(
         )
       })?;
 
-    let has_more = rows.len() as i64 > limit;
+    let has_more =
+      rows.len() as i64 > limit;
     if has_more {
       rows.truncate(limit as usize);
     }
@@ -256,18 +258,20 @@ pub async fn list_folder_entries(
       )
     })?;
 
-  let has_more = rows.len() as i64 > limit;
+  let has_more =
+    rows.len() as i64 > limit;
   if has_more {
     rows.truncate(limit as usize);
   }
 
-  let next_cursor = rows.iter().map(|row| row.id).max();
+  let next_cursor =
+    rows.iter().map(|row| row.id).max();
 
   let next_offset = if has_more {
-      Some(offset + limit)
-    } else {
-      None
-    };
+    Some(offset + limit)
+  } else {
+    None
+  };
 
   Ok(Json(EntryListResponse {
     items: rows,
