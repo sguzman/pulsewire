@@ -569,19 +569,12 @@ fn extract_watch_items_from_html(
     if items.len() >= max_items {
       break;
     }
-    let mut link = extract_link(
+    let link = extract_link(
       &node,
       link_selector.as_ref(),
       &feed.url,
       watch.strip_query_params
     );
-
-    if link.is_none() {
-      link = node
-        .value()
-        .attr("href")
-        .map(|s| s.to_string());
-    }
 
     let title = extract_text(
       &node,
@@ -1176,4 +1169,83 @@ mod watch_link_tests {
       Some("https://news.example.test/post?id=2")
     );
   }
+  #[test]
+  fn html_watch_does_not_restore_unsafe_raw_links()
+   {
+    let feed = FeedConfig {
+      id:                "ci-watch".into(),
+      url: "https://news.example.test/archive/index.html".into(),
+      domain: "news.example.test".into(),
+      category: "news".into(),
+      base_poll_seconds: 60,
+      provenance: None,
+      tags: None,
+      language: None,
+      content_type: None,
+      cookie_path: None,
+      headers_path: None,
+      headers: None
+    };
+    let watch = WatchConfig {
+      id:                feed.id.clone(),
+      url:               feed.url.clone(),
+      domain:            feed.domain.clone(),
+      category:          feed.category.clone(),
+      base_poll_seconds: 60,
+      provenance: None,
+      tags: None,
+      language: None,
+      content_type: None,
+      cookie_path: None,
+      headers_path: None,
+      headers: None,
+      check_method:
+        crate::domain::model::WatchCheckMethod::Get,
+      fallback_to_get: false,
+      detectors: Vec::new(),
+      fetch_body_on_change: false,
+      max_body_bytes: None,
+      max_items_per_fetch: None,
+      item_selector: Some("a".into()),
+      item_identity: Some(
+        crate::domain::model::WatchItemIdentity::Href
+      ),
+      item_identity_attr: None,
+      title_selector: None,
+      link_selector: None,
+      summary_selector: None,
+      published_selector: None,
+      published_format: None,
+      include_selectors: None,
+      exclude_selectors: None,
+      normalize_whitespace: false,
+      strip_query_params: false,
+      emit_mode: WatchEmitMode::NewItemsOnly,
+      emit_title: None,
+      min_item_count_change: None
+    };
+
+    let unsafe_items =
+      extract_watch_items_from_html(
+        &feed,
+        &watch,
+        br#"<a href="javascript:alert(1)">Unsafe</a>"#,
+        0
+      );
+    assert!(unsafe_items.is_empty());
+
+    let safe_items =
+      extract_watch_items_from_html(
+        &feed,
+        &watch,
+        br#"<a href="/article">Safe</a>"#,
+        0
+      );
+    assert_eq!(safe_items.len(), 1);
+    assert_eq!(
+      safe_items[0].link.as_deref(),
+      Some("https://news.example.test/article")
+    );
+  }
+
 }
