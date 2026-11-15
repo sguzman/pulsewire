@@ -153,6 +153,7 @@ fn html_items(
   html.into_bytes()
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn run_watch_get(
   cfg: &Arc<AppConfig>,
   guards: &ConcurrencyGuards,
