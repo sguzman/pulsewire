@@ -146,16 +146,20 @@ impl App {
           }
         };
 
+      // A failed entry fetch must not be followed by
+      // RefreshAll, which would erase the error and
+      // present stale entries as a successful refresh.
       let entries: Option<
         EntryListResponse
-      > = build_entries_url(
-        &base_url,
-        &entries_mode,
-        entries_read_filter,
-        entries_page_size,
-        entries_offset
-      )
-      .and_then(|url| {
+      > = if let Some(url) =
+        build_entries_url(
+          &base_url,
+          &entries_mode,
+          entries_read_filter,
+          entries_page_size,
+          entries_offset
+        )
+      {
         match get_json(
           &client, &url, &token
         ) {
@@ -166,10 +170,12 @@ impl App {
                 message: err
               }
             );
-            None
+            return;
           }
         }
-      });
+      } else {
+        None
+      };
 
       let subscription_ids = subs
         .into_iter()
