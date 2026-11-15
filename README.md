@@ -153,6 +153,29 @@ HTML, or enable public network exposure. Treat any browser profile with an
 active token as sensitive; deploy only after the documented PW-023 ingress/TLS
 and network-security acceptance checks. No npm/build tooling is needed.
 
+API pagination and count semantics (PW-061, verified in isolated CI):
+
+- Entry listing/search (including feed and folder entries) is ordered by
+  **descending ingestion item ID**, not publication date. `limit` defaults to
+  50 and is clamped to 1–200; `offset` starts at zero.
+- Responses include `items`, `next_offset`, `next_cursor` and `since`.
+  Use `next_offset` to request the next older page; it is `null` when no
+  further results exist. `next_cursor` is the **highest returned item ID on
+  this page** (not an older-page token); `since=N` filters to IDs greater
+  than N, enabling polling for newly ingested entries. Offset paging does not
+  promise a fixed snapshot if new items arrive during navigation.
+- Search `q` is a trimmed, case-insensitive **literal substring** across
+  title, summary and description. SQL wildcard characters are not operators.
+  `read` accepts `all`, `read` or `unread`; invalid values return HTTP
+  400.
+- `/v1/entries/unread/count` and `/v1/feeds/unread/counts` count the
+  authenticated user's **subscribed feeds**. `/v1/feeds/counts` covers the
+  complete catalog (including feeds with zero entries), with personalized
+  per-user read/unread state.
+- Source-linked cross-backend verification:
+  [PW061 acceptance](docs/pulsewire/PW061-ACCEPTANCE.md). The API does not
+  expose the disabled public password-reset workflow.
+
 OpenAPI docs:
 
 - Spec: `GET /openapi.json`

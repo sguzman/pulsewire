@@ -1,6 +1,12 @@
 # Changelog
 ## [Unreleased]
 
+### 🏷️ Stable API and client semantics
+- Fix SQLite feed entry counts referencing a nonexistent read-state column; verify personalized read/unread totals against both SQLite and PostgreSQL (PR #55).
+- Distinguish terminal versus continuing offset pages with bounded one-row lookahead, preserve explicit `since` and page-local `next_cursor` semantics, and update the browser to follow the API continuation field (PR #55).
+- Escape literal search text including percent, underscore, and backslash consistently in SQLite and PostgreSQL. Keep descending ingestion-ID sorting and document subscription-scoped versus catalog-scoped counts.
+- Reconcile OpenAPI with all served routes, authentication/error responses and supported models; add no-npm route/schema checks and live HTTP contract assertions on both disposable database backends (PR #55).
+
 ### 📰 Browser reader
 - Add a responsive reader at `/reader` served directly by the Rust server with no npm dependencies. Includes login/logout, list/detail, search, read/unread, subscriptions, favorite feeds, folders, mobile navigation, keyboard shortcuts and System/Light/Dark appearance (PR #53).
 - Render fetched descriptions as plain text and restrict external article links to HTTP(S); return strict CSP, no-store and MIME-sniffing protection on embedded reader assets.
