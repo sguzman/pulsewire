@@ -64,7 +64,11 @@ pub struct LoadedConfig {
   pub watches: Vec<WatchConfig>,
   pub categories: Vec<CategoryConfig>,
   pub disabled_categories:
-    HashSet<String>
+    HashSet<String>,
+  /// Explicitly disabled watch IDs
+  /// whose historical feed rows must
+  /// remain but never be scheduled.
+  pub disabled_watch_ids:  Vec<String>
 }
 
 impl ConfigLoader {
@@ -494,7 +498,30 @@ impl ConfigLoader {
       });
     }
 
+    let mut disabled_watch_ids =
+      Vec::new();
     for w in raw_feeds.watches {
+      if w.enabled == Some(false) {
+        // Retain the already-expanded
+        // watch ID for database-side
+        // due-queue suppression.
+        if !source_ids
+          .insert(w.id.clone())
+        {
+          return Err(
+            ConfigError::Invalid(
+              format!(
+                "duplicate source id \
+                 '{}'",
+                w.id
+              )
+            )
+          );
+        }
+        disabled_watch_ids.push(w.id);
+        continue;
+      }
+
       let watch = parse_watch(
         w,
         raw_cfg.polling.default_seconds,
@@ -535,6 +562,7 @@ impl ConfigLoader {
 
     Ok(LoadedConfig {
       disabled_categories,
+      disabled_watch_ids,
       app: AppConfig {
         db_dialect,
         sqlite_path: db_path,

@@ -56,6 +56,14 @@ pub trait Repo: Send + Sync {
     zone: &Tz
   ) -> Result<(), String>;
 
+  /// Atomically replace explicit
+  /// watch disables. Preserves feed,
+  /// event, and item history.
+  async fn replace_disabled_watches(
+    &self,
+    ids: &[String]
+  ) -> Result<(), String>;
+
   async fn upsert_categories(
     &self,
     categories: Vec<String>,

@@ -139,6 +139,54 @@ async fn upsert_chunk(
   Ok(())
 }
 
+pub async fn replace_disabled_watches(
+  pool: &SqlitePool,
+  ids: &[String]
+) -> Result<(), String> {
+  let mut tx = pool
+    .begin()
+    .await
+    .map_err(|e| {
+      format!(
+        "begin disabled-watch sync: \
+         {e}"
+      )
+    })?;
+
+  sqlx::query(
+    "DELETE FROM disabled_watch_feeds"
+  )
+  .execute(&mut *tx)
+  .await
+  .map_err(|e| {
+    format!(
+      "clear disabled watches: {e}"
+    )
+  })?;
+
+  for id in ids {
+    sqlx::query(
+      "INSERT INTO \
+       disabled_watch_feeds(feed_id) \
+       VALUES (?1)"
+    )
+    .bind(id)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| {
+      format!(
+        "record disabled watch: {e}"
+      )
+    })?;
+  }
+
+  tx.commit().await.map_err(|e| {
+    format!(
+      "commit disabled-watch sync: {e}"
+    )
+  })
+}
+
 pub async fn due_feeds(
   pool: &SqlitePool,
   category: &str,
@@ -155,6 +203,11 @@ pub async fn due_feeds(
       LEFT JOIN error_feeds e ON e.feed_id = f.id
       WHERE f.category = ?1
         AND e.feed_id IS NULL
+        AND NOT EXISTS (
+          SELECT 1
+          FROM disabled_watch_feeds disabled
+          WHERE disabled.feed_id = f.id
+        )
         AND (s.feed_id IS NULL OR s.next_action_at_ms <= ?2)
       ORDER BY COALESCE(s.next_action_at_ms, ?2), f.id
       LIMIT ?3
@@ -243,7 +296,10 @@ mod stable_due_queue_tests {
        next_action_at_ms INTEGER NOT \
        NULL)",
       "CREATE TABLE error_feeds \
-       (feed_id TEXT PRIMARY KEY)"
+       (feed_id TEXT PRIMARY KEY)",
+      "CREATE TABLE \
+       disabled_watch_feeds(feed_id \
+       TEXT PRIMARY KEY)"
     ] {
       sqlx::query(ddl)
         .execute(&pool)
@@ -323,6 +379,44 @@ mod stable_due_queue_tests {
     assert_eq!(ids(remaining), vec![
       "c"
     ]);
+
+    // A disabled watch must disappear
+    // from the database-backed queue
+    // without deleting the source row.
+    replace_disabled_watches(&pool, &[
+      "c".to_string()
+    ])
+    .await
+    .expect("disable watch");
+    assert!(
+      due_feeds(&pool, "news", 1000, 2)
+        .await
+        .unwrap()
+        .is_empty()
+    );
+
+    replace_disabled_watches(&pool, &[
+    ])
+    .await
+    .expect("re-enable watch");
+    assert_eq!(
+      ids(
+        due_feeds(
+          &pool, "news", 1000, 2
+        )
+        .await
+        .unwrap()
+      ),
+      vec!["c"]
+    );
+    let original: i64 =
+      sqlx::query_scalar(
+        "SELECT COUNT(*) FROM feeds"
+      )
+      .fetch_one(&pool)
+      .await
+      .unwrap();
+    assert_eq!(original, 4);
   }
 
   #[tokio::test]
@@ -347,7 +441,10 @@ mod stable_due_queue_tests {
        next_action_at_ms INTEGER NOT \
        NULL)",
       "CREATE TABLE error_feeds \
-       (feed_id TEXT PRIMARY KEY)"
+       (feed_id TEXT PRIMARY KEY)",
+      "CREATE TABLE \
+       disabled_watch_feeds(feed_id \
+       TEXT PRIMARY KEY)"
     ] {
       sqlx::query(ddl)
         .execute(&pool)

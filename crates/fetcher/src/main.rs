@@ -69,7 +69,8 @@ async fn main() -> Result<(), BootError>
     feeds,
     watches,
     categories,
-    disabled_categories
+    disabled_categories,
+    disabled_watch_ids
   } = ConfigLoader::load(&cfg_path)
     .await
     .map_err(|e| {
@@ -245,6 +246,17 @@ async fn main() -> Result<(), BootError>
     all_sources
   )
   .await?;
+
+  // Must be synchronized before the
+  // scheduler can poll any restored
+  // feed rows. Disabling never deletes
+  // feed or item history.
+  repo
+    .replace_disabled_watches(
+      &disabled_watch_ids
+    )
+    .await
+    .map_err(BootError::Fatal)?;
 
   let http = Arc::new(
     ReqwestHttp::new(

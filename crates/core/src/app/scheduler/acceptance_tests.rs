@@ -115,6 +115,13 @@ impl Repo for FakeRepo {
     Ok(())
   }
 
+  async fn replace_disabled_watches(
+    &self,
+    _ids: &[String]
+  ) -> Result<(), String> {
+    Ok(())
+  }
+
   async fn upsert_categories(
     &self,
     _categories: Vec<String>,
