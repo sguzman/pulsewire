@@ -91,7 +91,25 @@ or as authorization to run `up`.
 
 The shared Rust helper unit tests check direct/TOML compatibility, a valid
 file with CRLF, missing/unreadable/multiline file errors, and conflicting
-environment/file inputs. CI additionally exercises **both real service
+environment/file inputs.
+
+**Verified isolated acceptance, 2026-11-15:** [PR #57](https://github.com/sguzman/pulsewire/pull/57)
+squash-merged at [`bae5abc`](https://github.com/sguzman/pulsewire/commit/bae5abc78137971b11119bcf5099b5bdd2b6dd43).
+Its final source head `ef58659d8a8ad07fbce0247305b5d0a93c2cd367` passed both
+[Rust/docs/Chromium CI 43765147667](https://github.com/sguzman/pulsewire/actions/runs/43765147667)
+and [container CI 43765147773](https://github.com/sguzman/pulsewire/actions/runs/43765147773).
+Container logs explicitly contain `PW-023 file-backed credentials: both real
+binaries passed against disposable PostgreSQL`. The CI starts a fetcher with
+a mounted secret and an independent reader server with a mounted secret,
+checks `/health` and `/ready`, verifies the password bytes are absent from
+the reader server's Docker environment metadata, rejects a missing explicit
+secret file, and keeps the expected security errors generic.
+
+**No PW-023 weighted acceptance is claimed:** 0/3 points; Pulsewire overall
+remains **93/100 (Δ +0)**. No household database, secret, Docker network,
+TLS configuration, proxy, firewall, public ingress, services or release were
+changed. This proves only the file-secret mechanism in disposable CI.
+ CI additionally exercises **both real service
 binaries** against disposable PostgreSQL using a secret mount; it verifies
 server SQL readiness and a completed fetcher benchmark while not injecting
 the secret bytes into those containers' environment. The Compose overlay
