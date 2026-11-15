@@ -1,0 +1,38 @@
+# PW-051 — Cross-backend operational / TUI acceptance
+
+**Status: verified complete (4/4 weighted points; project 78/100 → 82/100).** The complete synthetic, isolated-client path passed on both SQLite and PostgreSQL after [PR #41](https://github.com/sguzman/pulsewire/pull/41) was squash-merged as [`1662753`](https://github.com/sguzman/pulsewire/commit/166275330a7874ae40b8610f0647ba98e941b1a8). This is an automated protocol and TUI App/keyboard-event acceptance, **not** a live home-host deployment or human terminal-rendering test.
+
+## Final-head quality gates
+
+| Gate | Exact source head and result |
+|---|---|
+| Final Rust | [Run 43726710874](https://github.com/sguzman/pulsewire/actions/runs/43726710874): **success** on PR #41 head `40ada3d45336cbdf050403aed9462463d25ff190`; format, workspace compilation/tests, offline regression, PostgreSQL integration, scheduler check, Clippy |
+| Final containers | [Run 43726710794](https://github.com/sguzman/pulsewire/actions/runs/43726710794): **success** on the same PR #41 head; non-root fetcher/server image build and disposable live PostgreSQL and SQLite feed→HTTP→TUI smoke, including server restart |
+| Earlier merged correctness / coverage | [PR #36](https://github.com/sguzman/pulsewire/pull/36), [#37](https://github.com/sguzman/pulsewire/pull/37), [#38](https://github.com/sguzman/pulsewire/pull/38), [#39](https://github.com/sguzman/pulsewire/pull/39) and [#40](https://github.com/sguzman/pulsewire/pull/40), each merged only after both required CI gates; PR #40 [Rust 43725813626](https://github.com/sguzman/pulsewire/actions/runs/43725813626) and [containers 43725813639](https://github.com/sguzman/pulsewire/actions/runs/43725813639) verify enhanced cross-backend persistence and error recovery |
+
+## Acceptance matrix
+
+| Acceptance requirement | Executed evidence and exact behavior |
+|---|---|
+| Real fetch → parse → persisted item → HTTP → TUI | `.github/workflows/containers.yml` uses a **local synthetic RSS HTTP fixture** and a real non-root fetcher/server. It waits until parsed articles appear via authenticated HTTP for PostgreSQL and for a separate, fresh SQLite database file. Then explicitly invokes `cargo test -p pulsewire-tui --locked isolated_http_tui_reader_journey -- --ignored --test-threads=1` with each backend's loopback URL and CI-only password. The test uses `App::new`, `login`, API calls, and the actual keyboard dispatch, not only `curl`. |
+| Login negative/positive and server-side logout | `crates/tui/src/app/live_client.rs::isolated_http_tui_reader_journey` rejects incorrect credentials, logs in correctly, invokes the TUI's **`L` key handler**, asserts clean process exit and cleared credentials, confirms the old bearer returns HTTP 401, checks the TUI-visible revoked request behavior, and creates a new TUI App that reauthenticates. `crates/tui/src/app/api/auth.rs` treats successful logout 204 (or already-revoked 401) as terminal; offline 503→204 regression checks that failed logout preserves the active session. `crates/tui/src/config.rs` tests old configuration compatibility with the new optional logout binding. |
+| Reader paging, search, empty state and recovery | The live client test loads two distinct fixture stories across pages, checks the correct next page, requires successful case-insensitive search and the **exact two story titles**, checks empty search results followed by recovery, and restores article listing. `crates/server/src/handlers/entries/search.rs` fixes SQLite grouped search parentheses; `crates/server/src/schema.rs` adds a two-hit SQLite search handler regression. `crates/tui/src/app/api/entries.rs` clears stale entries and pagination after non-2xx rather than misleadingly displaying the preceding page. |
+| Keyboard-driven reader mutations | The live test uses `App::handle_key` with configured bindings for subscription, favorite and read/unread toggles, consumes asynchronous `AppEvent` outcomes, validates resulting HTTP-backed state, creates a folder and assigns a feed, and checks folder membership through the TUI background worker. |
+| State survives client and server restarts **on both backends** | The journey reopens a new TUI App with a new bearer; it verifies persisted subscription, favorite, and read-state changes. CI **restarts the real server container**, then runs `isolated_http_tui_after_restart` against the same persisted database; it verifies the two articles, folder and assigned feed membership, subscription, favorite and read-state. The same tests run against both PostgreSQL and SQLite. |
+| SQLite correctness and async failure paths | `crates/server/src/handlers/folders/crud.rs` replaces pooled `last_insert_rowid()` with one atomic `INSERT … RETURNING id, name` and tests **32 concurrent SQLite folder inserts**. `crates/tui/src/app/background/queue/refresh.rs` prevents an unsuccessful entries refresh from publishing a misleading success. `crates/tui/src/app/background/events.rs` releases pending-request slots on folder-feed responses. `crates/tui/src/app/background/helpers.rs` reports sanitized HTTP endpoint and status (not query strings or bearer credentials); localhost tests verify HTTP 500→200 recovery, HTTP 503, bounded timeouts, and redacted error context. |
+| Existing data safety and non-duplication | The PostgreSQL smoke reuses the repository's existing real-RSS ingestion, schema and PostgreSQL backup/restore assertions. The second SQLite case shares the *fixture design* but uses independent disposable data. Existing SQLite backup/restore and migration coverage remains in PW-043. No database reset, production migration, external feed, or host modification is implied by this CI. |
+
+## Sequence and corrections
+
+1. [PR #36](https://github.com/sguzman/pulsewire/pull/36) — failed refresh no longer emits success, folder-feed pending count corrected.
+2. [PR #37](https://github.com/sguzman/pulsewire/pull/37) — all 12 TUI background HTTP operations reuse the configured timeout-bound client.
+3. [PR #38](https://github.com/sguzman/pulsewire/pull/38) — real PostgreSQL HTTP→TUI scripted reader journey and restart.
+4. [PR #39](https://github.com/sguzman/pulsewire/pull/39) — same path on independent SQLite; fixed invalid SQLite search SQL and stale TUI entries on failed HTTP.
+5. [PR #40](https://github.com/sguzman/pulsewire/pull/40) — authenticated empty search, error recovery, persisted reader mutations across both backends and pooled SQLite folder ID correctness; merged [`16c3c82`](https://github.com/sguzman/pulsewire/commit/16c3c82a65bf17bfa02e521ae6690bbd0c8a2fda).
+6. [PR #41](https://github.com/sguzman/pulsewire/pull/41) — controlled keyboard `L` logout, token revocation and fresh re-login; merged [`1662753`](https://github.com/sguzman/pulsewire/commit/166275330a7874ae40b8610f0647ba98e941b1a8) after **both** final-head CI gates succeeded.
+
+## Boundaries and next milestones
+
+- **PW-051 is fully accepted within the scope of automated disposable end-to-end fixtures.** This is *not* evidence that the owner's EndeavourOS home installation, router, CoreDNS, real RSS sources, backups or real terminal rendering have been exercised. No such systems were touched; no production deployment or release is authorized.
+- A responsive browser reader (PW-060), API stability and OpenAPI contract breadth (PW-061), HTML-watch persistence (PW-053), ingress/TLS/secrets (PW-023), and realistic host-resource soak (PW-032) remain separate milestones and receive **no** credit here.
+- This milestone earns exactly **4 weighted points once**: PW-051 **0/4 → 4/4**; overall **78/100 → 82/100 (Δ +4 percentage points)**.
