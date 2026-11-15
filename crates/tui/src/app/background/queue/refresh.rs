@@ -354,10 +354,17 @@ mod refresh_failure_tests {
       | Ok(AppEvent::Error {
         message
       }) => {
-        assert_eq!(
-          message,
-          "entries fixture unavailable"
+        assert!(
+          message.contains(
+            "GET /v1/entries"
+          )
         );
+        assert!(
+          message.contains("503")
+        );
+        assert!(message.contains(
+          "entries fixture unavailable"
+        ));
       }
       | _ => {
         panic!(

@@ -58,6 +58,12 @@ jobs:
         run: |
           set -euo pipefail
           cleanup() {
+            status=$?
+            if test "$status" -ne 0; then
+              # On a failing synthetic fixture, preserve the last
+              # SQLite server diagnostics before removing containers.
+              docker logs --tail 120 pulsewire-ci-sqlite-server 2>&1 || true
+            fi
             docker rm -f pulsewire-ci-fetcher pulsewire-ci-rss pulsewire-ci-server pulsewire-ci-postgres \
               pulsewire-ci-sqlite-fetcher pulsewire-ci-sqlite-server >/dev/null 2>&1 || true
             docker network rm pulsewire-ci >/dev/null 2>&1 || true

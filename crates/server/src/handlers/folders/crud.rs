@@ -130,34 +130,27 @@ pub async fn create_folder(
     )
     })?;
 
-  sqlx::query(
-    "INSERT INTO folders (user_id, \
-     name, created_at) VALUES (?1, \
-     ?2, datetime('now'))"
-  )
-  .bind(user_id)
-  .bind(name)
-  .execute(pool)
-  .await
-  .map_err(|e| {
-    map_db_error(
-      e,
-      "folder create failed"
-    )
-  })?;
-
+  // SQLite last_insert_rowid() is
+  // scoped to an individual connection,
+  // not a connection pool. Use one
+  // RETURNING statement so the ID
+  // always belongs to this insert.
   let row =
     sqlx::query_as::<_, FolderRow>(
-      "SELECT id, name FROM folders \
-       WHERE id = last_insert_rowid()"
+      "INSERT INTO folders (user_id, \
+       name, created_at) VALUES (?1, \
+       ?2, datetime('now')) RETURNING \
+       id, name"
     )
+    .bind(user_id)
+    .bind(name)
     .fetch_one(pool)
     .await
     .map_err(|e| {
-      ServerError::new(
-      StatusCode::INTERNAL_SERVER_ERROR,
-      e.to_string(),
-    )
+      map_db_error(
+        e,
+        "folder create failed"
+      )
     })?;
 
   Ok(Json(row))
@@ -297,4 +290,146 @@ pub async fn delete_folder(
   }
 
   Ok(StatusCode::NO_CONTENT)
+}
+
+#[cfg(test)]
+mod sqlite_pool_folder_tests {
+  use std::time::{
+    Duration,
+    SystemTime,
+    UNIX_EPOCH
+  };
+
+  use sqlx::sqlite::{
+    SqliteConnectOptions,
+    SqliteJournalMode,
+    SqlitePoolOptions
+  };
+
+  use super::*;
+  use crate::auth::hash_token;
+
+  #[tokio::test]
+  async fn sqlite_pooled_folder_creation_returns_each_inserted_id()
+   {
+    let stamp = SystemTime::now()
+      .duration_since(UNIX_EPOCH)
+      .expect("fixture timestamp")
+      .as_nanos();
+    let path = std::env::temp_dir().join(
+      format!(
+        "pulsewire-folder-pool-{}-{stamp}.sqlite",
+        std::process::id()
+      )
+    );
+    let pool = SqlitePoolOptions::new()
+      .max_connections(8)
+      .connect_with(
+        SqliteConnectOptions::new()
+          .filename(&path)
+          .create_if_missing(true)
+          .journal_mode(
+            SqliteJournalMode::Wal
+          )
+          .busy_timeout(
+            Duration::from_secs(10)
+          )
+      )
+      .await
+      .expect("isolated SQLite pool");
+    for sql in [
+      "CREATE TABLE user_tokens \
+       (user_id INTEGER NOT NULL, \
+       token_hash TEXT NOT NULL, \
+       expires_at TEXT NOT NULL)",
+      "CREATE TABLE folders (id \
+       INTEGER PRIMARY KEY \
+       AUTOINCREMENT, user_id INTEGER \
+       NOT NULL, name TEXT NOT NULL, \
+       created_at TEXT NOT NULL)"
+    ] {
+      sqlx::query(sql)
+        .execute(&pool)
+        .await
+        .expect(
+          "setup disposable table"
+        );
+    }
+    let bearer =
+      "synthetic-only-bearer";
+    sqlx::query(
+      "INSERT INTO user_tokens \
+       (user_id, token_hash, \
+       expires_at) VALUES (7, ?1, \
+       datetime('now', '+1 day'))"
+    )
+    .bind(hash_token(bearer))
+    .execute(&pool)
+    .await
+    .expect("seed synthetic bearer");
+    let mut headers = HeaderMap::new();
+    headers.insert(
+      "authorization",
+      format!("Bearer {bearer}")
+        .parse()
+        .expect("bearer header")
+    );
+    let state = AppState {
+      sqlite:            Some(
+        pool.clone()
+      ),
+      postgres:          None,
+      fetcher_schema:    None,
+      token_ttl_seconds: 3600
+    };
+    let mut pending =
+      tokio::task::JoinSet::new();
+    for n in 0..32 {
+      let state = state.clone();
+      let headers = headers.clone();
+      pending.spawn(async move {
+        let name =
+          format!("fixture folder {n}");
+        let result = create_folder(
+          State(state),
+          headers,
+          Json(FolderCreateRequest {
+            name: name.clone()
+          })
+        )
+        .await;
+        (name, result)
+      });
+    }
+    let mut ids =
+      std::collections::HashSet::new();
+    while let Some(task) =
+      pending.join_next().await
+    {
+      let (name, result) = task
+        .expect("join folder request");
+      let Json(folder) = result.expect(
+        "concurrent folder creation"
+      );
+      assert_eq!(folder.name, name);
+      assert!(ids.insert(folder.id));
+      let stored: String =
+        sqlx::query_scalar(
+          "SELECT name FROM folders \
+           WHERE id = ?1 AND user_id \
+           = 7"
+        )
+        .bind(folder.id)
+        .fetch_one(&pool)
+        .await
+        .expect(
+          "folder belongs to own \
+           insert"
+        );
+      assert_eq!(stored, name);
+    }
+    assert_eq!(ids.len(), 32);
+    pool.close().await;
+    let _ = std::fs::remove_file(path);
+  }
 }

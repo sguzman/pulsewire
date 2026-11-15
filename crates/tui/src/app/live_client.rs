@@ -30,22 +30,85 @@ const CI_FEED: &str =
 fn receive(
   app: &mut App,
   rx: &Receiver<AppEvent>,
+  label: &str,
   expected: fn(&AppEvent) -> bool
 ) {
-  let event = rx
-    .recv_timeout(Duration::from_secs(
-      10
-    ))
-    .expect("missing TUI HTTP event");
-  assert!(
-    expected(&event),
-    "unexpected TUI event variant"
-  );
-  app.apply_event(event);
-  assert!(
-    app.error.is_none(),
-    "TUI operation failed"
-  );
+  loop {
+    let event = rx
+      .recv_timeout(
+        Duration::from_secs(10)
+      )
+      .expect("missing TUI HTTP event");
+
+    if expected(&event) {
+      app.apply_event(event);
+      assert!(
+        app.error.is_none(),
+        "TUI operation failed"
+      );
+      return;
+    }
+
+    // Real keyboard interactions may
+    // have unrelated detail loads in
+    // flight. Process those events as
+    // the interactive run loop would.
+    if matches!(
+      event,
+      AppEvent::FeedDetail { .. }
+        | AppEvent::EntryDetail { .. }
+    ) {
+      app.apply_event(event);
+      continue;
+    }
+
+    let kind = match &event {
+      | AppEvent::RefreshAll { .. } => {
+        "RefreshAll".to_string()
+      }
+      | AppEvent::RefreshFolders { .. } => {
+        "RefreshFolders".to_string()
+      }
+      | AppEvent::FeedDetail { .. } => {
+        "FeedDetail".to_string()
+      }
+      | AppEvent::EntryDetail { .. } => {
+        "EntryDetail".to_string()
+      }
+      | AppEvent::ToggleSubscribe {
+        ok, ..
+      } => format!(
+        "ToggleSubscribe ok={ok}"
+      ),
+      | AppEvent::ToggleFavorite {
+        ok, ..
+      } => format!(
+        "ToggleFavorite ok={ok}"
+      ),
+      | AppEvent::ToggleEntryRead {
+        ok, ..
+      } => format!(
+        "ToggleEntryRead ok={ok}"
+      ),
+      | AppEvent::FolderFeedUpdate {
+        ok, ..
+      } => format!(
+        "FolderFeedUpdate ok={ok}"
+      ),
+      | AppEvent::FolderFeeds { .. } => {
+        "FolderFeeds".to_string()
+      }
+      | AppEvent::Error {
+        message
+      } => {
+        format!("Error: {message}")
+      }
+    };
+    panic!(
+      "{label}: unexpected TUI event: \
+       {kind}"
+    );
+  }
 }
 
 fn press(
@@ -171,6 +234,28 @@ fn isolated_http_tui_reader_journey() {
     app.entries_url()
   );
 
+  // An empty search must report success
+  // with no stale articles, then
+  // recover.
+  app
+    .open_search_entries(
+      "PW051 definitely missing story"
+        .into()
+    )
+    .expect("empty search request");
+  assert!(
+    app.status.starts_with("Loaded ")
+  );
+  assert!(app.entries.is_empty());
+  app
+    .open_search_entries(
+      "Pulsewire CI Story".into()
+    )
+    .expect(
+      "search after empty listing"
+    );
+  assert_eq!(app.entries.len(), 2);
+
   let (tx, rx) = mpsc::channel();
   app.set_event_sender(tx);
 
@@ -201,15 +286,20 @@ fn isolated_http_tui_reader_journey() {
     &mut app,
     subscribe_key.clone()
   );
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::ToggleSubscribe {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "subscription toggle 1",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleSubscribe {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_subscriptions()
     .expect("changed subscription");
@@ -221,15 +311,20 @@ fn isolated_http_tui_reader_journey() {
     &mut app,
     subscribe_key.clone()
   );
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::ToggleSubscribe {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "subscription toggle 2",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleSubscribe {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_subscriptions()
     .expect("restored subscription");
@@ -237,21 +332,54 @@ fn isolated_http_tui_reader_journey() {
     app.subscriptions.contains(CI_FEED),
     subscribed
   );
+  // Finish subscribed on both backends,
+  // leaving a persisted TUI write.
+  if !subscribed {
+    press(
+      &mut app,
+      subscribe_key.clone()
+    );
+    receive(
+      &mut app,
+      &rx,
+      "subscription persistence",
+      |event| {
+        matches!(
+          event,
+          AppEvent::ToggleSubscribe {
+            ok: true,
+            ..
+          }
+        )
+      }
+    );
+    app
+      .refresh_subscriptions()
+      .expect("persist subscription");
+  }
+  assert!(
+    app.subscriptions.contains(CI_FEED)
+  );
 
   let favorite_key =
     app.keys.toggle_favorite.clone();
   let favorite =
     app.favorite_ids.contains(CI_FEED);
   press(&mut app, favorite_key.clone());
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::ToggleFavorite {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "favorite toggle 1",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleFavorite {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_favorites()
     .expect("changed favorites");
@@ -260,21 +388,52 @@ fn isolated_http_tui_reader_journey() {
     favorite
   );
   press(&mut app, favorite_key.clone());
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::ToggleFavorite {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "favorite toggle 2",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleFavorite {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_favorites()
     .expect("restored favorites");
   assert_eq!(
     app.favorite_ids.contains(CI_FEED),
     favorite
+  );
+  if !favorite {
+    press(
+      &mut app,
+      favorite_key.clone()
+    );
+    receive(
+      &mut app,
+      &rx,
+      "favorite persistence",
+      |event| {
+        matches!(
+          event,
+          AppEvent::ToggleFavorite {
+            ok: true,
+            ..
+          }
+        )
+      }
+    );
+    app
+      .refresh_favorites()
+      .expect("persist favorite");
+  }
+  assert!(
+    app.favorite_ids.contains(CI_FEED)
   );
 
   let read_key =
@@ -286,15 +445,20 @@ fn isolated_http_tui_reader_journey() {
     app.entries[0].is_read;
   let item = app.entries[0].id;
   press(&mut app, read_key.clone());
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::ToggleEntryRead {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "read toggle 1",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleEntryRead {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_entries()
     .expect("changed read state");
@@ -304,21 +468,67 @@ fn isolated_http_tui_reader_journey() {
     original_read
   );
   press(&mut app, read_key.clone());
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::ToggleEntryRead {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "read toggle 2",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleEntryRead {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app
     .refresh_entries()
     .expect("restored read state");
   assert_eq!(
     app.entries[0].is_read,
     original_read
+  );
+  // Story One starts unread in both the
+  // PostgreSQL and SQLite fixtures.
+  // Keep this read change through both
+  // the client and server restarts.
+  let story_one_index = app
+    .entries
+    .iter()
+    .position(|entry| {
+      entry.title.as_deref()
+        == Some(
+          "Pulsewire CI Story One"
+        )
+    })
+    .expect("Story One in TUI");
+  assert!(
+    !app.entries[story_one_index]
+      .is_read
+  );
+  app.selected_entry = story_one_index;
+  press(&mut app, read_key.clone());
+  receive(
+    &mut app,
+    &rx,
+    "Story One persisted read",
+    |event| {
+      matches!(
+        event,
+        AppEvent::ToggleEntryRead {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
+  app.refresh_entries().expect(
+    "persist Story One read state"
+  );
+  assert!(
+    app.entries[story_one_index]
+      .is_read
   );
 
   // Folder state must travel through
@@ -329,12 +539,17 @@ fn isolated_http_tui_reader_journey() {
   app.queue_create_folder(
     folder_name.to_string()
   );
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::RefreshFolders { .. }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "folder creation",
+    |event| {
+      matches!(
+        event,
+        AppEvent::RefreshFolders { .. }
+      )
+    }
+  );
   let folder_index = app
     .folders
     .iter()
@@ -349,32 +564,47 @@ fn isolated_http_tui_reader_journey() {
   // RefreshFolders schedules a
   // folder-feed request; consume it
   // before assignment.
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::FolderFeeds { .. }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "initial folder-feed listing",
+    |event| {
+      matches!(
+        event,
+        AppEvent::FolderFeeds { .. }
+      )
+    }
+  );
   app.queue_assign_folder_feed(
     folder_id,
     CI_FEED.to_string()
   );
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::FolderFeedUpdate {
-        ok: true,
-        ..
-      }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "folder feed assignment",
+    |event| {
+      matches!(
+        event,
+        AppEvent::FolderFeedUpdate {
+          ok: true,
+          ..
+        }
+      )
+    }
+  );
   app.request_folder_feeds();
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::FolderFeeds { .. }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "updated folder-feed listing",
+    |event| {
+      matches!(
+        event,
+        AppEvent::FolderFeeds { .. }
+      )
+    }
+  );
   assert!(
     app
       .folder_feed_ids
@@ -407,6 +637,11 @@ fn isolated_http_tui_reader_journey() {
     revoked.status().as_u16(),
     401
   );
+  app.refresh_entries().expect(
+    "revoked TUI request handled"
+  );
+  assert!(app.entries.is_empty());
+  assert!(app.status.contains("401"));
 
   let mut resumed = App::new(
     &config,
@@ -438,18 +673,28 @@ fn isolated_http_tui_reader_journey() {
   assert!(resumed.folders.iter().any(
     |folder| folder.id == folder_id
   ));
-  assert_eq!(
+  assert!(
     resumed
       .subscriptions
-      .contains(CI_FEED),
-    subscribed
+      .contains(CI_FEED)
   );
-  assert_eq!(
+  assert!(
     resumed
       .favorite_ids
-      .contains(CI_FEED),
-    favorite
+      .contains(CI_FEED)
   );
+  resumed.open_all_entries().expect(
+    "entries after client re-login"
+  );
+  assert!(resumed.entries.iter().any(
+    |entry| {
+      entry.title.as_deref()
+        == Some(
+          "Pulsewire CI Story One"
+        )
+        && entry.is_read
+    }
+  ));
 }
 
 #[test]
@@ -508,12 +753,17 @@ fn isolated_http_tui_after_restart() {
   let (tx, rx) = mpsc::channel();
   app.set_event_sender(tx);
   app.request_folder_feeds();
-  receive(&mut app, &rx, |event| {
-    matches!(
-      event,
-      AppEvent::FolderFeeds { .. }
-    )
-  });
+  receive(
+    &mut app,
+    &rx,
+    "post-restart folder listing",
+    |event| {
+      matches!(
+        event,
+        AppEvent::FolderFeeds { .. }
+      )
+    }
+  );
   assert!(
     app
       .folder_feed_ids
@@ -524,4 +774,19 @@ fn isolated_http_tui_after_restart() {
     .open_all_entries()
     .expect("entries after restart");
   assert!(app.entries.len() >= 2);
+  assert!(
+    app.subscriptions.contains(CI_FEED)
+  );
+  assert!(
+    app.favorite_ids.contains(CI_FEED)
+  );
+  assert!(app.entries.iter().any(
+    |entry| {
+      entry.title.as_deref()
+        == Some(
+          "Pulsewire CI Story One"
+        )
+        && entry.is_read
+    }
+  ));
 }
