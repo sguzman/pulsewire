@@ -240,11 +240,29 @@ mod refresh_failure_tests {
           .expect("set fixture timeout");
         let mut request_line =
           String::new();
-        BufReader::new(&socket)
+        let mut reader =
+          BufReader::new(&socket);
+        reader
           .read_line(
             &mut request_line
           )
           .expect("read fixture request");
+        // Read all headers before closing the socket,
+        // avoiding a peer reset from unread request bytes.
+        loop {
+          let mut header =
+            String::new();
+          let n = reader
+            .read_line(&mut header)
+            .expect("read fixture header");
+          if n == 0
+            || header == "\r\n"
+            || header == "\n"
+          {
+            break;
+          }
+        }
+        drop(reader);
         assert!(
           request_line.contains(expected),
           "unexpected request: {request_line}"
