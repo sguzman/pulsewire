@@ -17,7 +17,9 @@ pub(super) fn get_json<
   // URL query or authorization bearer,
   // in client-visible error messages.
   let path = reqwest::Url::parse(url)
-    .map(|parsed| parsed.path().to_string())
+    .map(|parsed| {
+      parsed.path().to_string()
+    })
     .unwrap_or_else(|_| {
       "(invalid URL)".to_string()
     });
@@ -41,11 +43,9 @@ pub(super) fn get_json<
     ));
   }
 
-  resp
-    .json::<T>()
-    .map_err(|e| {
-      format!("GET {path}: {e}")
-    })
+  resp.json::<T>().map_err(|e| {
+    format!("GET {path}: {e}")
+  })
 }
 
 pub(super) fn build_entries_url(
@@ -169,35 +169,42 @@ mod get_json_error_tests {
     let addr = listener
       .local_addr()
       .expect("local address");
-    let server = thread::spawn(move || {
-      let (mut socket, _) =
-        listener.accept()
+    let server =
+      thread::spawn(move || {
+        let (mut socket, _) = listener
+          .accept()
           .expect("accept request");
-      let mut reader =
-        BufReader::new(&socket);
-      loop {
-        let mut line = String::new();
-        let count = reader
-          .read_line(&mut line)
-          .expect("request header");
-        if count == 0
-          || line == "\r\n"
-          || line == "\n"
-        {
-          break;
+        let mut reader =
+          BufReader::new(&socket);
+        loop {
+          let mut line = String::new();
+          let count = reader
+            .read_line(&mut line)
+            .expect("request header");
+          if count == 0
+            || line == "\r\n"
+            || line == "\n"
+          {
+            break;
+          }
         }
-      }
-      drop(reader);
-      let body =
-        r#"{"error":"synthetic"}"#;
-      let response = format!(
-        "HTTP/1.1 500 Internal Server Error\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
-        body.len()
-      );
-      socket
-        .write_all(response.as_bytes())
-        .expect("send response");
-    });
+        drop(reader);
+        let body =
+          r#"{"error":"synthetic"}"#;
+        let response = format!(
+          "HTTP/1.1 500 Internal \
+           Server Error\r\\
+           nContent-Length: \
+           {}\r\nConnection: \
+           close\r\n\r\n{body}",
+          body.len()
+        );
+        socket
+          .write_all(
+            response.as_bytes()
+          )
+          .expect("send response");
+      });
 
     let url = format!(
       "http://{addr}/v1/folders/7/feeds?secret=must-not-print"
@@ -212,12 +219,15 @@ mod get_json_error_tests {
       "synthetic-bearer-must-not-print"
     )
     .expect_err("HTTP 500 must fail");
-    assert!(
-      err.contains("GET /v1/folders/7/feeds")
-    );
+    assert!(err.contains(
+      "GET /v1/folders/7/feeds"
+    ));
     assert!(err.contains("500"));
-    assert!(!err.contains("must-not-print"));
-    server.join()
+    assert!(
+      !err.contains("must-not-print")
+    );
+    server
+      .join()
       .expect("fixture HTTP server");
   }
 }
