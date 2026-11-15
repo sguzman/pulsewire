@@ -716,8 +716,10 @@ fn resolve_watch_href(
   // concatenation. Reject non-HTTP
   // targets, including javascript:.
   let base =
-    reqwest::Url::parse(base_url).ok()?;
-  let mut target = base.join(href).ok()?;
+    reqwest::Url::parse(base_url)
+      .ok()?;
+  let mut target =
+    base.join(href).ok()?;
   if !matches!(
     target.scheme(),
     "http" | "https"
