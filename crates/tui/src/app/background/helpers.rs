@@ -13,24 +13,39 @@ pub(super) fn get_json<
   url: &str,
   token: &str
 ) -> Result<T, String> {
+  // Keep the request path, never the
+  // URL query or authorization bearer,
+  // in client-visible error messages.
+  let path = reqwest::Url::parse(url)
+    .map(|parsed| parsed.path().to_string())
+    .unwrap_or_else(|_| {
+      "(invalid URL)".to_string()
+    });
   let resp = client
     .get(url)
     .bearer_auth(token)
     .send()
-    .map_err(|e| e.to_string())?;
+    .map_err(|e| {
+      format!("GET {path}: {e}")
+    })?;
 
   if !resp.status().is_success() {
+    let status = resp.status();
     let msg = resp
       .text()
       .unwrap_or_else(|_| {
         "request failed".to_string()
       });
-    return Err(msg);
+    return Err(format!(
+      "GET {path} ({status}): {msg}"
+    ));
   }
 
   resp
     .json::<T>()
-    .map_err(|e| e.to_string())
+    .map_err(|e| {
+      format!("GET {path}: {e}")
+    })
 }
 
 pub(super) fn build_entries_url(
