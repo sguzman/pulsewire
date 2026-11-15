@@ -250,6 +250,13 @@ impl Repo for FakeRepo {
     Ok(())
   }
 
+  async fn latest_watch_emitted_count(
+    &self,
+    _feed_id: &str
+  ) -> Result<Option<i64>, String> {
+    Ok(None)
+  }
+
   async fn insert_payload_with_items(
     &self,
     _feed_id: &str,
@@ -258,6 +265,7 @@ impl Repo for FakeRepo {
     _last_modified_ms: Option<i64>,
     _content_hash: Option<&str>,
     _parsed: &ParsedFeed,
+    _watch_item_count: Option<i64>,
     _zone: &Tz
   ) -> Result<(), String> {
     Ok(())

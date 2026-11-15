@@ -50,5 +50,9 @@ jobs:
         env:
           PULSEWIRE_TEST_POSTGRES_PASSWORD: 'p@ss/word?#:with+punctuation'
         run: cargo test -p pulsewire-core postgres_due_queue_paging_and_errors --locked -- --ignored --test-threads=1
+      - name: PostgreSQL watch emission restart acceptance
+        env:
+          PULSEWIRE_TEST_POSTGRES_PASSWORD: 'p@ss/word?#:with+punctuation'
+        run: cargo test -p pulsewire-core postgres_watch_emission_roundtrip --locked -- --ignored --test-threads=1
       - name: Rust Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings

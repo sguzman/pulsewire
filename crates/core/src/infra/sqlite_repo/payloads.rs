@@ -140,6 +140,25 @@ pub async fn upsert_watch_observation(
   Ok(())
 }
 
+pub async fn latest_watch_emitted_count(
+  pool: &SqlitePool,
+  feed_id: &str
+) -> Result<Option<i64>, String> {
+  sqlx::query_scalar::<_, i64>(
+    "SELECT item_count FROM \
+     watch_emit_watermarks WHERE \
+     feed_id = ?1"
+  )
+  .bind(feed_id)
+  .fetch_optional(pool)
+  .await
+  .map_err(|e| {
+    format!(
+      "read watch emitted count: {e}"
+    )
+  })
+}
+
 #[allow(clippy::too_many_arguments)]
 pub async fn insert_payload_with_items(
   pool: &SqlitePool,
@@ -149,6 +168,7 @@ pub async fn insert_payload_with_items(
   last_modified_ms: Option<i64>,
   content_hash: Option<&str>,
   parsed: &ParsedFeed,
+  watch_item_count: Option<i64>,
   _zone: &Tz
 ) -> Result<(), String> {
   let mut tx =
@@ -212,6 +232,29 @@ pub async fn insert_payload_with_items(
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("insert item: {e}"))?;
+  }
+
+  // Count baseline advances only when
+  // the emitted payload commits.
+  if let Some(count) = watch_item_count
+  {
+    sqlx::query(
+      r#"INSERT INTO watch_emit_watermarks(
+           feed_id, item_count,
+           emitted_at_ms)
+         VALUES (?1, ?2, ?3)
+         ON CONFLICT(feed_id) DO UPDATE
+         SET item_count = excluded.item_count,
+             emitted_at_ms = excluded.emitted_at_ms"#
+    )
+    .bind(feed_id)
+    .bind(count)
+    .bind(fetched_at_ms)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| {
+      format!("save emitted count: {e}")
+    })?;
   }
 
   tx.commit().await.map_err(|e| {
@@ -487,5 +530,176 @@ mod watch_item_lookup_tests {
       .unwrap()
       .is_empty()
     );
+  }
+}
+
+#[cfg(test)]
+mod watch_emit_watermark_tests {
+  use super::*;
+  use crate::feed::parser::{
+    FeedItem,
+    FeedMetadata
+  };
+
+  #[tokio::test]
+  async fn watermark_commit_is_atomic_and_survives_new_pool()
+   {
+    let nonce =
+      std::time::SystemTime::now()
+        .duration_since(
+          std::time::UNIX_EPOCH
+        )
+        .expect("system time")
+        .as_nanos();
+    let file = std::env::temp_dir()
+      .join(format!(
+        "pw-watch-emit-{}-{nonce}.db",
+        std::process::id()
+      ));
+
+    let options =
+      sqlx::sqlite::SqliteConnectOptions::new()
+        .filename(&file)
+        .create_if_missing(true);
+    let pool =
+      sqlx::sqlite::SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect_with(options)
+        .await
+        .expect("disposable SQLite file");
+
+    for ddl in [
+      "CREATE TABLE feed_payloads(id \
+       INTEGER PRIMARY KEY \
+       AUTOINCREMENT, feed_id TEXT, \
+       fetched_at_ms INTEGER, etag \
+       TEXT, last_modified_ms \
+       INTEGER, content_hash TEXT, \
+       title TEXT, link TEXT, \
+       description TEXT, language \
+       TEXT, updated_at_ms INTEGER)",
+      "CREATE TABLE \
+       feed_items(payload_id INTEGER, \
+       feed_id TEXT, title TEXT, link \
+       TEXT, guid TEXT, \
+       published_at_ms INTEGER, \
+       category TEXT, description \
+       TEXT, summary TEXT)"
+    ] {
+      sqlx::query(ddl)
+        .execute(&pool)
+        .await
+        .expect("fixture schema");
+    }
+
+    let parsed = ParsedFeed {
+      metadata: FeedMetadata {
+        title:         Some(
+          "Page".into()
+        ),
+        link:          None,
+        description:   None,
+        language:      None,
+        updated_at_ms: None
+      },
+      items:    vec![FeedItem {
+        title:           Some(
+          "Story".into()
+        ),
+        link:            None,
+        guid:            Some(
+          "watch:story-1".into()
+        ),
+        published_at_ms: None,
+        category:        None,
+        description:     None,
+        summary:         None
+      }]
+    };
+
+    // A failed watermark write must
+    // roll back its payload and items.
+    assert!(
+      insert_payload_with_items(
+        &pool,
+        "watch",
+        1000,
+        None,
+        None,
+        Some("hash"),
+        &parsed,
+        Some(4),
+        &chrono_tz::UTC
+      )
+      .await
+      .is_err()
+    );
+    let rows: i64 = sqlx::query_scalar(
+      "SELECT COUNT(*) FROM \
+       feed_payloads"
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(rows, 0);
+
+    sqlx::query(
+      "CREATE TABLE \
+       watch_emit_watermarks(feed_id \
+       TEXT PRIMARY KEY, item_count \
+       INTEGER NOT NULL, \
+       emitted_at_ms INTEGER NOT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("watermark schema");
+
+    insert_payload_with_items(
+      &pool,
+      "watch",
+      1000,
+      None,
+      None,
+      Some("hash"),
+      &parsed,
+      Some(4),
+      &chrono_tz::UTC
+    )
+    .await
+    .expect(
+      "atomically emit and update"
+    );
+
+    pool.close().await;
+
+    let reopen =
+      SqlitePool::connect(&format!(
+        "sqlite://{}",
+        file.display()
+      ))
+      .await
+      .expect("reopen persisted file");
+    assert_eq!(
+      latest_watch_emitted_count(
+        &reopen, "watch"
+      )
+      .await
+      .unwrap(),
+      Some(4)
+    );
+    assert_eq!(
+      known_watch_item_guids(
+        &reopen,
+        "watch",
+        &["watch:story-1".into()]
+      )
+      .await
+      .unwrap(),
+      vec!["watch:story-1".to_string()]
+    );
+
+    reopen.close().await;
+    std::fs::remove_file(&file)
+      .expect("remove disposable DB");
   }
 }

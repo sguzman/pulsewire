@@ -147,6 +147,25 @@ pub async fn upsert_watch_observation(
   Ok(())
 }
 
+pub async fn latest_watch_emitted_count(
+  pool: &PgPool,
+  feed_id: &str
+) -> Result<Option<i64>, String> {
+  sqlx::query_scalar::<_, i64>(
+    "SELECT item_count FROM \
+     watch_emit_watermarks WHERE \
+     feed_id = $1"
+  )
+  .bind(feed_id)
+  .fetch_optional(pool)
+  .await
+  .map_err(|e| {
+    format!(
+      "read watch emitted count: {e}"
+    )
+  })
+}
+
 #[allow(clippy::too_many_arguments)]
 pub async fn insert_payload_with_items(
   pool: &PgPool,
@@ -156,6 +175,7 @@ pub async fn insert_payload_with_items(
   last_modified_ms: Option<i64>,
   content_hash: Option<&str>,
   parsed: &ParsedFeed,
+  watch_item_count: Option<i64>,
   zone: &Tz
 ) -> Result<(), String> {
   let mut tx =
@@ -234,6 +254,29 @@ pub async fn insert_payload_with_items(
         .map_err(|e| format!("insert item: {e}"))?;
   }
 
+  // Count baseline advances only when
+  // the emitted payload commits.
+  if let Some(count) = watch_item_count
+  {
+    sqlx::query(
+      r#"INSERT INTO watch_emit_watermarks(
+           feed_id, item_count,
+           emitted_at_ms)
+         VALUES ($1, $2, $3)
+         ON CONFLICT(feed_id) DO UPDATE
+         SET item_count = excluded.item_count,
+             emitted_at_ms = excluded.emitted_at_ms"#
+    )
+    .bind(feed_id)
+    .bind(count)
+    .bind(fetched_at_ms)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| {
+      format!("save emitted count: {e}")
+    })?;
+  }
+
   tx.commit().await.map_err(|e| {
     format!("tx commit: {e}")
   })?;
@@ -245,4 +288,206 @@ pub async fn insert_payload_with_items(
   );
 
   Ok(())
+}
+
+#[cfg(test)]
+mod postgres_watch_emission_tests {
+  use super::*;
+  use crate::feed::parser::{
+    FeedItem,
+    FeedMetadata
+  };
+
+  #[tokio::test]
+  #[ignore = "requires disposable \
+              PostgreSQL CI service"]
+  async fn postgres_watch_emission_roundtrip()
+   {
+    let password = std::env::var(
+      "PULSEWIRE_TEST_POSTGRES_PASSWORD"
+    )
+    .expect("CI PostgreSQL password");
+
+    let options =
+      sqlx::postgres::PgConnectOptions::new()
+        .host("127.0.0.1")
+        .port(5432)
+        .username("pulsewire_ci")
+        .password(&password)
+        .database("pulsewire_ci");
+
+    let nonce =
+      std::time::SystemTime::now()
+        .duration_since(
+          std::time::UNIX_EPOCH
+        )
+        .expect("system time")
+        .as_nanos();
+    let schema = format!(
+      "pw_watch_emit_{}_{nonce}",
+      std::process::id()
+    );
+
+    let first =
+      sqlx::postgres::PgPoolOptions::new()
+        .max_connections(1)
+        .connect_with(options.clone())
+        .await
+        .expect("disposable PostgreSQL");
+
+    sqlx::query(&format!(
+      "CREATE SCHEMA {schema}"
+    ))
+    .execute(&first)
+    .await
+    .expect("isolated schema");
+    sqlx::query(&format!(
+      "SET search_path TO {schema}"
+    ))
+    .execute(&first)
+    .await
+    .expect("use isolated schema");
+
+    for ddl in [
+      "CREATE TABLE feed_payloads(id \
+       BIGSERIAL PRIMARY KEY, feed_id \
+       TEXT, fetched_at TIMESTAMPTZ, \
+       etag TEXT, last_modified_at \
+       TIMESTAMPTZ, content_hash \
+       TEXT, title TEXT, link TEXT, \
+       description TEXT, language \
+       TEXT, updated_at TIMESTAMPTZ)",
+      "CREATE TABLE \
+       feed_items(payload_id BIGINT, \
+       feed_id TEXT, title TEXT, link \
+       TEXT, guid TEXT, published_at \
+       TIMESTAMPTZ, category TEXT, \
+       description TEXT, summary TEXT)"
+    ] {
+      sqlx::query(ddl)
+        .execute(&first)
+        .await
+        .expect("fixture schema");
+    }
+
+    let parsed = ParsedFeed {
+      metadata: FeedMetadata {
+        title:         Some(
+          "Page".into()
+        ),
+        link:          None,
+        description:   None,
+        language:      None,
+        updated_at_ms: None
+      },
+      items:    vec![FeedItem {
+        title:           Some(
+          "Story".into()
+        ),
+        link:            None,
+        guid:            Some(
+          "watch:story-1".into()
+        ),
+        published_at_ms: None,
+        category:        None,
+        description:     None,
+        summary:         None
+      }]
+    };
+
+    // Missing watermark table must
+    // roll back payload insertion.
+    assert!(
+      insert_payload_with_items(
+        &first,
+        "watch",
+        1000,
+        None,
+        None,
+        Some("hash"),
+        &parsed,
+        Some(4),
+        &chrono_tz::UTC
+      )
+      .await
+      .is_err()
+    );
+    let rows: i64 = sqlx::query_scalar(
+      "SELECT COUNT(*) FROM \
+       feed_payloads"
+    )
+    .fetch_one(&first)
+    .await
+    .unwrap();
+    assert_eq!(rows, 0);
+
+    sqlx::query(
+      "CREATE TABLE \
+       watch_emit_watermarks(feed_id \
+       TEXT PRIMARY KEY, item_count \
+       BIGINT NOT NULL, emitted_at_ms \
+       BIGINT NOT NULL)"
+    )
+    .execute(&first)
+    .await
+    .expect("watermark schema");
+
+    insert_payload_with_items(
+      &first,
+      "watch",
+      1000,
+      None,
+      None,
+      Some("hash"),
+      &parsed,
+      Some(4),
+      &chrono_tz::UTC
+    )
+    .await
+    .expect("atomic postgres emission");
+
+    first.close().await;
+
+    // A different pool verifies
+    // cross-connection durability.
+    let second =
+      sqlx::postgres::PgPoolOptions::new()
+        .max_connections(1)
+        .connect_with(options)
+        .await
+        .expect("new PostgreSQL pool");
+    sqlx::query(&format!(
+      "SET search_path TO {schema}"
+    ))
+    .execute(&second)
+    .await
+    .expect("restore isolated schema");
+
+    assert_eq!(
+      latest_watch_emitted_count(
+        &second, "watch"
+      )
+      .await
+      .unwrap(),
+      Some(4)
+    );
+    assert_eq!(
+      known_watch_item_guids(
+        &second,
+        "watch",
+        &["watch:story-1".into()]
+      )
+      .await
+      .unwrap(),
+      vec!["watch:story-1".to_string()]
+    );
+
+    sqlx::query(&format!(
+      "DROP SCHEMA {schema} CASCADE"
+    ))
+    .execute(&second)
+    .await
+    .expect("remove disposable schema");
+    second.close().await;
+  }
 }

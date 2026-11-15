@@ -128,3 +128,10 @@ CREATE TABLE IF NOT EXISTS watch_observations(
   element_hash TEXT NULL,
   observed_at_ms INTEGER NOT NULL
 );
+
+-- Count at last committed HTML-watch notification.
+CREATE TABLE IF NOT EXISTS watch_emit_watermarks(
+  feed_id TEXT PRIMARY KEY REFERENCES feeds(id) ON DELETE CASCADE,
+  item_count INTEGER NOT NULL,
+  emitted_at_ms INTEGER NOT NULL
+);

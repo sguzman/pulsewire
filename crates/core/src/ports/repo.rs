@@ -127,6 +127,13 @@ pub trait Repo: Send + Sync {
     observed_at_ms: i64
   ) -> Result<(), String>;
 
+  /// Last emitted HTML-watch item
+  /// count, not the last fetched count.
+  async fn latest_watch_emitted_count(
+    &self,
+    feed_id: &str
+  ) -> Result<Option<i64>, String>;
+
   async fn insert_payload_with_items(
     &self,
     feed_id: &str,
@@ -135,6 +142,7 @@ pub trait Repo: Send + Sync {
     last_modified_ms: Option<i64>,
     content_hash: Option<&str>,
     parsed: &ParsedFeed,
+    watch_item_count: Option<i64>,
     zone: &Tz
   ) -> Result<(), String>;
 
