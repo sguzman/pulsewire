@@ -217,7 +217,8 @@ impl Repo for FakeRepo {
   async fn latest_payload_content_hash(
     &self,
     _feed_id: &str
-  ) -> Result<Option<String>, String> {
+  ) -> Result<Option<String>, String>
+  {
     Ok(None)
   }
 

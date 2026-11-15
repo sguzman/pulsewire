@@ -31,7 +31,8 @@ pub async fn latest_payload_content_hash(
   .await
   .map_err(|e| {
     format!(
-      "latest_payload_content_hash: {e}"
+      "latest_payload_content_hash: \
+       {e}"
     )
   })
 }

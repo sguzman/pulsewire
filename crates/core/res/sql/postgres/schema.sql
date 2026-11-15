@@ -64,6 +64,10 @@ CREATE TABLE IF NOT EXISTS feed_payloads(
   updated_at TIMESTAMPTZ NULL
 );
 
+-- Indexed by feed and insertion order for latest-hash lookups.
+CREATE INDEX IF NOT EXISTS idx_feed_payloads_feed_id
+ON feed_payloads(feed_id, id DESC);
+
 CREATE TABLE IF NOT EXISTS feed_state_current(
   feed_id TEXT PRIMARY KEY REFERENCES feeds(id),
   phase TEXT NOT NULL,

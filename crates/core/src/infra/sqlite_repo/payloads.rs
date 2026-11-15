@@ -27,7 +27,8 @@ pub async fn latest_payload_content_hash(
   .await
   .map_err(|e| {
     format!(
-      "latest_payload_content_hash: {e}"
+      "latest_payload_content_hash: \
+       {e}"
     )
   })
 }
@@ -132,10 +133,10 @@ mod persisted_hash_tests {
     .await
     .expect("in-memory sqlite");
     sqlx::query(
-      "CREATE TABLE feed_payloads(\
-       id INTEGER PRIMARY KEY,\
-       feed_id TEXT NOT NULL,\
-       content_hash TEXT NULL)"
+      "CREATE TABLE feed_payloads(id \
+       INTEGER PRIMARY KEY,feed_id \
+       TEXT NOT NULL,content_hash \
+       TEXT NULL)"
     )
     .execute(&pool)
     .await
@@ -148,9 +149,9 @@ mod persisted_hash_tests {
       ("first", None)
     ] {
       sqlx::query(
-        "INSERT INTO feed_payloads(\
-         feed_id, content_hash) \
-         VALUES (?1, ?2)"
+        "INSERT INTO \
+         feed_payloads(feed_id, \
+         content_hash) VALUES (?1, ?2)"
       )
       .bind(feed)
       .bind(hash)
