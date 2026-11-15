@@ -55,7 +55,9 @@ not paste either credential into checked-in TOML, commits or support logs.
   network. The default database DNS alias is `postgres` unless explicitly
   overridden. The default Docker credentials/name/schemas in the examples
   are `admin`, `data`, `fetcher`, and `server`: **examples**, not a
-  confirmed match for any host.
+  confirmed match for any host. Optional
+  [Compose file-secret overlays](SECRETS.md) remove password **bytes** from
+  container environment values, not from the access of Docker administrators.
 - Server config binds `0.0.0.0:8091` **inside the container**, while the
   Compose host publishing is `127.0.0.1:8091:8091` only. Containers on the
   selected network may still reach the internal server listener. There is
