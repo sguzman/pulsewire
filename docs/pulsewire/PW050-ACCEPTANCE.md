@@ -1,10 +1,10 @@
 # PW-050 — Targeted deterministic regression acceptance
 
-**Scope:** Roadmap M5 / PW-050 (4 weighted points). This matrix is
-a final **combined-source CI gate**: the source changes are already
-merged on `main`, but this milestone is not credited until this
-documentation PR passes both full Rust and disposable-container
-pipelines at its own final branch head and merges.
+**Status: verified complete (4/4 weighted points).** This is the final
+combined-source regression matrix for M5/PW-050, including the changes
+merged in PRs #32 and #33. The acceptance PR #34 merged as
+[`3a631f1`](https://github.com/sguzman/pulsewire/commit/3a631f1f02613533e14964b4fbbde64644df94b7)
+after the final branch-head Rust and disposable-container pipelines passed.
 
 ## Verified coverage matrix
 
@@ -50,6 +50,4 @@ public exposure is safe. **PW-051 TUI/SQLite/PostgreSQL operational
 end-to-end acceptance is also separate.** No real feed, home network,
 CoreDNS, database, or running service was touched by these tests.
 
-**Progress rule:** credit PW-050's four weighted points exactly once,
-after integrated CI passes and the evidence PR merges; until then
-the verified project score remains 74/100.
+**Final combined CI acceptance:** [Rust run 43623736515](https://github.com/sguzman/pulsewire/actions/runs/43623736515) and [container run 43623736516](https://github.com/sguzman/pulsewire/actions/runs/43623736516) both succeeded on PR #34 head `32c36a1`, built from `main` containing the #32/#33 merges. PR #34 merged as `3a631f1`. Credit PW-050 exactly once: **74/100 → 78/100 (+4 percentage points)**. No home deployment or real database operation was performed.
