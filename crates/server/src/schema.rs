@@ -683,7 +683,9 @@ mod sqlite_recovery_tests {
     )
     .execute(&pool)
     .await
-    .expect("second search fixture item");
+    .expect(
+      "second search fixture item"
+    );
 
     // Conservative retention: archived
     // payload, event and state history
@@ -815,11 +817,12 @@ mod sqlite_recovery_tests {
         State(initial.clone()),
         headers.clone(),
         Query(SearchQuery {
-          q: "sQLite ARTICLE".into(),
-          limit: None,
-          offset: None,
+          q:       "sQLite ARTICLE"
+            .into(),
+          limit:   None,
+          offset:  None,
           feed_id: None,
-          read: None
+          read:    None
         })
       )
       .await
