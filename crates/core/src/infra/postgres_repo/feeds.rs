@@ -134,9 +134,14 @@ pub async fn replace_disabled_watches(
   pool: &PgPool,
   ids: &[String]
 ) -> Result<(), String> {
-  let mut tx = pool.begin().await
+  let mut tx = pool
+    .begin()
+    .await
     .map_err(|e| {
-      format!("begin disabled-watch sync: {e}")
+      format!(
+        "begin disabled-watch sync: \
+         {e}"
+      )
     })?;
 
   sqlx::query(
@@ -145,24 +150,31 @@ pub async fn replace_disabled_watches(
   .execute(&mut *tx)
   .await
   .map_err(|e| {
-    format!("clear disabled watches: {e}")
+    format!(
+      "clear disabled watches: {e}"
+    )
   })?;
 
   for id in ids {
     sqlx::query(
-      "INSERT INTO disabled_watch_feeds(\
-       feed_id) VALUES ($1)"
+      "INSERT INTO \
+       disabled_watch_feeds(feed_id) \
+       VALUES ($1)"
     )
     .bind(id)
     .execute(&mut *tx)
     .await
     .map_err(|e| {
-      format!("record disabled watch: {e}")
+      format!(
+        "record disabled watch: {e}"
+      )
     })?;
   }
 
   tx.commit().await.map_err(|e| {
-    format!("commit disabled-watch sync: {e}")
+    format!(
+      "commit disabled-watch sync: {e}"
+    )
   })
 }
 
@@ -307,8 +319,9 @@ mod postgres_due_queue_tests {
        NULL)",
       "CREATE TEMP TABLE error_feeds \
        (feed_id TEXT PRIMARY KEY)",
-      "CREATE TEMP TABLE disabled_watch_feeds(\
-       feed_id TEXT PRIMARY KEY)"
+      "CREATE TEMP TABLE \
+       disabled_watch_feeds(feed_id \
+       TEXT PRIMARY KEY)"
     ] {
       sqlx::query(ddl)
         .execute(&pool)
@@ -431,29 +444,29 @@ mod postgres_due_queue_tests {
     assert_eq!(other.len(), 1);
     assert_eq!(other[0].id, "other-1");
 
-    replace_disabled_watches(
-      &pool,
-      &["other-1".to_string()]
-    )
+    replace_disabled_watches(&pool, &[
+      "other-1".to_string()
+    ])
     .await
     .expect("disable PG watch");
-    assert!(due_feeds(
-      &pool, "other", now_ms, 1000,
-      &zone
-    )
-    .await
-    .unwrap()
-    .is_empty());
+    assert!(
+      due_feeds(
+        &pool, "other", now_ms, 1000,
+        &zone
+      )
+      .await
+      .unwrap()
+      .is_empty()
+    );
 
-    replace_disabled_watches(
-      &pool, &[]
-    )
+    replace_disabled_watches(&pool, &[
+    ])
     .await
     .expect("re-enable PG watch");
     assert_eq!(
       due_feeds(
-        &pool, "other", now_ms,
-        1000, &zone
+        &pool, "other", now_ms, 1000,
+        &zone
       )
       .await
       .unwrap()

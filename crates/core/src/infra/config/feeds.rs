@@ -1407,19 +1407,19 @@ mod disabled_watch_config_tests {
   #[tokio::test]
   async fn watch_enabled_flag_deserializes_with_default_on()
    {
-    let nonce = std::time::SystemTime::now()
-      .duration_since(
-        std::time::UNIX_EPOCH
-      )
-      .expect("clock")
-      .as_nanos();
-    let directory =
-      std::env::temp_dir().join(
-        format!(
-          "pw-disabled-watch-{}-{nonce}",
-          std::process::id()
+    let nonce =
+      std::time::SystemTime::now()
+        .duration_since(
+          std::time::UNIX_EPOCH
         )
-      );
+        .expect("clock")
+        .as_nanos();
+    let directory =
+      std::env::temp_dir()
+        .join(format!(
+        "pw-disabled-watch-{}-{nonce}",
+        std::process::id()
+      ));
     fs::create_dir_all(&directory)
       .await
       .expect("fixture directory");
@@ -1454,9 +1454,11 @@ enabled = false
     .expect("read mixed watch file");
 
     assert_eq!(parsed.watches.len(), 3);
-    assert!(parsed.watches[0]
-      .enabled
-      .unwrap_or(true));
+    assert!(
+      parsed.watches[0]
+        .enabled
+        .unwrap_or(true)
+    );
     assert_eq!(
       parsed.watches[1].enabled,
       Some(true)

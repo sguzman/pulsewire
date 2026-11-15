@@ -68,7 +68,7 @@ pub struct LoadedConfig {
   /// Explicitly disabled watch IDs
   /// whose historical feed rows must
   /// remain but never be scheduled.
-  pub disabled_watch_ids: Vec<String>
+  pub disabled_watch_ids:  Vec<String>
 }
 
 impl ConfigLoader {
@@ -511,7 +511,8 @@ impl ConfigLoader {
           return Err(
             ConfigError::Invalid(
               format!(
-                "duplicate source id '{}'",
+                "duplicate source id \
+                 '{}'",
                 w.id
               )
             )
