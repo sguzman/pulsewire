@@ -121,6 +121,7 @@ fn isolated_http_tui_reader_journey() {
     .expect("TUI first page");
   assert_eq!(app.entries.len(), 1);
   let first = app.entries[0].id;
+  let first_title = app.entries[0].title.clone();
   assert!(
     app.entries_next_offset.is_some()
   );
@@ -129,6 +130,7 @@ fn isolated_http_tui_reader_journey() {
     .expect("TUI second page");
   assert_eq!(app.entries.len(), 1);
   assert_ne!(app.entries[0].id, first);
+  let second_title = app.entries[0].title.clone();
   app.entries_page_size = 50;
   app
     .open_search_entries(
@@ -137,16 +139,11 @@ fn isolated_http_tui_reader_journey() {
     .expect("TUI search");
   assert!(
     app.entries.len() >= 2,
-    "search returned {} entries; \
-     titles: {:?}",
+    "search count: {}; first page: {:?}; second page: {:?}; search URL: {:?}",
     app.entries.len(),
-    app
-      .entries
-      .iter()
-      .map(|item| {
-        item.title.as_deref()
-      })
-      .collect::<Vec<_>>()
+    first_title,
+    second_title,
+    app.entries_url()
   );
 
   let (tx, rx) = mpsc::channel();
