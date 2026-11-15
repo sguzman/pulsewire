@@ -612,25 +612,30 @@ fn isolated_http_tui_reader_journey() {
       .any(|feed| feed == CI_FEED)
   );
 
-  // Verify server-side token revocation
-  // and a newly created TUI session.
+  // The actual TUI logout key revokes
+  // its bearer and signals a clean
+  // process exit. A new client must
+  // then authenticate with new
+  // credentials.
   let token = app
     .token
-    .as_ref()
+    .clone()
     .expect("authenticated token");
-  let logout = app
-    .client
-    .post(format!(
-      "{url}/v1/auth/logout"
+  let logout_key =
+    app.keys.logout.clone();
+  let quit = app
+    .handle_key(KeyEvent::new(
+      logout_key.code,
+      logout_key.modifiers
     ))
-    .bearer_auth(token)
-    .send()
-    .expect("server logout");
-  assert!(logout.status().is_success());
+    .expect("TUI logout key");
+  assert!(quit, "logout must exit TUI");
+  assert!(app.token.is_none());
+  assert!(app.password.is_empty());
   let revoked = app
     .client
     .get(format!("{url}/v1/entries"))
-    .bearer_auth(token)
+    .bearer_auth(&token)
     .send()
     .expect("revoked token response");
   assert_eq!(
