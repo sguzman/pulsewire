@@ -136,6 +136,23 @@ Server config (`crates/server/res/config.toml`):
   - per-feed).
 - Favorites: list/add/remove feeds, unread counts.
 
+Browser reader (PW-060, in development): `GET /reader` serves the embedded,
+dependency-free responsive web app from the same Rust server. Log in using an
+existing account; there is no self-registration or automatic administrator
+account. The reader uses the existing /v1 APIs for entry lists and details,
+global search, read/unread state, feed subscriptions, favorite **feeds**, and
+folders. Source selection only supports feeds present in the server catalog.
+Use / for search, j/k for next/previous entry, r to toggle read state, and
+Escape to return from mobile article view. Appearance can be System (default),
+Light, or Dark.
+
+The browser keeps the bearer token in per-tab sessionStorage and clears it on
+sign-out; appearance is the only localStorage preference. The reader does not
+persist passwords, load third-party JavaScript, render untrusted feed markup as
+HTML, or enable public network exposure. Treat any browser profile with an
+active token as sensitive; deploy only after the documented PW-023 ingress/TLS
+and network-security acceptance checks. No npm/build tooling is needed.
+
 OpenAPI docs:
 
 - Spec: `GET /openapi.json`
