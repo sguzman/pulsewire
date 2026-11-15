@@ -359,12 +359,12 @@ mod refresh_failure_tests {
             "GET /v1/entries"
           )
         );
-        assert!(message.contains("503"));
         assert!(
-          message.contains(
-            "entries fixture unavailable"
-          )
+          message.contains("503")
         );
+        assert!(message.contains(
+          "entries fixture unavailable"
+        ));
       }
       | _ => {
         panic!(
