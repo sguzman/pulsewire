@@ -66,10 +66,12 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP pulsewire_due_feeds_total Due feeds seen per category.\n"
+    "# HELP pulsewire_due_feeds_total \
+     Due feeds seen per category.\n"
   );
   out.push_str(
-    "# TYPE pulsewire_due_feeds_total counter\n"
+    "# TYPE pulsewire_due_feeds_total \
+     counter\n"
   );
   for (category, count) in
     sorted_map(&due)
@@ -87,16 +89,19 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP pulsewire_due_feeds Current due feeds per category.\n"
+    "# HELP pulsewire_due_feeds \
+     Current due feeds per category.\n"
   );
   out.push_str(
-    "# TYPE pulsewire_due_feeds gauge\n"
+    "# TYPE pulsewire_due_feeds \
+     gauge\n"
   );
   for (category, count) in
     sorted_map(&due_current)
   {
     out.push_str(&format!(
-      "pulsewire_due_feeds{{category=\"{}\"}} {}\n",
+      "pulsewire_due_feeds{{category=\\
+       "{}\"}} {}\n",
       escape_label(&category),
       count
     ));
@@ -179,10 +184,12 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP pulsewire_http_latency_ms HTTP latency by action/domain.\n"
+    "# HELP pulsewire_http_latency_ms \
+     HTTP latency by action/domain.\n"
   );
   out.push_str(
-    "# TYPE pulsewire_http_latency_ms histogram\n"
+    "# TYPE pulsewire_http_latency_ms \
+     histogram\n"
   );
   for ((action, domain), hist) in
     sorted_hist_map(&http_latency)
@@ -205,10 +212,12 @@ pub(super) fn render(
     .unwrap_or_else(|e| e.into_inner());
 
   out.push_str(
-    "# HELP pulsewire_db_query_ms Database query timings.\n"
+    "# HELP pulsewire_db_query_ms \
+     Database query timings.\n"
   );
   out.push_str(
-    "# TYPE pulsewire_db_query_ms histogram\n"
+    "# TYPE pulsewire_db_query_ms \
+     histogram\n"
   );
   for (query, hist) in
     sorted_hist_map_single(&db_timings)
@@ -432,14 +441,13 @@ mod prometheus_text_tests {
       "pulsewire_due_feeds_total{category=\"news\"} 3\n"
     ));
     assert!(body.contains(
-      "pulsewire_due_feeds{category=\"news\"} 2\n"
+      "pulsewire_due_feeds{category=\"\
+       news\"} 2\n"
     ));
-    assert!(!body.contains(
-      r#"category=\""#
-    ));
-    assert!(!body.contains(
-      r#"\n"#
-    ));
+    assert!(
+      !body.contains(r#"category=\""#)
+    );
+    assert!(!body.contains(r#"\n"#));
     for line in body.lines() {
       if line.starts_with("# HELP")
         || line.starts_with("# TYPE")
