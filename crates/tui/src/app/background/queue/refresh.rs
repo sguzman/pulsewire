@@ -209,6 +209,7 @@ mod refresh_failure_tests {
   use std::time::Duration;
 
   use super::*;
+  use crate::app::EntriesMode;
   use crate::config::TuiConfig;
 
   #[test]
