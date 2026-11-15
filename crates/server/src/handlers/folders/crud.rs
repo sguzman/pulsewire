@@ -130,27 +130,28 @@ pub async fn create_folder(
     )
     })?;
 
-  // SQLite last_insert_rowid() is scoped
-  // to an individual connection, not a
-  // connection pool. Use one RETURNING
-  // statement so the ID always belongs
-  // to this insert.
-  let row = sqlx::query_as::<_, FolderRow>(
-    "INSERT INTO folders (user_id, \
-     name, created_at) VALUES (?1, \
-     ?2, datetime('now')) \
-     RETURNING id, name"
-  )
-  .bind(user_id)
-  .bind(name)
-  .fetch_one(pool)
-  .await
-  .map_err(|e| {
-    map_db_error(
-      e,
-      "folder create failed"
+  // SQLite last_insert_rowid() is
+  // scoped to an individual connection,
+  // not a connection pool. Use one
+  // RETURNING statement so the ID
+  // always belongs to this insert.
+  let row =
+    sqlx::query_as::<_, FolderRow>(
+      "INSERT INTO folders (user_id, \
+       name, created_at) VALUES (?1, \
+       ?2, datetime('now')) RETURNING \
+       id, name"
     )
-  })?;
+    .bind(user_id)
+    .bind(name)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| {
+      map_db_error(
+        e,
+        "folder create failed"
+      )
+    })?;
 
   Ok(Json(row))
 }
@@ -337,17 +338,30 @@ mod sqlite_pool_folder_tests {
       .await
       .expect("isolated SQLite pool");
     for sql in [
-      "CREATE TABLE user_tokens (user_id INTEGER NOT NULL, token_hash TEXT NOT NULL, expires_at TEXT NOT NULL)",
-      "CREATE TABLE folders (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, name TEXT NOT NULL, created_at TEXT NOT NULL)"
+      "CREATE TABLE user_tokens \
+       (user_id INTEGER NOT NULL, \
+       token_hash TEXT NOT NULL, \
+       expires_at TEXT NOT NULL)",
+      "CREATE TABLE folders (id \
+       INTEGER PRIMARY KEY \
+       AUTOINCREMENT, user_id INTEGER \
+       NOT NULL, name TEXT NOT NULL, \
+       created_at TEXT NOT NULL)"
     ] {
       sqlx::query(sql)
         .execute(&pool)
         .await
-        .expect("setup disposable table");
+        .expect(
+          "setup disposable table"
+        );
     }
-    let bearer = "synthetic-only-bearer";
+    let bearer =
+      "synthetic-only-bearer";
     sqlx::query(
-      "INSERT INTO user_tokens (user_id, token_hash, expires_at) VALUES (7, ?1, datetime('now', '+1 day'))"
+      "INSERT INTO user_tokens \
+       (user_id, token_hash, \
+       expires_at) VALUES (7, ?1, \
+       datetime('now', '+1 day'))"
     )
     .bind(hash_token(bearer))
     .execute(&pool)
