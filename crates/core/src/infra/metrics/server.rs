@@ -547,12 +547,10 @@ mod metrics_http_tests {
     // HTTP header, even if it arrives
     // in the same TCP read.
     let body_spoof = format!(
-      concat!(
-        "GET /metrics HTTP/1.1\r\n",
-        "Host: localhost\r\n",
-        "Content-Length: 70\r\n\r\n",
-        "Authorization: Bearer {secret}\r\n"
-      )
+      "GET /metrics HTTP/1.1\r\nHost: \
+       localhost\r\nContent-Length: \
+       70\r\n\r\nAuthorization: \
+       Bearer {secret}\r\n"
     );
     assert_response(
       &request(addr, &body_spoof).await,
@@ -561,12 +559,9 @@ mod metrics_http_tests {
     );
 
     let valid = format!(
-      concat!(
-        "GET /metrics HTTP/1.1\r\n",
-        "Host: localhost\r\n",
-        "Authorization: Bearer {secret}\r\n",
-        "\r\n"
-      )
+      "GET /metrics HTTP/1.1\r\nHost: \
+       localhost\r\nAuthorization: \
+       Bearer {secret}\r\n\r\n"
     );
     assert_response(
       &request(addr, &valid).await,
