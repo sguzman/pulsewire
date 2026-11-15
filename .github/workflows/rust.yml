@@ -64,5 +64,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Reader JavaScript syntax
         run: node --check crates/server/res/reader/app.js && node --check tests/reader-browser-smoke.mjs && node --check tests/reader-live-smoke.mjs
+      - name: Verify OpenAPI route, auth and schema contract (no npm)
+        run: node tests/api-contract-check.mjs
       - name: Desktop/mobile Chromium reader smoke (no npm)
         run: CHROME_BIN=google-chrome node tests/reader-browser-smoke.mjs
