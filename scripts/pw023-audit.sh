@@ -46,7 +46,8 @@ report="$(jq -ce --argjson allow_db "$allow_json" '
   def ports_empty($key):
     ((role($key).ports // []) | length) == 0;
   def memberships($key; $keys):
-    same((role($key).networks // []); [$keys[] | names(.)]);
+    (.network_names) as $n |
+      same((role($key).networks // []); [$keys[] | $n[.]]);
   def members($key):
     ((network($key).members // []) | unique);
   def has_member($key; $name):
