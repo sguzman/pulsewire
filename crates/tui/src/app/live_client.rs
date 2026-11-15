@@ -32,20 +32,77 @@ fn receive(
   rx: &Receiver<AppEvent>,
   expected: fn(&AppEvent) -> bool
 ) {
-  let event = rx
-    .recv_timeout(Duration::from_secs(
-      10
-    ))
-    .expect("missing TUI HTTP event");
-  assert!(
-    expected(&event),
-    "unexpected TUI event variant"
-  );
-  app.apply_event(event);
-  assert!(
-    app.error.is_none(),
-    "TUI operation failed"
-  );
+  loop {
+    let event = rx
+      .recv_timeout(Duration::from_secs(
+        10
+      ))
+      .expect("missing TUI HTTP event");
+
+    if expected(&event) {
+      app.apply_event(event);
+      assert!(
+        app.error.is_none(),
+        "TUI operation failed"
+      );
+      return;
+    }
+
+    // Real keyboard interactions may
+    // have unrelated detail loads in
+    // flight. Process those events as
+    // the interactive run loop would.
+    if matches!(
+      event,
+      AppEvent::FeedDetail { .. }
+        | AppEvent::EntryDetail { .. }
+    ) {
+      app.apply_event(event);
+      continue;
+    }
+
+    let kind = match &event {
+      | AppEvent::RefreshAll { .. } => {
+        "RefreshAll".to_string()
+      }
+      | AppEvent::RefreshFolders { .. } => {
+        "RefreshFolders".to_string()
+      }
+      | AppEvent::FeedDetail { .. } => {
+        "FeedDetail".to_string()
+      }
+      | AppEvent::EntryDetail { .. } => {
+        "EntryDetail".to_string()
+      }
+      | AppEvent::ToggleSubscribe {
+        ok, ..
+      } => format!(
+        "ToggleSubscribe ok={ok}"
+      ),
+      | AppEvent::ToggleFavorite {
+        ok, ..
+      } => format!(
+        "ToggleFavorite ok={ok}"
+      ),
+      | AppEvent::ToggleEntryRead {
+        ok, ..
+      } => format!(
+        "ToggleEntryRead ok={ok}"
+      ),
+      | AppEvent::FolderFeedUpdate {
+        ok, ..
+      } => format!(
+        "FolderFeedUpdate ok={ok}"
+      ),
+      | AppEvent::FolderFeeds { .. } => {
+        "FolderFeeds".to_string()
+      }
+      | AppEvent::Error { .. } => {
+        "Error".to_string()
+      }
+    };
+    panic!("unexpected TUI event: {kind}");
+  }
 }
 
 fn press(
