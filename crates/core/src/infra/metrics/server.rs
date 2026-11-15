@@ -189,7 +189,14 @@ async fn serve(
     return;
   };
 
-  let first = request
+  // Only inspect the HTTP header block. Never accept a forged
+  // Authorization line smuggled into the request body.
+  let Some((headers, _body)) =
+    request.split_once("\r\n\r\n")
+  else {
+    return;
+  };
+  let first = headers
     .split("\r\n")
     .next()
     .unwrap_or("");
@@ -218,7 +225,7 @@ async fn serve(
       "not found\n".to_string()
     )
   } else if token.as_ref().is_some_and(
-    |t| !valid_bearer(&request, t)
+    |t| !valid_bearer(headers, t)
   ) {
     (
       "401 Unauthorized",
@@ -532,6 +539,17 @@ mod metrics_http_tests {
         "unauthorized\n"
       );
     }
+
+    // A bearer-looking line in a GET body must not act as an
+    // HTTP header, even if it arrives in the same TCP read.
+    let body_spoof = format!(
+      "GET /metrics HTTP/1.1\r\nHost: localhost\r\nContent-Length: 70\r\n\r\nAuthorization: Bearer {secret}\r\n"
+    );
+    assert_response(
+      &request(addr, &body_spoof).await,
+      "HTTP/1.1 401 Unauthorized",
+      "unauthorized\n"
+    );
 
     let valid = format!(
       "GET /metrics HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer {secret}\r\n\r\n"
