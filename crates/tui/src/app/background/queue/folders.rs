@@ -31,10 +31,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let url = format!(
         "{base_url}/v1/folders"
       );
@@ -128,10 +126,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let url = format!(
         "{base_url}/v1/folders/\
          {folder_id}"
@@ -225,10 +221,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let url = format!(
         "{base_url}/v1/folders/\
          {folder_id}"
@@ -318,10 +312,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let url = format!(
         "{base_url}/v1/folders/\
          {folder_id}/feeds"
@@ -379,10 +371,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let url = format!(
         "{base_url}/v1/folders/\
          {folder_id}/feeds"
@@ -470,10 +460,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let url = format!(
         "{base_url}/v1/folders/\
          {folder_id}/feeds/{feed_id}"
