@@ -65,6 +65,7 @@ jobs:
               docker logs --tail 120 pulsewire-ci-sqlite-server 2>&1 || true
             fi
             docker rm -f pulsewire-ci-fetcher pulsewire-ci-rss pulsewire-ci-server pulsewire-ci-postgres \
+              pulsewire-ci-metrics pulsewire-ci-prometheus \
               pulsewire-ci-sqlite-fetcher pulsewire-ci-sqlite-server >/dev/null 2>&1 || true
             docker network rm pulsewire-ci >/dev/null 2>&1 || true
           }
@@ -221,6 +222,90 @@ jobs:
             exit 1
           fi
           docker stop pulsewire-ci-fetcher
+          # PW-052: Prometheus scrapes an isolated, non-published metrics port.
+          cp crates/fetcher/res/docker.toml "$RUNNER_TEMP/pulsewire-metrics.toml"
+          sed -i \
+            -e 's/^enabled = false$/enabled = true/' \
+            -e 's/^bind    = "127.0.0.1:9898"$/bind    = "0.0.0.0:9898"/' \
+            "$RUNNER_TEMP/pulsewire-metrics.toml"
+          grep -q '^enabled = true$' "$RUNNER_TEMP/pulsewire-metrics.toml"
+          grep -q '^bind    = "0.0.0.0:9898"$' "$RUNNER_TEMP/pulsewire-metrics.toml"
+          docker run -d --name pulsewire-ci-metrics --network pulsewire-ci \
+            --memory 512m --memory-swap 512m --cpus 0.75 --pids-limit 256 \
+            -e PULSEWIRE_POSTGRES_PASSWORD="$TEST_DB_PASSWORD" \
+            -e PULSEWIRE_POSTGRES_HOST=ci-postgres \
+            -e PULSEWIRE_ALLOW_PRIVATE_FEEDS=1 \
+            -e CONFIG_PATH=/app/res/metrics-ci.toml \
+            -e FEEDS_DIR=/app/smoke-feeds \
+            -v "$RUNNER_TEMP/pulsewire-metrics.toml:/app/res/metrics-ci.toml:ro" \
+            -v "$RUNNER_TEMP/pulsewire-real-feeds:/app/smoke-feeds:ro" \
+            pulsewire-fetcher:ci
+          test -z "$(docker port pulsewire-ci-metrics 9898/tcp)"
+          metrics_up=0
+          for i in {1..30}; do
+            if docker exec pulsewire-ci-rss wget -qO- \
+              http://pulsewire-ci-metrics:9898/metrics \
+              > "$RUNNER_TEMP/pulsewire-metrics.prom" 2>/dev/null \
+              && grep -q '^pulsewire_up 1$' "$RUNNER_TEMP/pulsewire-metrics.prom"; then
+              metrics_up=1
+              break
+            fi
+            if [ "$(docker inspect -f '{{.State.Running}}' pulsewire-ci-metrics)" != true ]; then
+              docker logs pulsewire-ci-metrics
+              exit 1
+            fi
+            sleep 2
+          done
+          test "$metrics_up" = 1
+          cat > "$RUNNER_TEMP/pulsewire-prometheus.yml" <<'EOF'
+          global:
+            scrape_interval: 2s
+          scrape_configs:
+            - job_name: pulsewire-fetcher
+              static_configs:
+                - targets: ['pulsewire-ci-metrics:9898']
+          EOF
+          docker run -d --name pulsewire-ci-prometheus --network pulsewire-ci \
+            -v "$RUNNER_TEMP/pulsewire-prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
+            prom/prometheus:v3.7.3 \
+            --config.file=/etc/prometheus/prometheus.yml \
+            --storage.tsdb.path=/prometheus \
+            --web.listen-address=0.0.0.0:9090
+          # Query Prometheus itself, not only the exported HTTP endpoint.
+          seen_up=0
+          for i in {1..30}; do
+            if docker exec pulsewire-ci-rss wget -qO- \
+              'http://pulsewire-ci-prometheus:9090/api/v1/query?query=up%7Bjob%3D%22pulsewire-fetcher%22%7D' \
+              2>/dev/null | jq -e \
+              '.status == "success" and any(.data.result[]?; .value[1] == "1")' \
+              >/dev/null 2>&1; then
+              seen_up=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$seen_up" -ne 1 ]; then
+            docker logs pulsewire-ci-metrics
+            docker logs pulsewire-ci-prometheus
+            exit 1
+          fi
+          docker stop pulsewire-ci-metrics
+          seen_down=0
+          for i in {1..30}; do
+            if docker exec pulsewire-ci-rss wget -qO- \
+              'http://pulsewire-ci-prometheus:9090/api/v1/query?query=up%7Bjob%3D%22pulsewire-fetcher%22%7D' \
+              2>/dev/null | jq -e \
+              '.status == "success" and any(.data.result[]?; .value[1] == "0")' \
+              >/dev/null 2>&1; then
+              seen_down=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$seen_down" -ne 1 ]; then
+            docker logs pulsewire-ci-prometheus
+            exit 1
+          fi
           # Verify disabled sources produced neither scheduler categories nor feed rows.
           count="$(docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" pulsewire-ci-postgres \
             psql -U admin -d data -Atc "SELECT COUNT(*) FROM fetcher.feeds WHERE category IN ('youtube','podcasts')")"
