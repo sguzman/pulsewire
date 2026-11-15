@@ -77,10 +77,11 @@ pub(super) fn render(
     sorted_map(&due)
   {
     out.push_str(&format!(
-      "pulsewire_due_feeds_total{{category=\"{}\"}} {}\n",
+      r#"pulsewire_due_feeds_total{{category="{}"}} {}"#,
       escape_label(&category),
       count
     ));
+    out.push('\n');
   }
 
   let due_current = metrics
@@ -100,11 +101,11 @@ pub(super) fn render(
     sorted_map(&due_current)
   {
     out.push_str(&format!(
-      "pulsewire_due_feeds{{category=\\
-       "{}\"}} {}\n",
+      r#"pulsewire_due_feeds{{category="{}"}} {}"#,
       escape_label(&category),
       count
     ));
+    out.push('\n');
   }
 
   out.push_str(
@@ -437,16 +438,12 @@ mod prometheus_text_tests {
       .insert("news".into(), 2);
     let body = render(&metrics);
 
-    assert!(body.contains(
-      "pulsewire_due_feeds_total{category=\"news\"} 3\n"
-    ));
-    assert!(body.contains(
-      "pulsewire_due_feeds{category=\"\
-       news\"} 2\n"
-    ));
-    assert!(
-      !body.contains(r#"category=\""#)
-    );
+    assert!(body.lines().any(|line| {
+      line == r#"pulsewire_due_feeds_total{category="news"} 3"#
+    }));
+    assert!(body.lines().any(|line| {
+      line == r#"pulsewire_due_feeds{category="news"} 2"#
+    }));
     assert!(!body.contains(r#"\n"#));
     for line in body.lines() {
       if line.starts_with("# HELP")
