@@ -32,6 +32,9 @@ jobs:
           grep -q '^enabled = false$' crates/fetcher/res/docker.toml
           grep -q '^bind    = "127.0.0.1:9898"$' crates/fetcher/res/docker.toml
           bash -n tests/pw023-ingress-smoke.sh
+          bash -n scripts/pw023-audit.sh scripts/pw023-capture.sh tests/pw023-audit-smoke.sh
+          # Offline trust/port checks are independent of Docker and secrets.
+          bash tests/pw023-audit-smoke.sh
           # Compose overlays must clear direct credential environment values.
           printf '%s\n' 'ci-example-only' > "$RUNNER_TEMP/pw023-compose-secret"
           chmod 0644 "$RUNNER_TEMP/pw023-compose-secret"

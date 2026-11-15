@@ -175,4 +175,27 @@ test "$second" = 401 || {
   echo "second real peer received unexpected login status: $second" >&2
   exit 1
 }
+# Exercise the READ-ONLY inventory collector against this known fixture.
+# No explicit DB-member approval has been given; it MUST report review,
+# never claim that the disposable database network is globally trusted.
+snapshot="$(bash "$workspace/scripts/pw023-capture.sh" \
+  --server pw023-ci-ingress-server --edge pw023-ci-proxy \
+  --db-network pulsewire-ci --app-network pw023-ci-private \
+  --front-network pw023-ci-edge)"
+printf '%s\n' "$snapshot" | jq -e '
+  .schema == 1
+  and .roles.server.ports == []
+  and .roles.edge.ports[0].host_ip == "127.0.0.1"
+  and (.roles.server | has("environment") | not)
+  and (.roles.edge | has("mounts") | not)
+  and .networks.application.internal == true' >/dev/null
+audit_status=0
+audit_report="$(printf '%s\n' "$snapshot" | \
+  bash "$workspace/scripts/pw023-audit.sh" --snapshot -)" || audit_status=$?
+test "$audit_status" -eq 2
+printf '%s\n' "$audit_report" | jq -e '
+  .result == "NEEDS_REVIEW"
+  and (.static_checks | all(.[]; . == true))
+  and .deployment_approved == false' >/dev/null
+echo "PW-023 live read-only inventory passed: Docker metadata sanitized, static port/network checks pass, DB trust requires review"
 echo "PW-023 TLS ingress passed: verified HTTPS, minimal routes, distinct-peer login limiting, forged-header resistance, and edge-to-backend network isolation"
