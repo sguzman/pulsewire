@@ -435,59 +435,87 @@ mod failed_entries_tests {
     let address = listener
       .local_addr()
       .expect("listener address");
-    let worker =
-      thread::spawn(move || {
-        let (mut socket, _) =
-          listener.accept().expect(
-            "accept search request"
+    let worker = thread::spawn(
+      move || {
+        for attempt in 0..2 {
+          let (mut socket, _) =
+            listener.accept().expect(
+              "accept search request"
+            );
+          socket
+            .set_read_timeout(Some(
+              Duration::from_secs(5)
+            ))
+            .expect("set read timeout");
+          let mut reader =
+            BufReader::new(&socket);
+          let mut line = String::new();
+          reader
+            .read_line(&mut line)
+            .expect(
+              "read search request"
+            );
+          assert!(
+            line.contains(
+              "/v1/entries/search?"
+            ),
+            "unexpected request"
           );
-        socket
-          .set_read_timeout(Some(
-            Duration::from_secs(5)
-          ))
-          .expect("set read timeout");
-        let mut reader =
-          BufReader::new(&socket);
-        let mut line = String::new();
-        reader
-          .read_line(&mut line)
-          .expect(
-            "read search request"
-          );
-        assert!(
-          line.contains(
-            "/v1/entries/search?"
-          ),
-          "unexpected request"
-        );
-        loop {
-          let mut header =
-            String::new();
-          let size = reader
-            .read_line(&mut header)
-            .expect("read HTTP header");
-          if size == 0
-            || header == "\r\n"
-            || header == "\n"
-          {
-            break;
+          loop {
+            let mut header =
+              String::new();
+            let size = reader
+              .read_line(&mut header)
+              .expect(
+                "read HTTP header"
+              );
+            if size == 0
+              || header == "\r\n"
+              || header == "\n"
+            {
+              break;
+            }
           }
+          drop(reader);
+          let (status, body) =
+            if attempt == 0 {
+              (
+                "500 Internal Server \
+                 Error",
+                ""
+              )
+            } else {
+              (
+                "200 OK",
+                r#"{"items":[{"id":22,"feed_id":"fixture","title":"Recovered article","link":null,"published_at_ms":null,"is_read":false}],"next_cursor":22,"next_offset":null,"since":null}"#
+              )
+            };
+          let response = [
+            format!(
+              "HTTP/1.1 {status}\r\n"
+            ),
+            format!(
+              "Content-Length: {}\r\n",
+              body.len()
+            ),
+            "Connection: close\r\n"
+              .to_string(),
+            "\r\n".to_string()
+          ]
+          .concat();
+          socket
+            .write_all(
+              response.as_bytes()
+            )
+            .expect(
+              "send HTTP response"
+            );
+          socket
+            .write_all(body.as_bytes())
+            .expect("send HTTP body");
         }
-        drop(reader);
-        let response = [
-          "HTTP/1.1 500 Internal \
-           Server Error\r\n",
-          "Content-Length: 0\r\n",
-          "Connection: close\r\n",
-          "\r\n"
-        ]
-        .concat();
-        socket
-          .write_all(
-            response.as_bytes()
-          )
-          .expect("send HTTP error");
-      });
+      }
+    );
 
     let config: TuiConfig =
       toml::from_str(include_str!(
@@ -534,6 +562,17 @@ mod failed_entries_tests {
     assert!(
       app.status.contains("500"),
       "HTTP failure must be visible"
+    );
+    app
+      .refresh_entries()
+      .expect("recovered HTTP search");
+    assert_eq!(app.entries.len(), 1);
+    assert_eq!(
+      app.entries[0].title.as_deref(),
+      Some("Recovered article")
+    );
+    assert!(
+      app.status.starts_with("Loaded ")
     );
     worker
       .join()

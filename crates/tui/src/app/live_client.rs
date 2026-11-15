@@ -171,6 +171,28 @@ fn isolated_http_tui_reader_journey() {
     app.entries_url()
   );
 
+  // An empty search must report success
+  // with no stale articles, then
+  // recover.
+  app
+    .open_search_entries(
+      "PW051 definitely missing story"
+        .into()
+    )
+    .expect("empty search request");
+  assert!(
+    app.status.starts_with("Loaded ")
+  );
+  assert!(app.entries.is_empty());
+  app
+    .open_search_entries(
+      "Pulsewire CI Story".into()
+    )
+    .expect(
+      "search after empty listing"
+    );
+  assert_eq!(app.entries.len(), 2);
+
   let (tx, rx) = mpsc::channel();
   app.set_event_sender(tx);
 
@@ -237,6 +259,29 @@ fn isolated_http_tui_reader_journey() {
     app.subscriptions.contains(CI_FEED),
     subscribed
   );
+  // Finish subscribed on both backends,
+  // leaving a persisted TUI write.
+  if !subscribed {
+    press(
+      &mut app,
+      subscribe_key.clone()
+    );
+    receive(&mut app, &rx, |event| {
+      matches!(
+        event,
+        AppEvent::ToggleSubscribe {
+          ok: true,
+          ..
+        }
+      )
+    });
+    app
+      .refresh_subscriptions()
+      .expect("persist subscription");
+  }
+  assert!(
+    app.subscriptions.contains(CI_FEED)
+  );
 
   let favorite_key =
     app.keys.toggle_favorite.clone();
@@ -275,6 +320,27 @@ fn isolated_http_tui_reader_journey() {
   assert_eq!(
     app.favorite_ids.contains(CI_FEED),
     favorite
+  );
+  if !favorite {
+    press(
+      &mut app,
+      favorite_key.clone()
+    );
+    receive(&mut app, &rx, |event| {
+      matches!(
+        event,
+        AppEvent::ToggleFavorite {
+          ok: true,
+          ..
+        }
+      )
+    });
+    app
+      .refresh_favorites()
+      .expect("persist favorite");
+  }
+  assert!(
+    app.favorite_ids.contains(CI_FEED)
   );
 
   let read_key =
@@ -319,6 +385,42 @@ fn isolated_http_tui_reader_journey() {
   assert_eq!(
     app.entries[0].is_read,
     original_read
+  );
+  // Story One starts unread in both the
+  // PostgreSQL and SQLite fixtures.
+  // Keep this read change through both
+  // the client and server restarts.
+  let story_one_index = app
+    .entries
+    .iter()
+    .position(|entry| {
+      entry.title.as_deref()
+        == Some(
+          "Pulsewire CI Story One"
+        )
+    })
+    .expect("Story One in TUI");
+  assert!(
+    !app.entries[story_one_index]
+      .is_read
+  );
+  app.selected_entry = story_one_index;
+  press(&mut app, read_key.clone());
+  receive(&mut app, &rx, |event| {
+    matches!(
+      event,
+      AppEvent::ToggleEntryRead {
+        ok: true,
+        ..
+      }
+    )
+  });
+  app.refresh_entries().expect(
+    "persist Story One read state"
+  );
+  assert!(
+    app.entries[story_one_index]
+      .is_read
   );
 
   // Folder state must travel through
@@ -407,6 +509,11 @@ fn isolated_http_tui_reader_journey() {
     revoked.status().as_u16(),
     401
   );
+  app.refresh_entries().expect(
+    "revoked TUI request handled"
+  );
+  assert!(app.entries.is_empty());
+  assert!(app.status.contains("401"));
 
   let mut resumed = App::new(
     &config,
@@ -438,18 +545,28 @@ fn isolated_http_tui_reader_journey() {
   assert!(resumed.folders.iter().any(
     |folder| folder.id == folder_id
   ));
-  assert_eq!(
+  assert!(
     resumed
       .subscriptions
-      .contains(CI_FEED),
-    subscribed
+      .contains(CI_FEED)
   );
-  assert_eq!(
+  assert!(
     resumed
       .favorite_ids
-      .contains(CI_FEED),
-    favorite
+      .contains(CI_FEED)
   );
+  resumed.open_all_entries().expect(
+    "entries after client re-login"
+  );
+  assert!(resumed.entries.iter().any(
+    |entry| {
+      entry.title.as_deref()
+        == Some(
+          "Pulsewire CI Story One"
+        )
+        && entry.is_read
+    }
+  ));
 }
 
 #[test]
@@ -524,4 +641,19 @@ fn isolated_http_tui_after_restart() {
     .open_all_entries()
     .expect("entries after restart");
   assert!(app.entries.len() >= 2);
+  assert!(
+    app.subscriptions.contains(CI_FEED)
+  );
+  assert!(
+    app.favorite_ids.contains(CI_FEED)
+  );
+  assert!(app.entries.iter().any(
+    |entry| {
+      entry.title.as_deref()
+        == Some(
+          "Pulsewire CI Story One"
+        )
+        && entry.is_read
+    }
+  ));
 }
