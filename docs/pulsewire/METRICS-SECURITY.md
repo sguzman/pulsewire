@@ -128,6 +128,22 @@ These checks are **disposable CI evidence only**, not an
 approved real-host firewall/port scan, credential-rotation
 test, monitoring retention audit or production TLS proof.
 
+## Exact-head verified CI result (2026-11-15)
+
+[PR #59](https://github.com/sguzman/pulsewire/pull/59),
+squash merged as [`5eef609`](https://github.com/sguzman/pulsewire/commit/5eef609f8e8d6624ce686d64ee8b005c3fb1af3d),
+was tested at head `2a42d339d2a977c7c0d704e830f76b43dbcc0756`.
+Both [Rust/docs/browser CI 43770368318](https://github.com/sguzman/pulsewire/actions/runs/43770368318)
+and [container CI 43770368287](https://github.com/sguzman/pulsewire/actions/runs/43770368287)
+finished **success**. Container log explicitly contains
+`PW-023 authenticated metrics passed: non-loopback fail-closed,
+anonymous/wrong-token 401, bearer scrape 200, Prometheus up/down`.
+See [PW023-METRICS-ACCEPTANCE.md](PW023-METRICS-ACCEPTANCE.md)
+for the test matrix, caveats and existing code-only trust boundary.
+
+This validates **disposable CI only** and does not change PW-023's
+**0/3 weighted credit** or the canonical **93/100 (Δ +0)** score.
+
 ## Still required before PW-023 closure
 
 Confirm all host Docker-network memberships, firewall/ingress
