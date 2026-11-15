@@ -18,6 +18,7 @@ const files = [
   "docs/pulsewire/TROUBLESHOOTING.md",
   "docs/pulsewire/SECRETS.md",
   "docs/pulsewire/INGRESS.md",
+  "docs/pulsewire/METRICS-SECURITY.md",
   "docs/pulsewire/BACKUP-RESTORE.md",
   "docs/pulsewire/RECOVERY.md",
   "docs/pulsewire/FETCH_SECURITY.md",
@@ -117,6 +118,25 @@ for (const blocked of ["/ready", "/health", "/metrics", "/docs", "/openapi.json"
 assert.match(ingressSmoke, /pw023-ci-client-a/, "separate edge peer A missing");
 assert.match(ingressSmoke, /pw023-ci-client-b/, "separate edge peer B missing");
 assert.match(ingressSmoke, /network connect --alias server pw023-ci-private/, "private upstream network check missing");
+const metricsDoc = read("docs/pulsewire/METRICS-SECURITY.md");
+const metricsServer = read("crates/core/src/infra/metrics/server.rs");
+const metricsOverlay = read("crates/fetcher/docker-compose.metrics.yml");
+const promConfig = read("deploy/pw023/prometheus.yml");
+for (const item of [metricsDoc, metricsServer, metricsOverlay]) {
+  assert.ok(item.includes("PULSEWIRE_METRICS_TOKEN_FILE"), "missing protected metrics source contract");
+}
+assert.match(metricsServer, /!addr\.ip\(\)\.is_loopback\(\)/, "non-loopback fail-closed check missing");
+assert.match(metricsServer, /401 Unauthorized/, "token-free metrics must be rejected");
+assert.match(metricsServer, /HEADER_TIMEOUT/, "bounded header read timeout required");
+assert.match(metricsServer, /MAX_CONCURRENT/, "bounded in-flight connections required");
+assert.match(metricsOverlay, /internal:\s*true/, "monitoring network must be internal");
+assert.doesNotMatch(metricsOverlay, /^\s*ports:\s*$/m, "monitoring must not publish host ports");
+assert.match(metricsOverlay, /PULSEWIRE_METRICS_TOKEN_SOURCE/, "explicit private metrics token source required");
+assert.match(metricsOverlay, /PULSEWIRE_METRICS_CONFIG_SOURCE/, "explicit private metrics TOML required");
+assert.match(metricsOverlay, /24h/, "documented metrics retention window missing");
+assert.match(metricsOverlay, /128MB/, "documented TSDB size limit missing");
+assert.match(promConfig, /bearer_token_file:/, "Prometheus must scrape using file-backed bearer credentials");
+assert.match(promConfig, /fetcher:9898/, "Prometheus must scrape private fetcher DNS target");
 const compatibility = read("docs/pulsewire/COMPATIBILITY.md");
 const deployment = read("docs/pulsewire/DEPLOYMENT.md");
 const troubleshoot = read("docs/pulsewire/TROUBLESHOOTING.md");

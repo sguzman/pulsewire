@@ -1,6 +1,11 @@
 # Changelog
 ## [Unreleased]
 
+### 🔐 Authenticated Prometheus metrics (PW-023 partial)
+- Require a private `PULSEWIRE_METRICS_TOKEN_FILE` whenever metrics listen off loopback; reject missing, invalid and duplicated bearer authentication, with bounded HTTP request handling and safe generic errors.
+- Add an opt-in private monitoring Compose overlay and token-file Prometheus scraper, with no host-published ports and example 24-hour / 128 MB retention; preserve local loopback-only metrics compatibility.
+- Verify real anonymous/wrong-token rejection, correct bearer scraping and process-loss alert signals in isolated CI; do not claim household firewall, TLS, credential rotation or retention acceptance.
+
 ### 🔐 Optional TLS ingress and isolated client network (PW-023 partial)
 - Add a non-deploying NGINX TLS ingress reference and opt-in Compose overlay that removes direct HTTP host publishing and separates edge, internal application and database network access.
 - Add a disposable real-server HTTPS regression checking forged forwarded-IP headers, per-real-peer login limits, restricted routes and inability to bypass TLS from an untrusted edge container.
