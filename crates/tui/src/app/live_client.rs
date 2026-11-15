@@ -137,7 +137,8 @@ fn isolated_http_tui_reader_journey() {
     .expect("TUI search");
   assert!(
     app.entries.len() >= 2,
-    "search returned {} entries; titles: {:?}",
+    "search returned {} entries; \
+     titles: {:?}",
     app.entries.len(),
     app
       .entries
