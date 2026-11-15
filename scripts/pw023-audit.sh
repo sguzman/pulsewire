@@ -38,7 +38,7 @@ allow_json="$(printf '%s\n' "${allow[@]}" | jq -Rsc 'split("\n") | map(select(le
 # The input schema excludes Docker Env, mounts, labels, secrets, and
 # the output excludes full network/IP inventories by design.
 set +e
-jq -ce --argjson allow_db "$allow_json" '
+report="$(jq -ce --argjson allow_db "$allow_json" '
   def same($left; $right): (($left | sort) == ($right | sort));
   def network($key): .networks[$key];
   def role($key): .roles[$key];
@@ -130,37 +130,17 @@ jq -ce --argjson allow_db "$allow_json" '
         deployment_approved: false
       }
   end
-' "$snapshot"
+' "$snapshot")"
 jq_status=$?
 set -e
 if ((jq_status != 0)); then
   echo "invalid audit input or jq error; no changes made" >&2
   exit 64
 fi
-# Evaluate exact same snapshot and allowlist without extracting secrets.
-result="$(jq -r --argjson allow_db "$allow_json" '
-  def same($a; $b): (($a|sort)==($b|sort));
-  def role($k): .roles[$k];
-  def names($k): .network_names[$k];
-  def member($k; $v): (.networks[$k].members|index($v)) != null;
-  if .schema != 1 or .roles.server == null or .roles.edge == null
-     or .networks.database == null then "FAIL"
-  elif .roles.server.running != true or .roles.edge.running != true
-     or .networks.application.internal != true
-     or (same(.roles.server.networks; [names("database"),names("application")])|not)
-     or (same(.roles.edge.networks; [names("application"),names("front")])|not)
-     or (.roles.server.ports|length)!=0
-     or (.roles.edge.ports|length)!=1
-     or .roles.edge.ports[0].container_port != "8443/tcp"
-     or .roles.edge.ports[0].host_ip != "127.0.0.1"
-     or (same(.networks.application.members; [role("server").name,role("edge").name])|not)
-     or (member("database"; role("server").name)|not)
-     or (member("database"; role("edge").name))
-     then "FAIL"
-  elif ($allow_db|length)==0 or (.networks.database.members-$allow_db|length)>0
-     then "NEEDS_REVIEW"
-  else "PASS_STATIC" end
-' "$snapshot")"
+printf '%s\n' "$report"
+result="$(printf '%s\n' "$report" | jq -r '.result')"
+# Prior exit-status map only: the JSON report is the sole authority.
+: "$(true)"
 case "$result" in
   PASS_STATIC) exit 0 ;;
   NEEDS_REVIEW) exit 2 ;;

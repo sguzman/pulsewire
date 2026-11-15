@@ -73,7 +73,7 @@ network_record() {
   jq -nc --arg name "$name" --argjson members "$members" \
     --argjson internal "$internal" '
       {name:$name,internal:$internal,
-       members:[(($members // {}) | .[]) | .Name] | .members |= sort}'
+       members:[(($members // {}) | .[]) | .Name]} | .members |= sort'
 }
 
 server_json="$(container_record "$server")"
