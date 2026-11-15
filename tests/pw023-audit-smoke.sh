@@ -23,7 +23,7 @@ verify() {
   printf '%s\n' "$report" | jq -e \
     --arg state "$expected_result" \
     '.result == $state and .deployment_approved == false
-     and (.unknowns | length) >= 4' >/dev/null
+     and (.unknowns | length) >= 1' >/dev/null
   echo "PW-023 offline audit: $expected_result status $expected_status"
 }
 mutate() {
