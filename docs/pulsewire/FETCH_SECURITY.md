@@ -105,7 +105,9 @@ network. Both Rust and container CI passed on PR #4.
   before running on a trusted host or accepting third-party sources.
 * Feed-by-feed compatibility QA for redirect strictness and internal
   feeds that require deliberate private-network opt-in.
-* Browser/TUI and steady-state fetching tests and real-host backups.
+* Browser/TUI **real-host** compatibility QA, steady-state fetching
+  measurements and host-data restore drills. Isolated CI browser/TUI
+  acceptance is complete under PW-051/PW-060/PW-061.
 * Separate owner approval before modifying running home services.
 
 See [ROADMAP.md](ROADMAP.md) for the weighted implementation ledger.

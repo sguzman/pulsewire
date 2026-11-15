@@ -33,19 +33,30 @@ Generate the changelog with git-cliff:
 git cliff --config cliff.toml --output CHANGELOG.md
 ```
 
-## Release Flow (manual)
+## Release flow (manual; blocked pending PW-071)
 
-1. Update version with cargo-release (workspace)
-2. Generate changelog
-3. Tag
+**No tag, publication, version bump, container rollout or push is authorized
+by successful documentation or CI checks.** First verify all applicable
+P0/P1 gates in [Pulsewire's roadmap](../pulsewire/ROADMAP.md), including
+trusted ingress/TLS, actual-host resource measurements, backup/recovery
+drills and a recorded owner approval for the exact release commit.
 
-the release (no publish)
+For a future explicitly approved release:
 
-Example:
+1. Review the proposed version, breaking compatibility changes, API/schema
+   and configuration migration, rollback plan, and retained backups.
+2. Create a reviewable changelog/version change with `cargo-release` and
+   `git-cliff` **in a rehearsal/PR**, not by running an auto-tag/push
+   recipe. Confirm the result against the exact tested source commit.
+3. After the owner approves the release commit, execute the reviewed
+   version/tag steps and only then the separately approved publication or
+   deployment. Record the tag, image digest, backup ID and acceptance result.
 
-```bash
-cargo release patch --workspace
-```
+The root `justfile` recipes `patch`, `minor`, and `major` invoke
+`cargo release --execute`, `git push` and `git push --tags`.
+**Do not use them as a dry-run, a documentation test, or a first-time
+installation command.** A `cargo release` invocation is never needed
+to verify this runbook.
 
 Notes:
 

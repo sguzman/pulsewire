@@ -1,6 +1,10 @@
 # Changelog
 ## [Unreleased]
 
+### 📚 Operator documentation
+- Reconcile deployment, compatibility, privacy, recovery, troubleshooting and release runbooks with actual container/source defaults, and prevent unsafe documentation of development cleanup and tag/push steps (PW-070).
+- Add a dependency-free documentation contract check for local links, Compose/runtime security boundaries and claimed `just` commands.
+
 ### 🏷️ Stable API and client semantics
 - Fix SQLite feed entry counts referencing a nonexistent read-state column; verify personalized read/unread totals against both SQLite and PostgreSQL (PR #55).
 - Distinguish terminal versus continuing offset pages with bounded one-row lookahead, preserve explicit `since` and page-local `next_cursor` semantics, and update the browser to follow the API continuation field (PR #55).

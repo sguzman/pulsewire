@@ -135,6 +135,18 @@ still be abused for targeted temporary lockout; deployment-specific
 source-based throttling, trusted-proxy configuration and body/URL limits
 remain release blockers under PW-021/PW-023/PW-024.
 
+## Current reader/API acceptance and limitation
+
+The later [PW-051](PW051-ACCEPTANCE.md) and
+[PW-061](PW061-ACCEPTANCE.md) milestones verified independent
+PostgreSQL and SQLite TUI/API journeys, restarts, real RSS fixtures and
+per-user read/count semantics in disposable CI. The
+[PW-060 checkpoint in ROADMAP.md](ROADMAP.md) records the responsive
+browser's actual PostgreSQL-backed CI journey. None of these tests
+exercised the household storage stack, actual database sizes or a
+real-host rollback, and they do not replace the operator's copy-only
+restore drill.
+
 ## Gates before production use
 
 - Confirm the host's real storage topology, schema names, and backup permissions.
