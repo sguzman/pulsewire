@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PW-023 sanitized Docker metadata collector: READ ONLY, no socket probes.
 # docker inspect --format accesses ONLY network names, port bindings,
-# running flag and network-member names; never .Config.Env or mounts.
+# running flag and network-member names; never environment or secret mounts.
 set -euo pipefail
 
 usage() {

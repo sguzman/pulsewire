@@ -88,6 +88,12 @@ metrics on a non-loopback bind, and includes a private Prometheus
 scrape configuration with no published host ports. It is not proof of
 actual-host metrics access, token rotation or TSDB retention.
 
+The [optional read-only host exposure preflight](HOST-PREFLIGHT.md)
+provides a sanitized container/network/port inventory with explicit
+database-network membership review. It makes no host changes and
+does not replace active firewall, TLS, transport or approval checks.
+Do not treat a passing static report as release readiness.
+
 The remaining `PW-023` ingress, TLS, metrics, and shared-network exposure
 criteria are tracked in [P0 issue #9](https://github.com/sguzman/pulsewire/issues/9).
 Do not interpret successful isolated CI smoke as approval to expose Pulsewire

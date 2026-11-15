@@ -139,8 +139,7 @@ if ((jq_status != 0)); then
 fi
 printf '%s\n' "$report"
 result="$(printf '%s\n' "$report" | jq -r '.result')"
-# Prior exit-status map only: the JSON report is the sole authority.
-: "$(true)"
+# The JSON report is the sole authority for the exit status.
 case "$result" in
   PASS_STATIC) exit 0 ;;
   NEEDS_REVIEW) exit 2 ;;
