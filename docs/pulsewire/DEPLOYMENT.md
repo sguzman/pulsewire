@@ -82,6 +82,12 @@ spoofed-forwarding-header negative tests. It does **not** authorize
 public exposure, prove real-host firewall policy, or remove access by
 containers already trusted on the database network.
 
+An [opt-in authenticated metrics profile](METRICS-SECURITY.md) now
+requires an operator-provided bearer token file if the fetcher serves
+metrics on a non-loopback bind, and includes a private Prometheus
+scrape configuration with no published host ports. It is not proof of
+actual-host metrics access, token rotation or TSDB retention.
+
 The remaining `PW-023` ingress, TLS, metrics, and shared-network exposure
 criteria are tracked in [P0 issue #9](https://github.com/sguzman/pulsewire/issues/9).
 Do not interpret successful isolated CI smoke as approval to expose Pulsewire

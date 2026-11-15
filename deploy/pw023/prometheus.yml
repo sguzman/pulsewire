@@ -1,0 +1,9 @@
+# PW-023 example: private Prometheus scraper, never publicly exposed.
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: pulsewire-fetcher
+    metrics_path: /metrics
+    bearer_token_file: /run/secrets/pulsewire_metrics_token
+    static_configs:
+      - targets: ['fetcher:9898']

@@ -131,7 +131,11 @@ weighted points**, and the project remains **93/100 (Δ +0)**.
 ## Metrics and remaining acceptance blockers
 
 Fetcher metrics are disabled by default, and the TLS edge never
-proxies `/metrics`. The separate
+proxies `/metrics`. When separately enabled off-loopback, the
+[authenticated metrics profile](METRICS-SECURITY.md) requires a
+file-backed token at the Rust listener itself and configures a
+private Prometheus scraper. That does not prove host firewall rules,
+Prometheus UI access or token lifecycle. The separate
 [monitoring guide](MONITORING.md) covers CI-only private Prometheus
 scraping; approved real-host credentials, membership, retention and
 network restrictions remain unverified. A metrics process started on

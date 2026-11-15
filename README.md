@@ -244,9 +244,10 @@ OpenAPI docs:
   [backup/restore](docs/pulsewire/BACKUP-RESTORE.md),
   [operator recovery](docs/pulsewire/RECOVERY.md),
   [network fetch safety](docs/pulsewire/FETCH_SECURITY.md), and
-  [monitoring/readiness](docs/pulsewire/MONITORING.md), and
-  [file-backed database secrets](docs/pulsewire/SECRETS.md), and
-  [optional TLS ingress and network isolation](docs/pulsewire/INGRESS.md).
+  [monitoring/readiness](docs/pulsewire/MONITORING.md),
+  [file-backed database secrets](docs/pulsewire/SECRETS.md),
+  [optional TLS ingress and network isolation](docs/pulsewire/INGRESS.md),
+  and [authenticated metrics](docs/pulsewire/METRICS-SECURITY.md).
   [PW-070 documentation acceptance](docs/pulsewire/PW070-ACCEPTANCE.md)
   is verified in isolated CI. All operator procedures are **preflight or
   isolated CI reference**, not a deployment or release authorization.

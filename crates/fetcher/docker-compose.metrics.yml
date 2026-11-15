@@ -1,0 +1,49 @@
+# PW-023 opt-in protected metrics profile. No home deployment authorization.
+# Requires an operator-managed private fetcher config with [metrics]
+# enabled=true and bind="0.0.0.0:9898"; the Rust endpoint itself
+# requires a valid file token before permitting non-loopback binds.
+services:
+  fetcher:
+    environment:
+      PULSEWIRE_METRICS_TOKEN_FILE: /run/secrets/pulsewire_metrics_token
+    secrets:
+      - pulsewire_metrics_token
+    volumes:
+      - ${PULSEWIRE_METRICS_CONFIG_SOURCE:?Supply a private complete fetcher TOML config}:/app/res/docker.toml:ro
+    networks:
+      - pulsewire_services
+      - pulsewire_metrics_private
+
+  prometheus:
+    image: prom/prometheus:v3.7.3
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - fetcher
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=24h
+      - --storage.tsdb.retention.size=128MB
+      - --web.listen-address=0.0.0.0:9090
+    volumes:
+      - ../../deploy/pw023/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - pulsewire_prometheus_data:/prometheus
+    secrets:
+      - pulsewire_metrics_token
+    # No published ports; access to the UI requires private network membership.
+    networks:
+      - pulsewire_metrics_private
+
+secrets:
+  pulsewire_metrics_token:
+    file: ${PULSEWIRE_METRICS_TOKEN_SOURCE:?Supply a private bearer token file}
+
+networks:
+  pulsewire_metrics_private:
+    internal: true
+
+volumes:
+  pulsewire_prometheus_data: {}
