@@ -367,8 +367,7 @@ mod sqlite_pool_folder_tests {
     .execute(&pool)
     .await
     .expect("seed synthetic bearer");
-    let mut headers =
-      HeaderMap::new();
+    let mut headers = HeaderMap::new();
     headers.insert(
       "authorization",
       format!("Bearer {bearer}")
@@ -376,9 +375,11 @@ mod sqlite_pool_folder_tests {
         .expect("bearer header")
     );
     let state = AppState {
-      sqlite: Some(pool.clone()),
-      postgres: None,
-      fetcher_schema: None,
+      sqlite:            Some(
+        pool.clone()
+      ),
+      postgres:          None,
+      fetcher_schema:    None,
       token_ttl_seconds: 3600
     };
     let mut pending =
@@ -387,9 +388,8 @@ mod sqlite_pool_folder_tests {
       let state = state.clone();
       let headers = headers.clone();
       pending.spawn(async move {
-        let name = format!(
-          "fixture folder {n}"
-        );
+        let name =
+          format!("fixture folder {n}");
         let result = create_folder(
           State(state),
           headers,
@@ -406,15 +406,18 @@ mod sqlite_pool_folder_tests {
     while let Some(task) =
       pending.join_next().await
     {
-      let (name, result) =
-        task.expect("join folder request");
-      let Json(folder) = result
-        .expect("concurrent folder creation");
+      let (name, result) = task
+        .expect("join folder request");
+      let Json(folder) = result.expect(
+        "concurrent folder creation"
+      );
       assert_eq!(folder.name, name);
       assert!(ids.insert(folder.id));
       let stored: String =
         sqlx::query_scalar(
-          "SELECT name FROM folders WHERE id = ?1 AND user_id = 7"
+          "SELECT name FROM folders \
+           WHERE id = ?1 AND user_id \
+           = 7"
         )
         .bind(folder.id)
         .fetch_one(&pool)
