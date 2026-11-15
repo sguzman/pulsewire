@@ -569,19 +569,12 @@ fn extract_watch_items_from_html(
     if items.len() >= max_items {
       break;
     }
-    let mut link = extract_link(
+    let link = extract_link(
       &node,
       link_selector.as_ref(),
       &feed.url,
       watch.strip_query_params
     );
-
-    if link.is_none() {
-      link = node
-        .value()
-        .attr("href")
-        .map(|s| s.to_string());
-    }
 
     let title = extract_text(
       &node,
@@ -686,42 +679,51 @@ fn extract_link(
   base_url: &str,
   strip_query_params: bool
 ) -> Option<String> {
-  let mut raw =
-    if let Some(sel) = selector {
+  let href = selector
+    .and_then(|selector| {
       node
-        .select(sel)
+        .select(selector)
         .next()
-        .and_then(|n| {
-          n.value().attr("href")
+        .and_then(|node| {
+          node.value().attr("href")
         })
-        .map(str::to_string)
-    } else {
-      None
-    };
+    })
+    .or_else(|| {
+      node.value().attr("href")
+    })?;
 
-  if raw.is_none() {
-    raw = node
-      .value()
-      .attr("href")
-      .map(str::to_string);
-  }
+  resolve_watch_href(
+    href,
+    base_url,
+    strip_query_params
+  )
+}
 
-  let mut href = raw?;
-  if href.starts_with('/') {
-    let base =
-      base_url.trim_end_matches('/');
-    href = format!("{}{}", base, href);
+fn resolve_watch_href(
+  href: &str,
+  base_url: &str,
+  strip_query_params: bool
+) -> Option<String> {
+  // URL joining follows the document
+  // origin/path, not raw string
+  // concatenation. Reject non-HTTP
+  // targets, including javascript:.
+  let base =
+    reqwest::Url::parse(base_url)
+      .ok()?;
+  let mut target =
+    base.join(href).ok()?;
+  if !matches!(
+    target.scheme(),
+    "http" | "https"
+  ) {
+    return None;
   }
 
   if strip_query_params {
-    href = href
-      .split('?')
-      .next()
-      .unwrap_or(&href)
-      .to_string();
+    target.set_query(None);
   }
-
-  Some(href)
+  Some(target.to_string())
 }
 
 fn extract_published_at_ms(
@@ -1067,4 +1069,182 @@ fn is_immediate_error(
   cfg
     .immediate_error_statuses
     .contains(&code)
+}
+
+#[cfg(test)]
+mod watch_link_tests {
+  use super::*;
+
+  #[test]
+  fn watch_links_resolve_from_document_url()
+   {
+    let base =
+      "https://news.example.test/archive/index.html";
+
+    assert_eq!(
+      resolve_watch_href(
+        "/articles/1", base, false
+      )
+      .as_deref(),
+      Some("https://news.example.test/articles/1")
+    );
+    assert_eq!(
+      resolve_watch_href(
+        "../articles/2", base, false
+      )
+      .as_deref(),
+      Some("https://news.example.test/articles/2")
+    );
+    assert_eq!(
+      resolve_watch_href(
+        "https://other.example.test/story",
+        base,
+        false
+      )
+      .as_deref(),
+      Some("https://other.example.test/story")
+    );
+  }
+
+  #[test]
+  fn watch_links_strip_query_without_discarding_fragment()
+   {
+    assert_eq!(
+      resolve_watch_href(
+        "/article?id=42#section",
+        "https://news.example.test/feed",
+        true
+      )
+      .as_deref(),
+      Some(
+        "https://news.example.test/article#section"
+      )
+    );
+  }
+
+  #[test]
+  fn watch_links_reject_non_http_targets()
+   {
+    for href in [
+      "javascript:alert(1)",
+      "data:text/html,unsafe",
+      "mailto:example@example.test"
+    ] {
+      assert!(
+        resolve_watch_href(
+          href,
+          "https://news.example.test/feed",
+          false
+        )
+        .is_none()
+      );
+    }
+  }
+
+  #[test]
+  fn html_watch_link_selector_resolves_relative_href()
+   {
+    let html = Html::parse_document(
+      r#"<div class="item"><a class="story" href="../post?id=2">Story</a></div>"#
+    );
+    let item_selector =
+      Selector::parse("div.item")
+        .expect("valid item selector");
+    let link_selector =
+      Selector::parse("a.story")
+        .expect("valid link selector");
+    let item = html
+      .select(&item_selector)
+      .next()
+      .expect("fixture item");
+
+    assert_eq!(
+      extract_link(
+        &item,
+        Some(&link_selector),
+        "https://news.example.test/archive/page",
+        false
+      )
+      .as_deref(),
+      Some("https://news.example.test/post?id=2")
+    );
+  }
+  #[test]
+  fn html_watch_does_not_restore_unsafe_raw_links()
+   {
+    let feed = FeedConfig {
+      id:                "ci-watch".into(),
+      url: "https://news.example.test/archive/index.html".into(),
+      domain: "news.example.test".into(),
+      category: "news".into(),
+      base_poll_seconds: 60,
+      provenance: None,
+      tags: None,
+      language: None,
+      content_type: None,
+      cookie_path: None,
+      headers_path: None,
+      headers: None
+    };
+    let watch = WatchConfig {
+      id:                feed.id.clone(),
+      url:               feed.url.clone(),
+      domain:            feed.domain.clone(),
+      category:          feed.category.clone(),
+      base_poll_seconds: 60,
+      provenance: None,
+      tags: None,
+      language: None,
+      content_type: None,
+      cookie_path: None,
+      headers_path: None,
+      headers: None,
+      check_method:
+        crate::domain::model::WatchCheckMethod::Get,
+      fallback_to_get: false,
+      detectors: Vec::new(),
+      fetch_body_on_change: false,
+      max_body_bytes: None,
+      max_items_per_fetch: None,
+      item_selector: Some("a".into()),
+      item_identity: Some(
+        crate::domain::model::WatchItemIdentity::Href
+      ),
+      item_identity_attr: None,
+      title_selector: None,
+      link_selector: None,
+      summary_selector: None,
+      published_selector: None,
+      published_format: None,
+      include_selectors: None,
+      exclude_selectors: None,
+      normalize_whitespace: false,
+      strip_query_params: false,
+      emit_mode: WatchEmitMode::NewItemsOnly,
+      emit_title: None,
+      min_item_count_change: None
+    };
+
+    let unsafe_items =
+      extract_watch_items_from_html(
+        &feed,
+        &watch,
+        br#"<a href="javascript:alert(1)">Unsafe</a>"#,
+        0
+      );
+    assert!(unsafe_items.is_empty());
+
+    let safe_items =
+      extract_watch_items_from_html(
+        &feed,
+        &watch,
+        br#"<a href="/article">Safe</a>"#,
+        0
+      );
+    assert_eq!(safe_items.len(), 1);
+    assert_eq!(
+      safe_items[0].link.as_deref(),
+      Some("https://news.example.test/article")
+    );
+  }
 }
