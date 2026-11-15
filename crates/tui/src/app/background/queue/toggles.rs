@@ -27,10 +27,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let result = if desired_subscribed
       {
         let url = format!(
@@ -126,10 +124,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let result = if desired_favorite {
         let url = format!(
           "{base_url}/v1/favorites"
@@ -223,10 +219,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let url = format!(
         "{base_url}/v1/entries/\
          {entry_id}/read"

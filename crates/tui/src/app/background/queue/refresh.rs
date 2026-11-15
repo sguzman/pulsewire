@@ -44,11 +44,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
-
       let feeds: Vec<FeedSummary> =
         match get_json(
           &client,
@@ -380,5 +377,69 @@ mod refresh_failure_tests {
     server
       .join()
       .expect("fixture server");
+  }
+  #[test]
+  fn background_refresh_obeys_configured_timeout()
+   {
+    let listener =
+      TcpListener::bind("127.0.0.1:0")
+        .expect(
+          "bind local test listener"
+        );
+    let addr = listener
+      .local_addr()
+      .expect("test listener address");
+    let server =
+      thread::spawn(move || {
+        let (socket, _) =
+          listener.accept().expect(
+            "accept background request"
+          );
+        // Keep the request unanswered
+        // longer than the caller's
+        // configured timeout.
+        thread::sleep(
+          Duration::from_millis(1800)
+        );
+        drop(socket);
+      });
+
+    let mut config: TuiConfig =
+      toml::from_str(include_str!(
+        "../../../../res/config.toml"
+      ))
+      .expect("parse fixture config");
+    config.server.timeout_ms = 120;
+    let keys = config
+      .resolved_keybindings()
+      .expect("parse fixture keys");
+    let mut app =
+      App::new(&config, keys)
+        .expect("create TUI app");
+    app.base_url =
+      format!("http://{addr}");
+    app.token =
+      Some("synthetic-token".into());
+
+    let (sender, receiver) =
+      mpsc::channel();
+    app.set_event_sender(sender);
+    app.queue_refresh_all();
+
+    let result = receiver
+      .recv_timeout(
+        Duration::from_millis(1000)
+      )
+      .expect(
+        "background refresh ignored \
+         timeout"
+      );
+    assert!(matches!(
+      result,
+      AppEvent::Error { .. }
+    ));
+    server
+      .join()
+      .expect("join local test server");
   }
 }

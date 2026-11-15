@@ -28,10 +28,8 @@ impl App {
     let base_url =
       self.base_url.clone();
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let url = format!(
         "{base_url}/v1/feeds/{feed_id}"
       );
@@ -70,10 +68,8 @@ impl App {
     let base_url =
       self.base_url.clone();
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
       let url = format!(
         "{base_url}/v1/entries/\
          {entry_id}"
