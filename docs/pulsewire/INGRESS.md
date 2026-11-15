@@ -106,6 +106,28 @@ clear published HTTP is a hard preflight failure. A passing config
 check does not validate certificate trust, Docker firewall behavior
 or live-host data safety and is **not** a deploy command.
 
+
+## Exact-head isolated ingress verification (2026-11-15)
+
+[PR #58](https://github.com/sguzman/pulsewire/pull/58), squash merged
+as [`22e90ee`](https://github.com/sguzman/pulsewire/commit/22e90ee4eb0fb9c66f3d7247ab7cd613ad061c7d),
+passed both [Rust/docs/browser checks 43767148246](https://github.com/sguzman/pulsewire/actions/runs/43767148246)
+and [container smoke 43767148289](https://github.com/sguzman/pulsewire/actions/runs/43767148289)
+on exact head `7001d89b4df79eefe3ba5ef1b1f03ef6a79602b7`.
+The container log includes `PW-023 TLS ingress passed`. Test evidence
+covers live Rust reader behind NGINX with test-only self-signed TLS,
+actual client certificate validation, blocked private routes, loss of
+direct host HTTP publication, distinct edge TCP-client IPs, per-IP
+HTTP 429 despite forged forwarding headers, and inability to reach the
+reader's internal app-network alias/IP directly.
+
+**Scope is only disposable CI.** Containers already authorized on the
+**database network** may still access the reader without passing through
+the proxy. No home Docker network membership, host firewall, actual TLS
+certificate/renewal, public hostname, metrics access-control policy or
+production exposure has been verified. PW-023 remains **active, 0/3
+weighted points**, and the project remains **93/100 (Δ +0)**.
+
 ## Metrics and remaining acceptance blockers
 
 Fetcher metrics are disabled by default, and the TLS edge never
