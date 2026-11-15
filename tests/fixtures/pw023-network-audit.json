@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "network_names": {
+    "database": "ci-db",
+    "application": "ci-app",
+    "front": "ci-edge",
+    "monitoring": "ci-monitor"
+  },
+  "roles": {
+    "server": {
+      "name": "ci-server",
+      "running": true,
+      "networks": [
+        "ci-db",
+        "ci-app"
+      ],
+      "ports": []
+    },
+    "edge": {
+      "name": "ci-proxy",
+      "running": true,
+      "networks": [
+        "ci-app",
+        "ci-edge"
+      ],
+      "ports": [
+        {
+          "container_port": "8443/tcp",
+          "host_ip": "127.0.0.1",
+          "host_port": "18443"
+        }
+      ]
+    },
+    "fetcher": {
+      "name": "ci-fetcher",
+      "running": true,
+      "networks": [
+        "ci-db",
+        "ci-monitor"
+      ],
+      "ports": []
+    },
+    "prometheus": {
+      "name": "ci-prometheus",
+      "running": true,
+      "networks": [
+        "ci-monitor"
+      ],
+      "ports": []
+    }
+  },
+  "networks": {
+    "database": {
+      "name": "ci-db",
+      "internal": false,
+      "members": [
+        "ci-db-server",
+        "ci-fetcher",
+        "ci-server"
+      ]
+    },
+    "application": {
+      "name": "ci-app",
+      "internal": true,
+      "members": [
+        "ci-proxy",
+        "ci-server"
+      ]
+    },
+    "front": {
+      "name": "ci-edge",
+      "internal": false,
+      "members": [
+        "ci-edge-client",
+        "ci-proxy"
+      ]
+    },
+    "monitoring": {
+      "name": "ci-monitor",
+      "internal": true,
+      "members": [
+        "ci-fetcher",
+        "ci-prometheus"
+      ]
+    }
+  }
+}
