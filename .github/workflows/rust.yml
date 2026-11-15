@@ -57,6 +57,16 @@ jobs:
       - name: Rust Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate documentation contract syntax
+        run: node --check tests/docs-contract-check.mjs
+      - name: Check operator links, defaults and runbook safety (no npm)
+        run: node tests/docs-contract-check.mjs
+
   reader:
     runs-on: ubuntu-latest
     timeout-minutes: 10
