@@ -34,9 +34,9 @@ fn receive(
 ) {
   loop {
     let event = rx
-      .recv_timeout(Duration::from_secs(
-        10
-      ))
+      .recv_timeout(
+        Duration::from_secs(10)
+      )
       .expect("missing TUI HTTP event");
 
     if expected(&event) {
@@ -101,7 +101,9 @@ fn receive(
         "Error".to_string()
       }
     };
-    panic!("unexpected TUI event: {kind}");
+    panic!(
+      "unexpected TUI event: {kind}"
+    );
   }
 }
 
