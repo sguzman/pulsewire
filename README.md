@@ -136,7 +136,7 @@ Server config (`crates/server/res/config.toml`):
   - per-feed).
 - Favorites: list/add/remove feeds, unread counts.
 
-Browser reader (PW-060, in development): `GET /reader` serves the embedded,
+Browser reader (PW-060, verified in isolated CI): `GET /reader` serves the embedded,
 dependency-free responsive web app from the same Rust server. Log in using an
 existing account; there is no self-registration or automatic administrator
 account. The reader uses the existing /v1 APIs for entry lists and details,

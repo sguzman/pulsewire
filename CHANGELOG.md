@@ -1,6 +1,11 @@
 # Changelog
 ## [Unreleased]
 
+### 📰 Browser reader
+- Add a responsive reader at `/reader` served directly by the Rust server with no npm dependencies. Includes login/logout, list/detail, search, read/unread, subscriptions, favorite feeds, folders, mobile navigation, keyboard shortcuts and System/Light/Dark appearance (PR #53).
+- Render fetched descriptions as plain text and restrict external article links to HTTP(S); return strict CSP, no-store and MIME-sniffing protection on embedded reader assets.
+- Verify desktop/mobile Chromium UI with mock and live PostgreSQL-backed HTTP APIs using isolated RSS fixtures, including folder/subscription/favorite mutations and session cleanup (PR #54).
+
 ### 🔐 Security
 - Test the real HTTP login route against forged `X-Forwarded-For`, `X-Real-IP` and `Forwarded` headers; a blocked TCP peer remains rate-limited despite header spoofing (PR #11).
 - Redact secret-bearing TOML/schema validation diagnostics and disable default published fetcher metrics; cover config error redaction and Compose loopback/metrics defaults in CI (PR #10).
