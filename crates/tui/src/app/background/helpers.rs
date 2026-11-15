@@ -147,3 +147,77 @@ pub(super) fn build_entries_url(
 
   Some(url.to_string())
 }
+
+#[cfg(test)]
+mod get_json_error_tests {
+  use std::io::{
+    BufRead,
+    BufReader,
+    Write
+  };
+  use std::net::TcpListener;
+  use std::thread;
+
+  use super::*;
+
+  #[test]
+  fn failed_get_json_preserves_path_without_secrets()
+   {
+    let listener =
+      TcpListener::bind("127.0.0.1:0")
+        .expect("isolated fixture");
+    let addr = listener
+      .local_addr()
+      .expect("local address");
+    let server = thread::spawn(move || {
+      let (mut socket, _) =
+        listener.accept()
+          .expect("accept request");
+      let mut reader =
+        BufReader::new(&socket);
+      loop {
+        let mut line = String::new();
+        let count = reader
+          .read_line(&mut line)
+          .expect("request header");
+        if count == 0
+          || line == "\r\n"
+          || line == "\n"
+        {
+          break;
+        }
+      }
+      drop(reader);
+      let body =
+        r#"{"error":"synthetic"}"#;
+      let response = format!(
+        "HTTP/1.1 500 Internal Server Error\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+        body.len()
+      );
+      socket
+        .write_all(response.as_bytes())
+        .expect("send response");
+    });
+
+    let url = format!(
+      "http://{addr}/v1/folders/7/feeds?secret=must-not-print"
+    );
+    let client =
+      reqwest::blocking::Client::new();
+    let err = get_json::<
+      serde_json::Value
+    >(
+      &client,
+      &url,
+      "synthetic-bearer-must-not-print"
+    )
+    .expect_err("HTTP 500 must fail");
+    assert!(
+      err.contains("GET /v1/folders/7/feeds")
+    );
+    assert!(err.contains("500"));
+    assert!(!err.contains("must-not-print"));
+    server.join()
+      .expect("fixture HTTP server");
+  }
+}
