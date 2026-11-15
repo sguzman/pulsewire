@@ -176,9 +176,7 @@ impl Repo for SqliteRepo {
     candidates: &[String]
   ) -> Result<Vec<String>, String> {
     payloads::known_watch_item_guids(
-      &self.pool,
-      feed_id,
-      candidates
+      &self.pool, feed_id, candidates
     )
     .await
   }

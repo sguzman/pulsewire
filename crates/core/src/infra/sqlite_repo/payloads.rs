@@ -40,7 +40,9 @@ pub async fn known_watch_item_guids(
       .fetch_all(pool)
       .await
       .map_err(|e| {
-        format!("lookup watch GUIDs: {e}")
+        format!(
+          "lookup watch GUIDs: {e}"
+        )
       })?;
     found.append(&mut batch);
   }
@@ -412,9 +414,9 @@ mod watch_item_lookup_tests {
     .expect("fixture pool");
 
     sqlx::query(
-      "CREATE TABLE feed_items(\
-       feed_id TEXT NOT NULL, \
-       guid TEXT NULL)"
+      "CREATE TABLE \
+       feed_items(feed_id TEXT NOT \
+       NULL, guid TEXT NULL)"
     )
     .execute(&pool)
     .await
@@ -422,8 +424,9 @@ mod watch_item_lookup_tests {
 
     for n in 0..270 {
       sqlx::query(
-        "INSERT INTO feed_items(\
-         feed_id, guid) VALUES (?1, ?2)"
+        "INSERT INTO \
+         feed_items(feed_id, guid) \
+         VALUES (?1, ?2)"
       )
       .bind("first")
       .bind(format!("story-{n}"))
@@ -432,8 +435,9 @@ mod watch_item_lookup_tests {
       .expect("fixture item");
     }
     sqlx::query(
-      "INSERT INTO feed_items(\
-       feed_id, guid) VALUES (?1, ?2)"
+      "INSERT INTO \
+       feed_items(feed_id, guid) \
+       VALUES (?1, ?2)"
     )
     .bind("other")
     .bind("foreign")
@@ -447,7 +451,9 @@ mod watch_item_lookup_tests {
     candidates.push("foreign".into());
     candidates.push("unseen".into());
     let found = known_watch_item_guids(
-      &pool, "first", &candidates
+      &pool,
+      "first",
+      &candidates
     )
     .await
     .expect("first feed lookup");
@@ -455,9 +461,11 @@ mod watch_item_lookup_tests {
     assert!(!found.contains(
       &"foreign".to_string()
     ));
-    assert!(!found.contains(
-      &"unseen".to_string()
-    ));
+    assert!(
+      !found.contains(
+        &"unseen".to_string()
+      )
+    );
 
     assert_eq!(
       known_watch_item_guids(

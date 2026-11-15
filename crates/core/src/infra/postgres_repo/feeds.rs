@@ -475,9 +475,9 @@ mod postgres_due_queue_tests {
     // isolated TEMP feed_items table,
     // never on a user database.
     sqlx::query(
-      "CREATE TEMP TABLE feed_items(\
-       feed_id TEXT NOT NULL, \
-       guid TEXT NULL)"
+      "CREATE TEMP TABLE \
+       feed_items(feed_id TEXT NOT \
+       NULL, guid TEXT NULL)"
     )
     .execute(&pool)
     .await
@@ -488,8 +488,9 @@ mod postgres_due_queue_tests {
       ("other-1", "foreign")
     ] {
       sqlx::query(
-        "INSERT INTO feed_items(\
-         feed_id, guid) VALUES ($1, $2)"
+        "INSERT INTO \
+         feed_items(feed_id, guid) \
+         VALUES ($1, $2)"
       )
       .bind(feed)
       .bind(guid)
@@ -500,7 +501,7 @@ mod postgres_due_queue_tests {
     let requested = vec![
       "known".into(),
       "foreign".into(),
-      "new".into()
+      "new".into(),
     ];
     assert_eq!(
       super::super::payloads::

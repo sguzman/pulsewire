@@ -25,8 +25,11 @@ pub async fn known_watch_item_guids(
     }
 
     let mut builder =
-      sqlx::QueryBuilder::<sqlx::Postgres>::new(
-        "SELECT DISTINCT guid FROM feed_items WHERE feed_id = "
+      sqlx::QueryBuilder::<
+        sqlx::Postgres
+      >::new(
+        "SELECT DISTINCT guid FROM \
+         feed_items WHERE feed_id = "
       );
     builder.push_bind(feed_id);
     builder.push(" AND guid IN (");
@@ -44,7 +47,9 @@ pub async fn known_watch_item_guids(
       .fetch_all(pool)
       .await
       .map_err(|e| {
-        format!("lookup watch GUIDs: {e}")
+        format!(
+          "lookup watch GUIDs: {e}"
+        )
       })?;
     found.append(&mut batch);
   }

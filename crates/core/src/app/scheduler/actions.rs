@@ -462,11 +462,8 @@ where
             };
 
           build_synthetic_watch_payload(
-            feed,
-            watch_cfg,
-            now_ms,
-            body_hash,
-            emitted
+            feed, watch_cfg, now_ms,
+            body_hash, emitted
           )
         } else {
           tracing::debug!(feed_id = %feed.id, error = %parse_err, "Watch parse failed but no body change detected; skipping synthetic emit");
@@ -666,16 +663,18 @@ fn extract_watch_items_from_html(
   let mut seen = HashSet::new();
   let mut items = Vec::new();
 
-  // Bound work and database lookup input,
-  // even for large or malformed HTML.
+  // Bound work and database lookup
+  // input, even for large or malformed
+  // HTML.
   let max_items = watch
     .max_items_per_fetch
     .unwrap_or(512)
-    .min(512) as usize;
+    .min(512)
+    as usize;
 
-  for node in document.select(
-    &item_selector
-  ) {
+  for node in
+    document.select(&item_selector)
+  {
     if items.len() >= max_items {
       break;
     }
@@ -948,25 +947,32 @@ fn build_synthetic_watch_payload(
       extracted_items
     }
     | WatchEmitMode::AnyChange
-      if !extracted_items.is_empty() =>
+      if !extracted_items
+        .is_empty() =>
     {
       extracted_items
     }
     | WatchEmitMode::AnyChange => {
       vec![FeedItem {
-        title:           Some(title.clone()),
-        link:            Some(feed.url.clone()),
+        title:           Some(
+          title.clone()
+        ),
+        link:            Some(
+          feed.url.clone()
+        ),
         guid:            Some(guid),
         published_at_ms: Some(now_ms),
         category:        Some(
           feed.category.clone()
         ),
         description:     Some(
-          "watch detected content change"
+          "watch detected content \
+           change"
             .to_string()
         ),
         summary:         Some(
-          "watch detected content change"
+          "watch detected content \
+           change"
             .to_string()
         )
       }]
@@ -976,7 +982,8 @@ fn build_synthetic_watch_payload(
         .iter()
         .take(8)
         .map(|item| {
-          item.title
+          item
+            .title
             .as_deref()
             .or(item.link.as_deref())
             .unwrap_or("Untitled")
@@ -986,18 +993,25 @@ fn build_synthetic_watch_payload(
         })
         .collect::<Vec<_>>()
         .join(" | ");
-      let summary = if preview.is_empty() {
-        "watch content changed with no matching items"
-          .to_string()
-      } else {
-        format!(
-          "{} matching items: {preview}",
-          extracted_items.len()
-        )
-      };
+      let summary =
+        if preview.is_empty() {
+          "watch content changed with \
+           no matching items"
+            .to_string()
+        } else {
+          format!(
+            "{} matching items: \
+             {preview}",
+            extracted_items.len()
+          )
+        };
       vec![FeedItem {
-        title:           Some(title.clone()),
-        link:            Some(feed.url.clone()),
+        title:           Some(
+          title.clone()
+        ),
+        link:            Some(
+          feed.url.clone()
+        ),
         guid:            Some(guid),
         published_at_ms: Some(now_ms),
         category:        Some(
@@ -1014,12 +1028,17 @@ fn build_synthetic_watch_payload(
   Some(ParsedFeed {
     metadata: FeedMetadata {
       title:         Some(title),
-      link:          Some(feed.url.clone()),
+      link:          Some(
+        feed.url.clone()
+      ),
       description:   Some(
-        "synthetic payload from ad-hoc watch"
+        "synthetic payload from \
+         ad-hoc watch"
           .to_string()
       ),
-      language:      watch.language.clone(),
+      language:      watch
+        .language
+        .clone(),
       updated_at_ms: Some(now_ms)
     },
     items
@@ -1407,18 +1426,22 @@ mod watch_link_tests {
 
   fn sample_watch_feed() -> FeedConfig {
     FeedConfig {
-      id: "sample-watch".into(),
-      url: "https://example.test/list".into(),
-      domain: "example.test".into(),
-      category: "news".into(),
+      id:                "sample-watch"
+        .into(),
+      url:
+        "https://example.test/list"
+          .into(),
+      domain:            "example.test"
+        .into(),
+      category:          "news".into(),
       base_poll_seconds: 60,
-      provenance: None,
-      tags: None,
-      language: None,
-      content_type: None,
-      cookie_path: None,
-      headers_path: None,
-      headers: None
+      provenance:        None,
+      tags:              None,
+      language:          None,
+      content_type:      None,
+      cookie_path:       None,
+      headers_path:      None,
+      headers:           None
     }
   }
 
@@ -1452,12 +1475,12 @@ mod watch_link_tests {
         Vec::new()
       )
       .is_none(),
-      "no new identity means no synthetic item"
+      "no new identity means no \
+       synthetic item"
     );
 
-    let one_new = vec![
-      items[1].clone()
-    ];
+    let one_new =
+      vec![items[1].clone()];
     let only_new =
       build_synthetic_watch_payload(
         &feed,
@@ -1469,7 +1492,9 @@ mod watch_link_tests {
       .expect("one unseen item");
     assert_eq!(only_new.items.len(), 1);
     assert_eq!(
-      only_new.items[0].title.as_deref(),
+      only_new.items[0]
+        .title
+        .as_deref(),
       Some("Two")
     );
 
@@ -1487,13 +1512,17 @@ mod watch_link_tests {
     assert_eq!(
       digest.items.len(),
       1,
-      "digest is a single item per changed page"
+      "digest is a single item per \
+       changed page"
     );
     let summary = digest.items[0]
       .summary
       .as_deref()
       .expect("digest summary");
-    assert!(summary.contains("2 matching items"));
+    assert!(
+      summary
+        .contains("2 matching items")
+    );
     assert!(summary.contains("One"));
     assert!(summary.contains("Two"));
     assert_eq!(
@@ -1521,7 +1550,10 @@ mod watch_link_tests {
         Some("hash-4"),
         Vec::new()
       )
-      .expect("changed page without selectable items");
+      .expect(
+        "changed page without \
+         selectable items"
+      );
     assert_eq!(fallback.items.len(), 1);
   }
 
@@ -1537,7 +1569,10 @@ mod watch_link_tests {
     );
     let html = (0..600)
       .map(|n| {
-        format!("<a href='/story/{n}'>Story {n}</a>")
+        format!(
+          "<a href='/story/{n}'>Story \
+           {n}</a>"
+        )
       })
       .collect::<String>();
     let items =
@@ -1548,8 +1583,7 @@ mod watch_link_tests {
         1000
       );
     assert_eq!(items.len(), 512);
-    watch.max_items_per_fetch =
-      Some(7);
+    watch.max_items_per_fetch = Some(7);
     assert_eq!(
       extract_watch_items_from_html(
         &feed,
@@ -1561,7 +1595,6 @@ mod watch_link_tests {
       7
     );
   }
-
 
   fn observation_watch() -> WatchConfig
   {
