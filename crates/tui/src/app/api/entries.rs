@@ -40,8 +40,9 @@ impl App {
 
     if !resp.status().is_success() {
       // Never display entries from a
-      // previous page or query as though
-      // this failed request succeeded.
+      // previous page or query as
+      // though this failed request
+      // succeeded.
       self.entries.clear();
       self.entries_next_offset = None;
       self.selected_entry = 0;
@@ -427,52 +428,66 @@ mod failed_entries_tests {
    {
     let listener =
       TcpListener::bind("127.0.0.1:0")
-        .expect("bind disposable HTTP listener");
+        .expect(
+          "bind disposable HTTP \
+           listener"
+        );
     let address = listener
       .local_addr()
       .expect("listener address");
-    let worker = thread::spawn(move || {
-      let (mut socket, _) = listener
-        .accept()
-        .expect("accept search request");
-      socket
-        .set_read_timeout(Some(
-          Duration::from_secs(5)
-        ))
-        .expect("set read timeout");
-      let mut reader =
-        BufReader::new(&socket);
-      let mut line = String::new();
-      reader
-        .read_line(&mut line)
-        .expect("read search request");
-      assert!(
-        line.contains("/v1/entries/search?"),
-        "unexpected request"
-      );
-      loop {
-        let mut header = String::new();
-        let size = reader
-          .read_line(&mut header)
-          .expect("read HTTP header");
-        if size == 0
-          || header == "\r\n"
-          || header == "\n"
-        {
-          break;
+    let worker =
+      thread::spawn(move || {
+        let (mut socket, _) =
+          listener.accept().expect(
+            "accept search request"
+          );
+        socket
+          .set_read_timeout(Some(
+            Duration::from_secs(5)
+          ))
+          .expect("set read timeout");
+        let mut reader =
+          BufReader::new(&socket);
+        let mut line = String::new();
+        reader
+          .read_line(&mut line)
+          .expect(
+            "read search request"
+          );
+        assert!(
+          line.contains(
+            "/v1/entries/search?"
+          ),
+          "unexpected request"
+        );
+        loop {
+          let mut header =
+            String::new();
+          let size = reader
+            .read_line(&mut header)
+            .expect("read HTTP header");
+          if size == 0
+            || header == "\r\n"
+            || header == "\n"
+          {
+            break;
+          }
         }
-      }
-      drop(reader);
-      let response = [
-        "HTTP/1.1 500 Internal Server Error\r\n",
-        "Content-Length: 0\r\n",
-        "Connection: close\r\n",
-        "\r\n"
-      ].concat();
-      socket
-        .write_all(response.as_bytes())
-        .expect("send HTTP error");
-    });
+        drop(reader);
+        let response = [
+          "HTTP/1.1 500 Internal \
+           Server Error\r\n",
+          "Content-Length: 0\r\n",
+          "Connection: close\r\n",
+          "\r\n"
+        ]
+        .concat();
+        socket
+          .write_all(
+            response.as_bytes()
+          )
+          .expect("send HTTP error");
+      });
 
     let config: TuiConfig =
       toml::from_str(include_str!(
@@ -491,21 +506,24 @@ mod failed_entries_tests {
       Some("synthetic-token".into());
     app.entries_mode =
       EntriesMode::Search {
-        query: "fixture".into(),
+        query:   "fixture".into(),
         feed_id: None
       };
     app.entries = vec![EntrySummary {
-      id: 11,
-      feed_id: "fixture".into(),
-      title: Some("Stale article".into()),
-      link: None,
+      id:              11,
+      feed_id:         "fixture".into(),
+      title:           Some(
+        "Stale article".into()
+      ),
+      link:            None,
       published_at_ms: None,
-      is_read: false
+      is_read:         false
     }];
     app.entries_next_offset = Some(12);
     app.selected_entry = 1;
 
-    app.refresh_entries()
+    app
+      .refresh_entries()
       .expect("HTTP error handled");
     assert!(app.entries.is_empty());
     assert_eq!(
@@ -517,7 +535,8 @@ mod failed_entries_tests {
       app.status.contains("500"),
       "HTTP failure must be visible"
     );
-    worker.join()
+    worker
+      .join()
       .expect("fixture server");
   }
 }
