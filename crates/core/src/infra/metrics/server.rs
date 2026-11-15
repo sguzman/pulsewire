@@ -465,8 +465,10 @@ mod metrics_http_tests {
     let metrics =
       Arc::new(Metrics::new(&[]));
     let addr = spawn_with_token(
-      address([127, 0, 0, 1])
-        .with_port(0),
+      SocketAddr::new(
+        IpAddr::V4(Ipv4Addr::LOCALHOST),
+        0
+      ),
       metrics.clone(),
       None
     )
