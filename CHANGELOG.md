@@ -1,6 +1,11 @@
 # Changelog
 ## [Unreleased]
 
+### 🔐 Optional TLS ingress and isolated client network (PW-023 partial)
+- Add a non-deploying NGINX TLS ingress reference and opt-in Compose overlay that removes direct HTTP host publishing and separates edge, internal application and database network access.
+- Add a disposable real-server HTTPS regression checking forged forwarded-IP headers, per-real-peer login limits, restricted routes and inability to bypass TLS from an untrusted edge container.
+- All examples remain bound to host loopback, require operator-supplied certificate material and **do not** constitute production ingress, firewall, metrics or release acceptance.
+
 ### 🔐 PostgreSQL secret-file hardening (PW-023 partial)
 - Add the shared `PULSEWIRE_POSTGRES_PASSWORD_FILE` resolver for fetcher and reader server, rejecting ambiguous env/file sources and failing closed on unreadable/malformed file secrets without logging contents.
 - Provide opt-in secret-file Compose overlays and source/CI checks. Default env/private-config credentials remain compatible; server and fetcher continue rejecting an empty effective PostgreSQL password.

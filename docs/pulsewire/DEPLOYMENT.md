@@ -76,6 +76,12 @@ cost of less detailed error messages. Inspect sensitive files privately.
 Do not print the full container environment or
 provide real secrets in bug reports. Configure secrets privately at deployment.
 
+An [opt-in loopback-only TLS ingress reference](INGRESS.md) now
+documents an NGINX proxy, internal application bridge and CI-only
+spoofed-forwarding-header negative tests. It does **not** authorize
+public exposure, prove real-host firewall policy, or remove access by
+containers already trusted on the database network.
+
 The remaining `PW-023` ingress, TLS, metrics, and shared-network exposure
 criteria are tracked in [P0 issue #9](https://github.com/sguzman/pulsewire/issues/9).
 Do not interpret successful isolated CI smoke as approval to expose Pulsewire
