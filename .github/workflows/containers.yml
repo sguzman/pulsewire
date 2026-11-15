@@ -31,6 +31,7 @@ jobs:
           docker compose -f crates/server/docker-compose.yml config --format json | jq -e '(.services.server.ports | length) == 1 and all(.services.server.ports[]; .host_ip == "127.0.0.1")'
           grep -q '^enabled = false$' crates/fetcher/res/docker.toml
           grep -q '^bind    = "127.0.0.1:9898"$' crates/fetcher/res/docker.toml
+          bash -n tests/pw023-ingress-smoke.sh
           # Compose overlays must clear direct credential environment values.
           printf '%s\n' 'ci-example-only' > "$RUNNER_TEMP/pw023-compose-secret"
           chmod 0644 "$RUNNER_TEMP/pw023-compose-secret"
@@ -736,3 +737,6 @@ jobs:
             exit 1
           fi
           echo "PW-023 file-backed credentials: both real binaries passed against disposable PostgreSQL"
+          # PW-023: disposable TLS edge plus distinct-peer spoofing and
+          # network-bypass regressions, using the real reader and database.
+          bash tests/pw023-ingress-smoke.sh

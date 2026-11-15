@@ -108,7 +108,7 @@ done
 test "$up" = 1
 grep -qi 'pulsewire' "$tls_dir/reader.html"
 docker exec pw023-ci-client-a curl --max-time 5 --cacert /tmp/fixture-ca.pem \
-  --fail --silent --dump-header "$tls_dir/headers" "$url/reader" >/dev/null
+  --fail --silent --dump-header - --output /dev/null "$url/reader" > "$tls_dir/headers"
 grep -qi '^strict-transport-security:' "$tls_dir/headers"
 
 for path in /health /ready /metrics /docs /openapi.json /not-a-route; do

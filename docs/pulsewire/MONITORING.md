@@ -28,6 +28,15 @@ When enabled, `GET /metrics` exposes `pulsewire_up`, start time, scheduler ticks
 
 Metrics indicate activity, **not** comprehensive data freshness. A scrape failure or a missing target should be treated as a fetcher outage; `pulsewire_up 1` is only emitted while the endpoint responds. Configure Prometheus target `up` alerts and separately monitor reader `/ready` failures, fetcher process exits, feed backlog and scrape staleness.
 
+## Ingress distinction
+
+The optional [TLS ingress profile](INGRESS.md) deliberately rejects
+external `/metrics` requests, and the fetcher remains disabled/unpublished
+by default. This edge behavior does **not** prove that an independently
+enabled metrics target is inaccessible from other Docker networks, or
+supply any production metric-authentication/retention policy. Real-host
+scrape permissions and network membership are separate PW-023 gates.
+
 ## Exposure and release boundary
 
 The open [PW-023 security gate](https://github.com/sguzman/pulsewire/issues/9) still requires trust boundaries, firewall, TLS/proxy, credentials and metrics network access to be verified before a home deployment. These probes do **not** authorize opening firewall ports, exposing API/metrics to the internet, changing household services, or enabling monitoring against production data.

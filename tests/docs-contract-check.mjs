@@ -17,6 +17,7 @@ const files = [
   "docs/pulsewire/COMPATIBILITY.md",
   "docs/pulsewire/TROUBLESHOOTING.md",
   "docs/pulsewire/SECRETS.md",
+  "docs/pulsewire/INGRESS.md",
   "docs/pulsewire/BACKUP-RESTORE.md",
   "docs/pulsewire/RECOVERY.md",
   "docs/pulsewire/FETCH_SECURITY.md",
@@ -90,6 +91,32 @@ for (const service of ["fetcher", "server"]) {
 for (const required of ["both", "fail", "Docker", "PW-023"]) {
   assert.ok(secretDocs.includes(required), "secret runbook missing caveat " + required);
 }
+const ingress = read("docs/pulsewire/INGRESS.md");
+const ingressCompose = read("crates/server/docker-compose.ingress.yml");
+const nginxConfig = read("deploy/pw023/nginx.conf");
+const ingressSmoke = read("tests/pw023-ingress-smoke.sh");
+for (const doc of [ingress, ingressCompose, nginxConfig, ingressSmoke]) {
+  assert.ok(doc.includes("PW-023"), "ingress source must identify the incomplete security milestone");
+}
+assert.match(ingressCompose, /ports:\s*!reset\s*\[\]/, "ingress must remove the reader host HTTP port");
+assert.match(ingressCompose, /internal:\s*true/, "ingress private bridge must be internal");
+assert.match(ingressCompose, /127\.0\.0\.1:/, "TLS publishing must remain host-loopback only");
+assert.match(ingressCompose, /PULSEWIRE_TLS_CERT_SOURCE/, "operator-supplied certificate is required");
+assert.match(ingressCompose, /PULSEWIRE_TLS_KEY_SOURCE/, "operator-supplied private key is required");
+assert.match(nginxConfig, /listen 8443 ssl;/, "TLS-only ingress port");
+assert.match(nginxConfig, /ssl_protocols TLSv1\.2 TLSv1\.3;/, "no deprecated TLS protocols");
+assert.match(nginxConfig, /limit_req_zone \$binary_remote_addr/, "limit by actual TCP peer");
+assert.match(nginxConfig, /limit_req_status 429;/, "explicit edge limit response");
+assert.doesNotMatch(nginxConfig, /^\s*real_ip_header\s+/m, "never trust forwarded IP blindly");
+for (const header of ["X-Forwarded-For", "X-Real-IP", "Forwarded"]) {
+  assert.ok(nginxConfig.includes('proxy_set_header ' + header + ' "";'), "forged header must be cleared: " + header);
+}
+for (const blocked of ["/ready", "/health", "/metrics", "/docs", "/openapi.json"]) {
+  assert.ok(ingressSmoke.includes(blocked), "edge negative test missing " + blocked);
+}
+assert.match(ingressSmoke, /pw023-ci-client-a/, "separate edge peer A missing");
+assert.match(ingressSmoke, /pw023-ci-client-b/, "separate edge peer B missing");
+assert.match(ingressSmoke, /network connect --alias server pw023-ci-private/, "private upstream network check missing");
 const compatibility = read("docs/pulsewire/COMPATIBILITY.md");
 const deployment = read("docs/pulsewire/DEPLOYMENT.md");
 const troubleshoot = read("docs/pulsewire/TROUBLESHOOTING.md");
