@@ -44,10 +44,8 @@ impl App {
     self.pending_requests += 1;
     self.loading = true;
 
+    let client = self.client.clone();
     thread::spawn(move || {
-      let client =
-        reqwest::blocking::Client::new(
-        );
 
       let feeds: Vec<FeedSummary> =
         match get_json(
