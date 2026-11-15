@@ -433,24 +433,27 @@ where
           let current_count =
             extracted.len() as i64;
 
-          let allow_emit =
-            if let Some(minimum) = watch_cfg
+          let allow_emit = if let Some(
+            minimum
+          ) =
+            watch_cfg
               .min_item_count_change
-              .filter(|value| *value > 0)
-            {
-              let previous = repo
+              .filter(|value| {
+                *value > 0
+              }) {
+            let previous = repo
                 .latest_watch_emitted_count(
                   &feed.id
                 )
                 .await?;
-              item_count_gate(
-                Some(minimum),
-                current_count,
-                previous
-              )
-            } else {
-              true
-            };
+            item_count_gate(
+              Some(minimum),
+              current_count,
+              previous
+            )
+          } else {
+            true
+          };
 
           if !allow_emit {
             tracing::debug!(
@@ -460,7 +463,7 @@ where
             );
             None
           } else {
-          let emitted =
+            let emitted =
             if watch_cfg.emit_mode
               == WatchEmitMode::NewItemsOnly
             {
@@ -492,20 +495,21 @@ where
               extracted
             };
 
-          let payload =
+            let payload =
             build_synthetic_watch_payload(
               feed, watch_cfg, now_ms,
               body_hash, emitted
             );
-          if payload.is_some()
-            && watch_cfg
-              .min_item_count_change
-              .unwrap_or(0) > 0
-          {
-            emitted_count =
-              Some(current_count);
-          }
-          payload
+            if payload.is_some()
+              && watch_cfg
+                .min_item_count_change
+                .unwrap_or(0)
+                > 0
+            {
+              emitted_count =
+                Some(current_count);
+            }
+            payload
           }
         } else {
           tracing::debug!(feed_id = %feed.id, error = %parse_err, "Watch parse failed but no body change detected; skipping synthetic emit");
@@ -973,11 +977,13 @@ fn item_count_gate(
     return true;
   };
 
-  let current = current_count.max(0) as u64;
-  let previous =
-    previous_emitted.unwrap_or(0).max(0)
-      as u64;
-  current.abs_diff(previous) >= threshold
+  let current =
+    current_count.max(0) as u64;
+  let previous = previous_emitted
+    .unwrap_or(0)
+    .max(0) as u64;
+  current.abs_diff(previous)
+    >= threshold
 }
 
 fn build_synthetic_watch_payload(
@@ -1492,34 +1498,51 @@ mod watch_link_tests {
     // emission, not last fetch. Small
     // increments therefore accumulate.
     assert!(item_count_gate(
-      None, 1, Some(100)
+      None,
+      1,
+      Some(100)
     ));
     assert!(item_count_gate(
-      Some(0), 1, Some(100)
+      Some(0),
+      1,
+      Some(100)
     ));
     assert!(!item_count_gate(
-      Some(3), 2, None
+      Some(3),
+      2,
+      None
     ));
     assert!(item_count_gate(
-      Some(3), 3, None
+      Some(3),
+      3,
+      None
     ));
     assert!(!item_count_gate(
-      Some(3), 4, Some(3)
+      Some(3),
+      4,
+      Some(3)
     ));
     assert!(!item_count_gate(
-      Some(3), 5, Some(3)
+      Some(3),
+      5,
+      Some(3)
     ));
     assert!(item_count_gate(
-      Some(3), 6, Some(3)
+      Some(3),
+      6,
+      Some(3)
     ));
     assert!(item_count_gate(
-      Some(3), 0, Some(3)
+      Some(3),
+      0,
+      Some(3)
     ));
     assert!(!item_count_gate(
-      Some(3), 10, Some(10)
+      Some(3),
+      10,
+      Some(10)
     ));
   }
-
 
   fn sample_watch_feed() -> FeedConfig {
     FeedConfig {

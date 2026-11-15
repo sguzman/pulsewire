@@ -153,14 +153,16 @@ pub async fn latest_watch_emitted_count(
 ) -> Result<Option<i64>, String> {
   sqlx::query_scalar::<_, i64>(
     "SELECT item_count FROM \
-     watch_emit_watermarks \
-     WHERE feed_id = $1"
+     watch_emit_watermarks WHERE \
+     feed_id = $1"
   )
   .bind(feed_id)
   .fetch_optional(pool)
   .await
   .map_err(|e| {
-    format!("read watch emitted count: {e}")
+    format!(
+      "read watch emitted count: {e}"
+    )
   })
 }
 
@@ -254,7 +256,8 @@ pub async fn insert_payload_with_items(
 
   // Count baseline advances only when
   // the emitted payload commits.
-  if let Some(count) = watch_item_count {
+  if let Some(count) = watch_item_count
+  {
     sqlx::query(
       r#"INSERT INTO watch_emit_watermarks(
            feed_id, item_count,
@@ -296,7 +299,8 @@ mod postgres_watch_emission_tests {
   };
 
   #[tokio::test]
-  #[ignore = "requires disposable PostgreSQL CI service"]
+  #[ignore = "requires disposable \
+              PostgreSQL CI service"]
   async fn postgres_watch_emission_roundtrip()
    {
     let password = std::env::var(
@@ -312,12 +316,13 @@ mod postgres_watch_emission_tests {
         .password(&password)
         .database("pulsewire_ci");
 
-    let nonce = std::time::SystemTime::now()
-      .duration_since(
-        std::time::UNIX_EPOCH
-      )
-      .expect("system time")
-      .as_nanos();
+    let nonce =
+      std::time::SystemTime::now()
+        .duration_since(
+          std::time::UNIX_EPOCH
+        )
+        .expect("system time")
+        .as_nanos();
     let schema = format!(
       "pw_watch_emit_{}_{nonce}",
       std::process::id()
@@ -344,19 +349,20 @@ mod postgres_watch_emission_tests {
     .expect("use isolated schema");
 
     for ddl in [
-      "CREATE TABLE feed_payloads(\
-       id BIGSERIAL PRIMARY KEY, \
-       feed_id TEXT, fetched_at TIMESTAMPTZ, \
-       etag TEXT, last_modified_at TIMESTAMPTZ, \
-       content_hash TEXT, title TEXT, \
-       link TEXT, description TEXT, \
-       language TEXT, updated_at TIMESTAMPTZ)",
-      "CREATE TABLE feed_items(\
-       payload_id BIGINT, feed_id TEXT, \
-       title TEXT, link TEXT, guid TEXT, \
-       published_at TIMESTAMPTZ, \
-       category TEXT, description TEXT, \
-       summary TEXT)"
+      "CREATE TABLE feed_payloads(id \
+       BIGSERIAL PRIMARY KEY, feed_id \
+       TEXT, fetched_at TIMESTAMPTZ, \
+       etag TEXT, last_modified_at \
+       TIMESTAMPTZ, content_hash \
+       TEXT, title TEXT, link TEXT, \
+       description TEXT, language \
+       TEXT, updated_at TIMESTAMPTZ)",
+      "CREATE TABLE \
+       feed_items(payload_id BIGINT, \
+       feed_id TEXT, title TEXT, link \
+       TEXT, guid TEXT, published_at \
+       TIMESTAMPTZ, category TEXT, \
+       description TEXT, summary TEXT)"
     ] {
       sqlx::query(ddl)
         .execute(&first)
@@ -366,20 +372,26 @@ mod postgres_watch_emission_tests {
 
     let parsed = ParsedFeed {
       metadata: FeedMetadata {
-        title: Some("Page".into()),
-        link: None,
-        description: None,
-        language: None,
+        title:         Some(
+          "Page".into()
+        ),
+        link:          None,
+        description:   None,
+        language:      None,
         updated_at_ms: None
       },
-      items: vec![FeedItem {
-        title: Some("Story".into()),
-        link: None,
-        guid: Some("watch:story-1".into()),
+      items:    vec![FeedItem {
+        title:           Some(
+          "Story".into()
+        ),
+        link:            None,
+        guid:            Some(
+          "watch:story-1".into()
+        ),
         published_at_ms: None,
-        category: None,
-        description: None,
-        summary: None
+        category:        None,
+        description:     None,
+        summary:         None
       }]
     };
 
@@ -387,16 +399,22 @@ mod postgres_watch_emission_tests {
     // roll back payload insertion.
     assert!(
       insert_payload_with_items(
-        &first, "watch", 1000,
-        None, None, Some("hash"),
-        &parsed, Some(4),
+        &first,
+        "watch",
+        1000,
+        None,
+        None,
+        Some("hash"),
+        &parsed,
+        Some(4),
         &chrono_tz::UTC
       )
       .await
       .is_err()
     );
     let rows: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM feed_payloads"
+      "SELECT COUNT(*) FROM \
+       feed_payloads"
     )
     .fetch_one(&first)
     .await
@@ -404,19 +422,25 @@ mod postgres_watch_emission_tests {
     assert_eq!(rows, 0);
 
     sqlx::query(
-      "CREATE TABLE watch_emit_watermarks(\
-       feed_id TEXT PRIMARY KEY, \
-       item_count BIGINT NOT NULL, \
-       emitted_at_ms BIGINT NOT NULL)"
+      "CREATE TABLE \
+       watch_emit_watermarks(feed_id \
+       TEXT PRIMARY KEY, item_count \
+       BIGINT NOT NULL, emitted_at_ms \
+       BIGINT NOT NULL)"
     )
     .execute(&first)
     .await
     .expect("watermark schema");
 
     insert_payload_with_items(
-      &first, "watch", 1000,
-      None, None, Some("hash"),
-      &parsed, Some(4),
+      &first,
+      "watch",
+      1000,
+      None,
+      None,
+      Some("hash"),
+      &parsed,
+      Some(4),
       &chrono_tz::UTC
     )
     .await

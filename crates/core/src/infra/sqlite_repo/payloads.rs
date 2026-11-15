@@ -146,14 +146,16 @@ pub async fn latest_watch_emitted_count(
 ) -> Result<Option<i64>, String> {
   sqlx::query_scalar::<_, i64>(
     "SELECT item_count FROM \
-     watch_emit_watermarks \
-     WHERE feed_id = ?1"
+     watch_emit_watermarks WHERE \
+     feed_id = ?1"
   )
   .bind(feed_id)
   .fetch_optional(pool)
   .await
   .map_err(|e| {
-    format!("read watch emitted count: {e}")
+    format!(
+      "read watch emitted count: {e}"
+    )
   })
 }
 
@@ -234,7 +236,8 @@ pub async fn insert_payload_with_items(
 
   // Count baseline advances only when
   // the emitted payload commits.
-  if let Some(count) = watch_item_count {
+  if let Some(count) = watch_item_count
+  {
     sqlx::query(
       r#"INSERT INTO watch_emit_watermarks(
            feed_id, item_count,
@@ -541,18 +544,18 @@ mod watch_emit_watermark_tests {
   #[tokio::test]
   async fn watermark_commit_is_atomic_and_survives_new_pool()
    {
-    let nonce = std::time::SystemTime::now()
-      .duration_since(
-        std::time::UNIX_EPOCH
-      )
-      .expect("system time")
-      .as_nanos();
-    let file = std::env::temp_dir().join(
-      format!(
+    let nonce =
+      std::time::SystemTime::now()
+        .duration_since(
+          std::time::UNIX_EPOCH
+        )
+        .expect("system time")
+        .as_nanos();
+    let file = std::env::temp_dir()
+      .join(format!(
         "pw-watch-emit-{}-{nonce}.db",
         std::process::id()
-      )
-    );
+      ));
 
     let options =
       sqlx::sqlite::SqliteConnectOptions::new()
@@ -566,20 +569,22 @@ mod watch_emit_watermark_tests {
         .expect("disposable SQLite file");
 
     for ddl in [
-      "CREATE TABLE feed_payloads(\
-       id INTEGER PRIMARY KEY \
+      "CREATE TABLE feed_payloads(id \
+       INTEGER PRIMARY KEY \
        AUTOINCREMENT, feed_id TEXT, \
-       fetched_at_ms INTEGER, etag TEXT, \
-       last_modified_ms INTEGER, \
-       content_hash TEXT, title TEXT, \
-       link TEXT, description TEXT, \
-       language TEXT, updated_at_ms INTEGER)",
-      "CREATE TABLE feed_items(\
-       payload_id INTEGER, feed_id TEXT, \
-       title TEXT, link TEXT, guid TEXT, \
+       fetched_at_ms INTEGER, etag \
+       TEXT, last_modified_ms \
+       INTEGER, content_hash TEXT, \
+       title TEXT, link TEXT, \
+       description TEXT, language \
+       TEXT, updated_at_ms INTEGER)",
+      "CREATE TABLE \
+       feed_items(payload_id INTEGER, \
+       feed_id TEXT, title TEXT, link \
+       TEXT, guid TEXT, \
        published_at_ms INTEGER, \
-       category TEXT, description TEXT, \
-       summary TEXT)"
+       category TEXT, description \
+       TEXT, summary TEXT)"
     ] {
       sqlx::query(ddl)
         .execute(&pool)
@@ -589,22 +594,26 @@ mod watch_emit_watermark_tests {
 
     let parsed = ParsedFeed {
       metadata: FeedMetadata {
-        title: Some("Page".into()),
-        link: None,
-        description: None,
-        language: None,
+        title:         Some(
+          "Page".into()
+        ),
+        link:          None,
+        description:   None,
+        language:      None,
         updated_at_ms: None
       },
-      items: vec![FeedItem {
-        title: Some("Story".into()),
-        link: None,
-        guid: Some(
+      items:    vec![FeedItem {
+        title:           Some(
+          "Story".into()
+        ),
+        link:            None,
+        guid:            Some(
           "watch:story-1".into()
         ),
         published_at_ms: None,
-        category: None,
-        description: None,
-        summary: None
+        category:        None,
+        description:     None,
+        summary:         None
       }]
     };
 
@@ -612,16 +621,22 @@ mod watch_emit_watermark_tests {
     // roll back its payload and items.
     assert!(
       insert_payload_with_items(
-        &pool, "watch", 1000,
-        None, None, Some("hash"),
-        &parsed, Some(4),
+        &pool,
+        "watch",
+        1000,
+        None,
+        None,
+        Some("hash"),
+        &parsed,
+        Some(4),
         &chrono_tz::UTC
       )
       .await
       .is_err()
     );
     let rows: i64 = sqlx::query_scalar(
-      "SELECT COUNT(*) FROM feed_payloads"
+      "SELECT COUNT(*) FROM \
+       feed_payloads"
     )
     .fetch_one(&pool)
     .await
@@ -629,9 +644,10 @@ mod watch_emit_watermark_tests {
     assert_eq!(rows, 0);
 
     sqlx::query(
-      "CREATE TABLE watch_emit_watermarks(\
-       feed_id TEXT PRIMARY KEY, \
-       item_count INTEGER NOT NULL, \
+      "CREATE TABLE \
+       watch_emit_watermarks(feed_id \
+       TEXT PRIMARY KEY, item_count \
+       INTEGER NOT NULL, \
        emitted_at_ms INTEGER NOT NULL)"
     )
     .execute(&pool)
@@ -639,13 +655,20 @@ mod watch_emit_watermark_tests {
     .expect("watermark schema");
 
     insert_payload_with_items(
-      &pool, "watch", 1000,
-      None, None, Some("hash"),
-      &parsed, Some(4),
+      &pool,
+      "watch",
+      1000,
+      None,
+      None,
+      Some("hash"),
+      &parsed,
+      Some(4),
       &chrono_tz::UTC
     )
     .await
-    .expect("atomically emit and update");
+    .expect(
+      "atomically emit and update"
+    );
 
     pool.close().await;
 
