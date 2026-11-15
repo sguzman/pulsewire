@@ -1,6 +1,8 @@
-//! Minimal, bounded metrics HTTP listener.
-//! A non-loopback metrics bind MUST be protected by an explicit,
-//! private bearer-token file. No user-provided HTTP request data
+//! Minimal, bounded metrics HTTP
+//! listener. A non-loopback metrics
+//! bind MUST be protected by an
+//! explicit, private bearer-token file.
+//! No user-provided HTTP request data
 //! or token bytes are logged.
 
 use std::env;
@@ -8,7 +10,10 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use sha2::{Digest, Sha256};
+use sha2::{
+  Digest,
+  Sha256
+};
 use tokio::io::{
   AsyncReadExt,
   AsyncWriteExt
@@ -34,31 +39,27 @@ const HEADER_TIMEOUT: Duration =
 /// No insecure fallback is allowed.
 fn load_token(
   addr: SocketAddr
-) -> Result<Option<Arc<str>>, String>
-{
+) -> Result<Option<Arc<str>>, String> {
   let file = env::var(
     "PULSEWIRE_METRICS_TOKEN_FILE"
   )
   .ok();
 
-  token_from_file(
-    addr,
-    file.as_deref()
-  )
+  token_from_file(addr, file.as_deref())
 }
 
 fn token_from_file(
   addr: SocketAddr,
   path: Option<&str>
-) -> Result<Option<Arc<str>>, String>
-{
-  let Some(path) = path
-    .filter(|p| !p.is_empty())
+) -> Result<Option<Arc<str>>, String> {
+  let Some(path) =
+    path.filter(|p| !p.is_empty())
   else {
     if !addr.ip().is_loopback() {
       return Err(
-        "non-loopback metrics listener \
-         requires PULSEWIRE_METRICS_TOKEN_FILE"
+        "non-loopback metrics \
+         listener requires \
+         PULSEWIRE_METRICS_TOKEN_FILE"
           .into()
       );
     }
@@ -79,13 +80,12 @@ fn token_from_file(
     }
   }
 
-  if !(MIN_TOKEN_BYTES..=MAX_TOKEN_BYTES)
+  if !(MIN_TOKEN_BYTES
+    ..=MAX_TOKEN_BYTES)
     .contains(&value.len())
-    || !value
-      .bytes()
-      .all(|byte| {
-        (33..=126).contains(&byte)
-      })
+    || !value.bytes().all(|byte| {
+      (33..=126).contains(&byte)
+    })
   {
     return Err(
       "metrics token file has invalid \
@@ -104,9 +104,8 @@ fn valid_bearer(
   let mut seen = 0usize;
   let mut valid = false;
 
-  for line in headers
-    .split("\r\n")
-    .skip(1)
+  for line in
+    headers.split("\r\n").skip(1)
   {
     let Some((name, value)) =
       line.split_once(':')
@@ -127,14 +126,15 @@ fn valid_bearer(
       continue;
     };
 
-    let wanted =
-      Sha256::digest(expected.as_bytes());
-    let found =
-      Sha256::digest(provided.as_bytes());
+    let wanted = Sha256::digest(
+      expected.as_bytes()
+    );
+    let found = Sha256::digest(
+      provided.as_bytes()
+    );
     let mut difference = 0u8;
-    for (a, b) in wanted
-      .iter()
-      .zip(found.iter())
+    for (a, b) in
+      wanted.iter().zip(found.iter())
     {
       difference |= a ^ b;
     }
@@ -189,8 +189,10 @@ async fn serve(
     return;
   };
 
-  // Only inspect the HTTP header block. Never accept a forged
-  // Authorization line smuggled into the request body.
+  // Only inspect the HTTP header block.
+  // Never accept a forged Authorization
+  // line smuggled into the request
+  // body.
   let Some((headers, _body)) =
     request.split_once("\r\n\r\n")
   else {
@@ -200,15 +202,12 @@ async fn serve(
     .split("\r\n")
     .next()
     .unwrap_or("");
-  let method = first
-    .split_whitespace()
-    .next();
-  let path = first
-    .split_whitespace()
-    .nth(1);
-  let version = first
-    .split_whitespace()
-    .nth(2);
+  let method =
+    first.split_whitespace().next();
+  let path =
+    first.split_whitespace().nth(1);
+  let version =
+    first.split_whitespace().nth(2);
 
   let (status, body) = if method
     != Some("GET")
@@ -218,8 +217,7 @@ async fn serve(
       "405 Method Not Allowed",
       "not allowed\n".to_string()
     )
-  } else if path != Some("/metrics")
-  {
+  } else if path != Some("/metrics") {
     (
       "404 Not Found",
       "not found\n".to_string()
@@ -235,9 +233,8 @@ async fn serve(
     ("200 OK", metrics.render())
   };
 
-  let mut response = format!(
-    "HTTP/1.1 {status}\r\n"
-  );
+  let mut response =
+    format!("HTTP/1.1 {status}\r\n");
   response.push_str(
     "Content-Type: text/plain; \
      version=0.0.4\r\n"
@@ -286,20 +283,21 @@ async fn spawn_with_token(
     TcpListener::bind(addr)
       .await
       .map_err(|_| {
-        "failed to bind metrics listener"
+        "failed to bind metrics \
+         listener"
           .to_string()
       })?;
   let bound = listener
     .local_addr()
     .map_err(|_| {
-      "failed to inspect metrics listener"
+      "failed to inspect metrics \
+       listener"
         .to_string()
     })?;
 
-  let permits =
-    Arc::new(Semaphore::new(
-      MAX_CONCURRENT
-    ));
+  let permits = Arc::new(
+    Semaphore::new(MAX_CONCURRENT)
+  );
 
   tokio::spawn(async move {
     loop {
@@ -360,7 +358,9 @@ mod metrics_http_tests {
     let mut stream =
       TcpStream::connect(addr)
         .await
-        .expect("connect metrics listener");
+        .expect(
+          "connect metrics listener"
+        );
     stream
       .write_all(raw.as_bytes())
       .await
@@ -369,7 +369,9 @@ mod metrics_http_tests {
     stream
       .read_to_end(&mut bytes)
       .await
-      .expect("receive metrics response");
+      .expect(
+        "receive metrics response"
+      );
     String::from_utf8(bytes)
       .expect("UTF-8 metrics response")
   }
@@ -406,7 +408,7 @@ mod metrics_http_tests {
 
   #[test]
   fn non_loopback_requires_token_file()
-   {
+  {
     assert!(
       token_from_file(
         address([0, 0, 0, 0]),
@@ -483,7 +485,8 @@ mod metrics_http_tests {
     .expect("start isolated listener");
     let response = request(
       addr,
-      "GET /metrics HTTP/1.1\r\nHost: localhost\r\n\r\n"
+      "GET /metrics HTTP/1.1\r\nHost: \
+       localhost\r\n\r\n"
     )
     .await;
     assert_response(
@@ -493,7 +496,8 @@ mod metrics_http_tests {
     );
     let other = request(
       addr,
-      "GET /nope HTTP/1.1\r\nHost: localhost\r\n\r\n"
+      "GET /nope HTTP/1.1\r\nHost: \
+       localhost\r\n\r\n"
     )
     .await;
     assert_response(
@@ -512,9 +516,7 @@ mod metrics_http_tests {
       "fixture-secret-credential-for-metrics-123";
     let addr = spawn_with_token(
       SocketAddr::new(
-        IpAddr::V4(
-          Ipv4Addr::LOCALHOST
-        ),
+        IpAddr::V4(Ipv4Addr::LOCALHOST),
         0
       ),
       metrics.clone(),
@@ -540,10 +542,17 @@ mod metrics_http_tests {
       );
     }
 
-    // A bearer-looking line in a GET body must not act as an
-    // HTTP header, even if it arrives in the same TCP read.
+    // A bearer-looking line in a GET
+    // body must not act as an
+    // HTTP header, even if it arrives
+    // in the same TCP read.
     let body_spoof = format!(
-      "GET /metrics HTTP/1.1\r\nHost: localhost\r\nContent-Length: 70\r\n\r\nAuthorization: Bearer {secret}\r\n"
+      concat!(
+        "GET /metrics HTTP/1.1\r\n",
+        "Host: localhost\r\n",
+        "Content-Length: 70\r\n\r\n",
+        "Authorization: Bearer {secret}\r\n"
+      )
     );
     assert_response(
       &request(addr, &body_spoof).await,
@@ -552,7 +561,12 @@ mod metrics_http_tests {
     );
 
     let valid = format!(
-      "GET /metrics HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer {secret}\r\n\r\n"
+      concat!(
+        "GET /metrics HTTP/1.1\r\n",
+        "Host: localhost\r\n",
+        "Authorization: Bearer {secret}\r\n",
+        "\r\n"
+      )
     );
     assert_response(
       &request(addr, &valid).await,
