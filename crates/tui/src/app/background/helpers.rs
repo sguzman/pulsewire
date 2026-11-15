@@ -191,19 +191,28 @@ mod get_json_error_tests {
         drop(reader);
         let body =
           r#"{"error":"synthetic"}"#;
-        let response = format!(
-          "HTTP/1.1 500 Internal \
-           Server Error\r\\
-           nContent-Length: \
-           {}\r\nConnection: \
-           close\r\n\r\n{body}",
-          body.len()
-        );
+        // Build CRLF headers independently:
+        // rustfmt line wrapping must not
+        // split an HTTP header delimiter.
+        let headers = [
+          "HTTP/1.1 500 ".to_string(),
+          "Internal Server Error\r\n"
+            .to_string(),
+          format!(
+            "Content-Length: {}\r\n",
+            body.len()
+          ),
+          "Connection: close\r\n"
+            .to_string(),
+          "\r\n".to_string()
+        ]
+        .concat();
         socket
-          .write_all(
-            response.as_bytes()
-          )
-          .expect("send response");
+          .write_all(headers.as_bytes())
+          .expect("send response headers");
+        socket
+          .write_all(body.as_bytes())
+          .expect("send response body");
       });
 
     let url = format!(
