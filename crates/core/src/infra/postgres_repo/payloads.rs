@@ -12,6 +12,30 @@ use super::util::{
 };
 use crate::feed::parser::ParsedFeed;
 
+pub async fn latest_payload_content_hash(
+  pool: &PgPool,
+  feed_id: &str
+) -> Result<Option<String>, String> {
+  sqlx::query_scalar::<_, String>(
+    r#"
+      SELECT content_hash
+      FROM feed_payloads
+      WHERE feed_id = $1
+        AND content_hash IS NOT NULL
+      ORDER BY id DESC
+      LIMIT 1
+    "#
+  )
+  .bind(feed_id)
+  .fetch_optional(pool)
+  .await
+  .map_err(|e| {
+    format!(
+      "latest_payload_content_hash: {e}"
+    )
+  })
+}
+
 #[allow(clippy::too_many_arguments)]
 pub async fn insert_payload_with_items(
   pool: &PgPool,

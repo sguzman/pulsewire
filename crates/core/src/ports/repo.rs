@@ -87,6 +87,12 @@ pub trait Repo: Send + Sync {
     zone: &Tz
   ) -> Result<(), String>;
 
+  /// Last persisted successful body fingerprint, if any.
+  async fn latest_payload_content_hash(
+    &self,
+    feed_id: &str
+  ) -> Result<Option<String>, String>;
+
   async fn insert_payload_with_items(
     &self,
     feed_id: &str,

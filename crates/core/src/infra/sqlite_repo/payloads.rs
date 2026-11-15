@@ -8,6 +8,30 @@ use tracing::debug;
 
 use crate::feed::parser::ParsedFeed;
 
+pub async fn latest_payload_content_hash(
+  pool: &SqlitePool,
+  feed_id: &str
+) -> Result<Option<String>, String> {
+  sqlx::query_scalar::<_, String>(
+    r#"
+      SELECT content_hash
+      FROM feed_payloads
+      WHERE feed_id = ?1
+        AND content_hash IS NOT NULL
+      ORDER BY id DESC
+      LIMIT 1
+    "#
+  )
+  .bind(feed_id)
+  .fetch_optional(pool)
+  .await
+  .map_err(|e| {
+    format!(
+      "latest_payload_content_hash: {e}"
+    )
+  })
+}
+
 #[allow(clippy::too_many_arguments)]
 pub async fn insert_payload_with_items(
   pool: &SqlitePool,
@@ -93,4 +117,73 @@ pub async fn insert_payload_with_items(
   );
 
   Ok(())
+}
+
+#[cfg(test)]
+mod persisted_hash_tests {
+  use super::*;
+
+  #[tokio::test]
+  async fn latest_hash_is_feed_scoped_and_skips_nulls()
+   {
+    let pool = SqlitePool::connect(
+      "sqlite::memory:"
+    )
+    .await
+    .expect("in-memory sqlite");
+    sqlx::query(
+      "CREATE TABLE feed_payloads(\
+       id INTEGER PRIMARY KEY,\
+       feed_id TEXT NOT NULL,\
+       content_hash TEXT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("table");
+
+    for (feed, hash) in [
+      ("first", Some("old")),
+      ("second", Some("foreign")),
+      ("first", Some("new")),
+      ("first", None)
+    ] {
+      sqlx::query(
+        "INSERT INTO feed_payloads(\
+         feed_id, content_hash) \
+         VALUES (?1, ?2)"
+      )
+      .bind(feed)
+      .bind(hash)
+      .execute(&pool)
+      .await
+      .expect("fixture insert");
+    }
+
+    assert_eq!(
+      latest_payload_content_hash(
+        &pool, "first"
+      )
+      .await
+      .unwrap()
+      .as_deref(),
+      Some("new")
+    );
+    assert_eq!(
+      latest_payload_content_hash(
+        &pool, "second"
+      )
+      .await
+      .unwrap()
+      .as_deref(),
+      Some("foreign")
+    );
+    assert_eq!(
+      latest_payload_content_hash(
+        &pool, "missing"
+      )
+      .await
+      .unwrap(),
+      None
+    );
+  }
 }
