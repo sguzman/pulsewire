@@ -46,7 +46,6 @@ impl App {
 
     let client = self.client.clone();
     thread::spawn(move || {
-
       let feeds: Vec<FeedSummary> =
         match get_json(
           &client,
@@ -380,20 +379,25 @@ mod refresh_failure_tests {
       .expect("fixture server");
   }
   #[test]
-  fn background_refresh_obeys_configured_timeout() {
+  fn background_refresh_obeys_configured_timeout()
+   {
     let listener =
       TcpListener::bind("127.0.0.1:0")
-        .expect("bind local test listener");
+        .expect(
+          "bind local test listener"
+        );
     let addr = listener
       .local_addr()
       .expect("test listener address");
     let server =
       thread::spawn(move || {
-        let (socket, _) = listener
-          .accept()
-          .expect("accept background request");
-        // Keep the request unanswered longer than
-        // the caller's configured timeout.
+        let (socket, _) =
+          listener.accept().expect(
+            "accept background request"
+          );
+        // Keep the request unanswered
+        // longer than the caller's
+        // configured timeout.
         thread::sleep(
           Duration::from_millis(1800)
         );
@@ -427,7 +431,8 @@ mod refresh_failure_tests {
         Duration::from_millis(1000)
       )
       .expect(
-        "background refresh ignored timeout"
+        "background refresh ignored \
+         timeout"
       );
     assert!(matches!(
       result,
@@ -437,5 +442,4 @@ mod refresh_failure_tests {
       .join()
       .expect("join local test server");
   }
-
 }
