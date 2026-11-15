@@ -158,9 +158,22 @@ async fn run_watch_get(
 #[tokio::test]
 async fn item_threshold_survives_restart_and_ignores_failed_gets()
  {
-  let temp = tempfile::tempdir()
-    .expect("temporary test directory");
-  let file = temp.path().join("watch.db");
+  let nonce = std::time::SystemTime::now()
+    .duration_since(
+      std::time::UNIX_EPOCH
+    )
+    .expect("system time")
+    .as_nanos();
+  let directory =
+    std::env::temp_dir().join(
+      format!(
+        "pw-watch-restart-{}-{nonce}",
+        std::process::id()
+      )
+    );
+  std::fs::create_dir(&directory)
+    .expect("disposable test directory");
+  let file = directory.join("watch.db");
   let cfg = watch_test_config(file.clone());
   let guards = ConcurrencyGuards::new(cfg.clone());
 
@@ -354,4 +367,7 @@ async fn item_threshold_survives_restart_and_ignores_failed_gets()
   .expect("count actual emitted rows");
   assert_eq!(row_count, 6);
   inspector.close().await;
+  drop(restarted);
+  std::fs::remove_dir_all(&directory)
+    .expect("clean disposable database");
 }
