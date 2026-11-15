@@ -24,7 +24,7 @@ pub(crate) struct ServerConfig {
   pub(crate) timeout_ms: u64
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub(crate) struct AuthConfig {
   pub(crate) auto_login: bool,
   pub(crate) username:   String,
@@ -160,6 +160,19 @@ impl std::fmt::Display for ConfigError {
 
 impl std::error::Error for ConfigError {}
 
+impl std::fmt::Debug for AuthConfig {
+  fn fmt(
+    &self,
+    f: &mut std::fmt::Formatter<'_>
+  ) -> std::fmt::Result {
+    f.debug_struct("AuthConfig")
+      .field("auto_login", &self.auto_login)
+      .field("username", &self.username)
+      .field("password", &"<redacted>")
+      .finish()
+  }
+}
+
 impl TuiConfig {
   pub(crate) fn load(
     path: &Path
@@ -208,13 +221,9 @@ impl TuiConfig {
       &path.display().to_string()
     )?;
 
-    let config: TuiConfig =
-      toml::from_str(&content)
-        .map_err(|e| {
-          ConfigError(format!(
-            "config parse error: {e}"
-          ))
-        })?;
+    let config = parse_tui_config(
+      &content
+    )?;
 
     Ok(config)
   }
@@ -372,6 +381,20 @@ pub(crate) fn default_config_path()
   )
 }
 
+fn parse_tui_config(
+  content: &str
+) -> Result<TuiConfig, ConfigError> {
+  toml::from_str(content)
+    .map_err(|_| {
+      ConfigError(
+        "config parse error \
+         (source omitted to protect \
+         secrets)"
+          .into()
+      )
+    })
+}
+
 fn validate_toml(
   schema: &str,
   toml_input: &str,
@@ -397,32 +420,32 @@ fn validate_toml(
 
   let toml_value: toml::Value =
     toml::from_str(toml_input)
-      .map_err(|e| {
+      .map_err(|_| {
         ConfigError(format!(
-          "{name}: {e}"
+          "{name}: invalid TOML \
+           (source omitted)"
         ))
       })?;
 
   let json_value =
     serde_json::to_value(toml_value)
-      .map_err(|e| {
-        ConfigError(e.to_string())
+      .map_err(|_| {
+        ConfigError(
+          "config conversion failed \
+           (values omitted)".into()
+        )
       })?;
 
-  let mut errors =
-    compiled.iter_errors(&json_value);
-
-  if let Some(err) = errors.next() {
-    let mut messages =
-      vec![err.to_string()];
-    for e in errors.take(4) {
-      messages.push(e.to_string());
-    }
-
+  // Schema errors may include rejected
+  // password values. Discard them.
+  if compiled
+    .iter_errors(&json_value)
+    .next()
+    .is_some()
+  {
     return Err(ConfigError(format!(
       "schema validation failed for \
-       {name}: {}",
-      messages.join("; ")
+       {name} (values omitted)"
     )));
   }
 
