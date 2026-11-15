@@ -394,5 +394,76 @@ mod postgres_due_queue_tests {
     .await
     .expect("zero limit is bounded");
     assert!(zero.is_empty());
+
+    // Exercise both snapshot SQL
+    // adapters on the real disposable
+    // PostgreSQL service, not user DB.
+    sqlx::query(
+      "CREATE TEMP TABLE \
+       watch_observations(\
+       feed_id TEXT PRIMARY KEY, \
+       content_length BIGINT NOT NULL, \
+       element_hash TEXT NULL, \
+       observed_at_ms BIGINT NOT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("temporary watch snapshots");
+
+    let initial =
+      crate::ports::repo::WatchObservation {
+        content_length: 12,
+        element_hash: Some(
+          "first".into()
+        )
+      };
+    super::super::payloads::
+      upsert_watch_observation(
+        &pool, "feed-0001",
+        &initial, now_ms
+      )
+      .await
+      .expect("persist postgres snapshot");
+
+    let recovered = super::super::payloads::
+      latest_watch_observation(
+        &pool, "feed-0001"
+      )
+      .await
+      .expect("read postgres snapshot");
+    assert_eq!(recovered, Some(initial));
+
+    let updated =
+      crate::ports::repo::WatchObservation {
+        content_length: 19,
+        element_hash: Some(
+          "second".into()
+        )
+      };
+    super::super::payloads::
+      upsert_watch_observation(
+        &pool, "feed-0001",
+        &updated, now_ms + 1
+      )
+      .await
+      .expect("update postgres snapshot");
+    assert_eq!(
+      super::super::payloads::
+        latest_watch_observation(
+          &pool, "feed-0001"
+        )
+        .await
+        .unwrap(),
+      Some(updated)
+    );
+    assert!(
+      super::super::payloads::
+        latest_watch_observation(
+          &pool, "other-1"
+        )
+        .await
+        .unwrap()
+        .is_none()
+    );
   }
 }

@@ -248,3 +248,104 @@ mod persisted_hash_tests {
     );
   }
 }
+
+#[cfg(test)]
+mod watch_observation_tests {
+  use super::*;
+
+  #[tokio::test]
+  async fn snapshots_are_feed_scoped_and_updated_in_place()
+   {
+    let pool = SqlitePool::connect(
+      "sqlite::memory:"
+    )
+    .await
+    .expect("sqlite memory pool");
+
+    sqlx::query(
+      "CREATE TABLE watch_observations(\
+       feed_id TEXT PRIMARY KEY, \
+       content_length INTEGER NOT NULL, \
+       element_hash TEXT NULL, \
+       observed_at_ms INTEGER NOT NULL)"
+    )
+    .execute(&pool)
+    .await
+    .expect("create fixture table");
+
+    let first = WatchObservation {
+      content_length: 50,
+      element_hash: Some(
+        "initial".into()
+      )
+    };
+    let foreign = WatchObservation {
+      content_length: 99,
+      element_hash: None
+    };
+
+    upsert_watch_observation(
+      &pool, "first", &first, 10
+    )
+    .await
+    .expect("first snapshot");
+    upsert_watch_observation(
+      &pool, "other", &foreign, 12
+    )
+    .await
+    .expect("foreign snapshot");
+    assert_eq!(
+      latest_watch_observation(
+        &pool, "first"
+      )
+      .await
+      .unwrap(),
+      Some(first.clone())
+    );
+
+    let changed = WatchObservation {
+      content_length: 60,
+      element_hash: Some(
+        "updated".into()
+      )
+    };
+    upsert_watch_observation(
+      &pool, "first", &changed, 20
+    )
+    .await
+    .expect("replace first snapshot");
+
+    assert_eq!(
+      latest_watch_observation(
+        &pool, "first"
+      )
+      .await
+      .unwrap(),
+      Some(changed)
+    );
+    assert_eq!(
+      latest_watch_observation(
+        &pool, "other"
+      )
+      .await
+      .unwrap(),
+      Some(foreign)
+    );
+    assert_eq!(
+      latest_watch_observation(
+        &pool, "missing"
+      )
+      .await
+      .unwrap(),
+      None
+    );
+    let count: i64 = sqlx::query_scalar(
+      "SELECT COUNT(*) FROM \
+       watch_observations"
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("bounded row count");
+    assert_eq!(count, 2);
+  }
+}
