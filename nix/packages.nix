@@ -43,6 +43,7 @@ let
 
       cp -R crates/schemas/fetcher "$out/share/pulsewire/schemas/fetcher"
       cp -R crates/schemas/server "$out/share/pulsewire/schemas/server"
+      cp -R crates/schemas/tui "$out/share/pulsewire/schemas/tui"
       cp -R crates/server/res/sql "$out/share/pulsewire/schemas/server/sql"
 
       cp -R crates/tui/res "$out/share/pulsewire/config/tui"
