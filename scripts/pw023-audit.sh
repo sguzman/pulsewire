@@ -20,6 +20,8 @@ while (($#)); do
     --allow-db)
       (($# >= 2)) || usage
       [[ -n "$2" ]] || usage
+      # Reject line-break smuggling: the JSON encoder splits on newlines.
+      [[ "$2" != *$'\n'* && "$2" != *$'\r'* ]] || usage
       allow+=("$2"); shift 2 ;;
     -h|--help) usage ;;
     *) usage ;;
@@ -138,18 +140,24 @@ report="$(jq -ce --argjson allow_db "$allow_json" '
          else true end)
     } as $checks
     | (members("database") - $allow_db) as $unknown_db
+    | ($allow_db - members("database")) as $unobserved_allow_db
     | {
         result:
           (if ([$checks[] | select(. == false)] | length > 0) then "FAIL"
            elif ($allow_db | length) == 0 then "NEEDS_REVIEW"
-           elif ($unknown_db | length) > 0 then "NEEDS_REVIEW"
+           # Require an exact match: a stale pre-authorized container
+           # could later join the DB network without re-review.
+           elif ($unknown_db | length) > 0 or
+                ($unobserved_allow_db | length) > 0 then "NEEDS_REVIEW"
            else "PASS_STATIC" end),
         static_checks: $checks,
         database_members_to_review:
           (if ($allow_db | length) == 0
            then members("database")
            else $unknown_db end),
-        reviewed_database_member_count: ($allow_db | length),
+        reviewed_database_member_count:
+          ((members("database") | length) - ($unknown_db | length)),
+        unobserved_allowlisted_member_count: ($unobserved_allow_db | length),
         monitoring_inspected: $monitoring,
         unknowns: [
           "No active firewall/IPv6/router/NAT reachability probes performed",
