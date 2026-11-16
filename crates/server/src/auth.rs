@@ -53,12 +53,23 @@ pub async fn auth_user_id(
 pub fn bearer_token(
   headers: &HeaderMap
 ) -> Result<String, ServerError> {
-  let value = headers
-    .get(
-      axum::http::header::AUTHORIZATION
-    )
-    .and_then(|v| v.to_str().ok())
-    .unwrap_or_default();
+  // Multiple Authorization fields are
+  // ambiguous across HTTP proxies.
+  // Never accept the first header and
+  // silently ignore a conflicting one.
+  let authorization = headers.get_all(
+    axum::http::header::AUTHORIZATION
+  );
+  let mut values = authorization.iter();
+  let value = match (
+    values.next(),
+    values.next()
+  ) {
+    | (Some(one), None) => {
+      one.to_str().unwrap_or_default()
+    }
+    | _ => ""
+  };
 
   let token = value
     .strip_prefix("Bearer ")
@@ -169,4 +180,91 @@ pub async fn require_admin(
     ));
   }
   Ok(user_id)
+}
+
+#[cfg(test)]
+mod bearer_header_tests {
+  use axum::http::header::AUTHORIZATION;
+  use axum::http::{
+    HeaderValue,
+    StatusCode
+  };
+  use axum::response::IntoResponse;
+
+  use super::*;
+
+  #[test]
+  fn duplicate_authorization_fields_are_denied()
+   {
+    let token = "a".repeat(64);
+    let good = HeaderValue::from_str(
+      &format!("Bearer {token}")
+    )
+    .expect("valid header");
+    let mut headers = HeaderMap::new();
+    assert_eq!(
+      bearer_token(&headers)
+        .expect_err("missing header")
+        .into_response()
+        .status(),
+      StatusCode::UNAUTHORIZED
+    );
+    headers.append(
+      AUTHORIZATION,
+      good.clone()
+    );
+    assert_eq!(
+      bearer_token(&headers)
+        .expect("one valid header"),
+      token
+    );
+    headers.append(
+      AUTHORIZATION,
+      HeaderValue::from_static(
+        "Bearer deliberately-invalid"
+      )
+    );
+    assert_eq!(
+      bearer_token(&headers)
+        .expect_err("duplicate headers")
+        .into_response()
+        .status(),
+      StatusCode::UNAUTHORIZED
+    );
+    headers.clear();
+    headers.append(
+      AUTHORIZATION,
+      HeaderValue::from_static(
+        "Bearer deliberately-invalid"
+      )
+    );
+    headers.append(
+      AUTHORIZATION,
+      good.clone()
+    );
+    assert_eq!(
+      bearer_token(&headers)
+        .expect_err(
+          "reversed duplicates"
+        )
+        .into_response()
+        .status(),
+      StatusCode::UNAUTHORIZED
+    );
+    headers.clear();
+    headers.append(
+      AUTHORIZATION,
+      good.clone()
+    );
+    headers.append(AUTHORIZATION, good);
+    assert_eq!(
+      bearer_token(&headers)
+        .expect_err(
+          "identical duplicates"
+        )
+        .into_response()
+        .status(),
+      StatusCode::UNAUTHORIZED
+    );
+  }
 }

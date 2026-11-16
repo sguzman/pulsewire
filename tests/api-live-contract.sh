@@ -19,6 +19,23 @@ unauthed="$(curl -sS -o /dev/null -w '%{http_code}' "$base/v1/entries?limit=1")"
 test "$unauthed" = 401
 unauthed="$(curl -sS -o /dev/null -w '%{http_code}' "$base/v1/feeds/counts")"
 test "$unauthed" = 401
+# An ambiguous duplicate Authorization header must not authenticate.
+# Check both orderings through the live disposable HTTP server.
+for order in first-valid first-invalid; do
+  if [[ "$order" == "first-valid" ]]; then
+    auth_headers=(-H "Authorization: Bearer $PULSEWIRE_API_E2E_TOKEN" \
+      -H "Authorization: Bearer invalid-token")
+  else
+    auth_headers=(-H "Authorization: Bearer invalid-token" \
+      -H "Authorization: Bearer $PULSEWIRE_API_E2E_TOKEN")
+  fi
+  ambiguous="$(curl -sS -o /dev/null -w '%{http_code}' \
+    "${auth_headers[@]}" "$base/v1/entries?limit=1")"
+  test "$ambiguous" = 401 || {
+    echo "duplicate Authorization fields were accepted ($order): $ambiguous" >&2
+    exit 1
+  }
+done
 invalid="$(curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $PULSEWIRE_API_E2E_TOKEN" "$base/v1/entries?read=invalid")"
 test "$invalid" = 400
 
