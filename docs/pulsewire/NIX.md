@@ -61,7 +61,7 @@ versioned resource trees under `share/pulsewire/`:
   **without the disabled YouTube/podcast definition directories**;
 - `config/server/config.toml`;
 - `config/tui/config.toml` and its validation schema;
-- `schemas/fetcher/` and `schemas/server/`, including server SQL.
+- `schemas/fetcher/` and `schemas/server/` and `schemas/tui/`, including server SQL.
 
 The fetcher and server use their existing executable-relative resource lookup
 or a private operator-supplied `CONFIG_PATH`/`SERVER_CONFIG_PATH` and

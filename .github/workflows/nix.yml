@@ -53,6 +53,6 @@ jobs:
           test -x result-tui/bin/pulsewire-tui
           test -f result-fetcher/share/pulsewire/config/fetcher/config.toml
           test -f result-server/share/pulsewire/schemas/server/sql/postgres/schema.sql
-          test -f result-tui/share/pulsewire/config/tui/schemas/tui.schema.json
+          test -f result-tui/share/pulsewire/schemas/tui/tui.schema.json
           test ! -e result-fetcher/share/pulsewire/config/fetcher/feeds/podcasts
           test ! -e result-fetcher/share/pulsewire/config/fetcher/feeds/youtube.com
