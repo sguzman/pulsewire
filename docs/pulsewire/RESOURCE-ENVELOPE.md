@@ -87,6 +87,22 @@ must separately review confidentiality of even the aggregate series.
 No real DB query or filesystem inventory is executed by this
 reporter.
 
+## Verified synthetic CI (2026-11-15)
+
+[PR #61](https://github.com/sguzman/pulsewire/pull/61) was
+squash-merged as [`418d729`](https://github.com/sguzman/pulsewire/commit/418d729423e80fa91d191f72222bc0593154d04a).
+The exact checked head `a1d573c7c1f3885701a8b3bab89908a8483819a7`
+passed [Rust/docs/reader run 43790162268](https://github.com/sguzman/pulsewire/actions/runs/43790162268)
+and [container run 43790162231](https://github.com/sguzman/pulsewire/actions/runs/43790162231).
+The docs job log explicitly contains
+`PW-032 synthetic resource envelope passed: CPU, memory, DB growth,
+backlog, bounded HTTP p95, provenance and fail-closed inputs`.
+This is **only** a reproducible test of the analysis math and
+input-safety contract, not target-host measurement acceptance.
+See [PW032-REPORTER-ACCEPTANCE.md](PW032-REPORTER-ACCEPTANCE.md).
+Actual-host evidence remains open in
+[PW-032 issue #62](https://github.com/sguzman/pulsewire/issues/62).
+
 ## How PW-032 can be accepted later
 
 A target-host owner-approved experiment needs its exact code commit,
