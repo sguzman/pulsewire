@@ -21,7 +21,21 @@ if [[ "$1" == inspect && "$2" == --type && "$3" == container &&
       ports='{"8091/tcp":null}'
       if [[ "${PW023_MOCK_AUTO_PUBLISH:-0}" == 1 ]]; then
         ports='{"8091/tcp":[{"HostIp":"0.0.0.0","HostPort":"32768"}],"1234/tcp":null}'
-      fi ;;
+      fi
+      # Bad inspect data is NOT equivalent to inspected, unpublished
+      # ports. The collector must refuse every malformed response.
+      case "${PW023_MOCK_PORTS_MODE:-valid}" in
+        valid) ;;
+        null) ports='null' ;;
+        array) ports='[]' ;;
+        missing-binding-shape) ports='{"8091/tcp":{}}' ;;
+        string-binding-shape) ports='{"8091/tcp":"not-an-array"}' ;;
+        missing-host-port)
+          ports='{"8091/tcp":[{"HostIp":"127.0.0.1"}]}' ;;
+        null-host-port)
+          ports='{"8091/tcp":[{"HostIp":"127.0.0.1","HostPort":null}]}' ;;
+        *) echo "unexpected mock port variant" >&2; exit 1 ;;
+      esac ;;
     ci-proxy)
       networks='{"ci-app":{},"ci-edge":{}}'
       ports='{"8443/tcp":[{"HostIp":"127.0.0.1","HostPort":"18443"}]}' ;;
@@ -64,6 +78,7 @@ MOCK
 chmod +x "$temp/bin/docker"
 capture() {
   PATH="$temp/bin:$PATH" PW023_MOCK_AUTO_PUBLISH="$1" \
+    PW023_MOCK_PORTS_MODE="${2:-valid}" \
     bash "$root/scripts/pw023-capture.sh" \
       --server ci-server --edge ci-proxy \
       --db-network ci-db --app-network ci-app \
@@ -93,4 +108,18 @@ test "$bad_status" -eq 1
 jq -e '.result == "FAIL" and
        .static_checks.server_host_http_absent == false and
        .deployment_approved == false' <<< "$bad_report" >/dev/null
-echo "PW-023 effective runtime ports passed: unpublished EXPOSE ignored, synthetic -P publication detected and denied"
+# A null, array or malformed Docker runtime port map must never be
+# converted into a safe empty list, even if no port is visibly bound.
+for mode in null array missing-binding-shape string-binding-shape \
+            missing-host-port null-host-port; do
+  if capture 0 "$mode" > "$temp/invalid-capture.json" \
+      2> "$temp/invalid-capture.err"; then
+    echo "malformed Docker ports were accepted: $mode" >&2
+    exit 1
+  fi
+  test ! -s "$temp/invalid-capture.json" || {
+    echo "malformed Docker ports produced a snapshot: $mode" >&2
+    exit 1
+  }
+done
+echo "PW-023 effective runtime ports passed: unpublished EXPOSE ignored, synthetic -P publication denied, malformed port metadata rejected"

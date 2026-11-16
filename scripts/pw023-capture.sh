@@ -57,18 +57,35 @@ container_record() {
     --format '{{json .State.Running}}' "$id")"
   jq -nc --arg name "$id" --argjson networks "$networks" \
     --argjson binds "$binds" --argjson running "$running" '
-      {
+      # Null or non-object runtime Ports must not become an empty
+      # publication list: that would turn missing evidence into
+      # an apparent PASS_STATIC in the downstream audit.
+      def valid_binding:
+        . == null or
+        (type == "array" and all(.[];
+          type == "object" and
+          (.HostIp | type) == "string" and
+          (.HostPort | type) == "string"));
+      def valid_ports:
+        type == "object" and all(to_entries[];
+          (.key | type) == "string" and
+          (.value | valid_binding));
+      if (($networks | type) != "object" or
+          ($running | type) != "boolean" or
+          ($binds | valid_ports | not)) then
+        error("invalid sanitized Docker inspect metadata")
+      else {
         name: $name,
         running: $running,
-        networks: (($networks // {}) | keys),
+        networks: ($networks | keys),
         ports: [
-          (($binds // {}) | to_entries[]) as $port
+          ($binds | to_entries[]) as $port
           | ($port.value // [])[]
           | {container_port:$port.key,
-             host_ip:(.HostIp // ""),
-             host_port:(.HostPort // "")}
+             host_ip:.HostIp,
+             host_port:.HostPort}
         ]
-      }'
+      } end'
 }
 
 network_record() {

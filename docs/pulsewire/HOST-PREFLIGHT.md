@@ -13,6 +13,12 @@ and PW-023 remains an open **0/3** weighted security gate.
   automatic `-P` / `--publish-all` port assignments that may be absent
   from `HostConfig.PortBindings`. Exposed-but-unpublished ports have
   null runtime mappings and do not count as host publications.
+  The **top-level** `NetworkSettings.Ports` and
+  `NetworkSettings.Networks` fields must be inspected JSON objects;
+  a missing/null/array port map, malformed mapping value or
+  publication without string `HostIp` and `HostPort` is rejected,
+  not silently rewritten into an empty publication list. Null
+  entries for individual unpublished `EXPOSE` ports remain valid.
   It uses Docker inspect formatting; it does **not** inspect the
   application environment, mounted secret paths or values, image
   labels, container logs, files, databases or firewall rules.
