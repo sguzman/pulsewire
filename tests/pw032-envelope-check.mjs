@@ -67,6 +67,12 @@ reject("fractional backlog", (d) => { d.samples[1].backlog_due = 2.2; });
 reject("counter reset", (d) => { d.samples[3].completed_actions_total = 2; });
 reject("histogram bucket inversion", (d) => { d.samples[2].http_latency_buckets["250"] = 1; });
 reject("histogram counter reset", (d) => { d.samples[3].http_latency_buckets["25"] = 0; });
+reject("histogram inconsistent interval deltas", (d) => {
+  const initial = d.samples[0].http_latency_buckets;
+  for (const bound of Object.keys(initial)) initial[bound] = bound === "+Inf" ? 10 : 0;
+  // The total counter has only grown 40 while the 500ms counter
+  // grew by 48: impossible for a cumulative histogram window.
+});
 reject("missing latency bucket", (d) => { delete d.samples[2].http_latency_buckets["+Inf"]; });
 reject("invalid commit", (d) => { d.commit = "main"; });
 
@@ -84,7 +90,9 @@ assert.equal(emptyReport.http_latency.p95_histogram_upper_ms, null);
 assert.ok(emptyReport.warnings.some((s) => /No new HTTP observations/.test(s)));
 
 const unbounded = clone(fixture);
-unbounded.samples.at(-1).http_latency_buckets["10000"] = 40;
+for (const bound of ["500", "1000", "2000", "5000", "10000"]) {
+  unbounded.samples.at(-1).http_latency_buckets[bound] = 42;
+}
 const overflow = run(unbounded);
 assert.equal(overflow.status, 0, overflow.stderr);
 const overflowReport = JSON.parse(overflow.stdout);

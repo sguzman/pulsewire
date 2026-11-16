@@ -96,6 +96,13 @@ function report(input) {
   const histogramDelta = Object.fromEntries(BOUNDS.map(
     (key) => [key, last.http_latency_buckets[key] - first.http_latency_buckets[key]]
   ));
+  let previousDelta = 0;
+  for (const bound of BOUNDS) {
+    if (histogramDelta[bound] < previousDelta) {
+      fail("histogram interval deltas must be cumulative; incompatible samples");
+    }
+    previousDelta = histogramDelta[bound];
+  }
   const count = histogramDelta["+Inf"];
   let p95 = null;
   if (count) {
