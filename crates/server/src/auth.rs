@@ -131,29 +131,36 @@ pub fn verify_password(
     })
 }
 
-/// A deliberately unassigned account hash used
-/// only to equalize missing-account login work.
+/// A deliberately unassigned account
+/// hash used only to equalize
+/// missing-account login work.
 /// Keep Argon2 parameters aligned with
-/// `hash_password`; see regression tests.
-/// It never grants a session.
+/// `hash_password`; see regression
+/// tests. It never grants a session.
 const DUMMY_LOGIN_HASH: &str =
   "$argon2id$v=19$m=19456,t=2,p=1$JCsB0otYwZVeTr5DLdibKQ$N/VWbnu6WU4VVpUEplmgMOPMZc0DF8AZyJsgWZAu1tw";
 
-/// Verify exactly one Argon2 password hash
-/// for both existing and missing usernames.
-/// An unknown account never becomes valid,
-/// even if its supplied password happens
-/// to match the dummy hash.
+/// Verify exactly one Argon2 password
+/// hash for both existing and missing
+/// usernames. An unknown account never
+/// becomes valid, even if its supplied
+/// password happens to match the dummy
+/// hash.
 pub fn verified_login_hash<'a>(
   found_hash: Option<&'a str>,
   password: &str
 ) -> Option<&'a str> {
-  let candidate =
-    found_hash.unwrap_or(DUMMY_LOGIN_HASH);
-  let matches =
-    verify_password(candidate, password)
-      .is_ok();
-  if matches { found_hash } else { None }
+  let candidate = found_hash
+    .unwrap_or(DUMMY_LOGIN_HASH);
+  let matches = verify_password(
+    candidate, password
+  )
+  .is_ok();
+  if matches {
+    found_hash
+  } else {
+    None
+  }
 }
 
 pub fn generate_token() -> String {
@@ -221,19 +228,22 @@ mod bearer_header_tests {
   #[test]
   fn missing_login_account_runs_dummy_argon2()
    {
-    let password = "valid-fixture-password";
+    let password =
+      "valid-fixture-password";
     let hash = hash_password(password)
       .expect("fixture password hash");
 
     assert_eq!(
       verified_login_hash(
-        Some(&hash), password
+        Some(&hash),
+        password
       ),
       Some(hash.as_str())
     );
     assert!(
       verified_login_hash(
-        Some(&hash), "bad-password"
+        Some(&hash),
+        "bad-password"
       )
       .is_none()
     );
@@ -244,7 +254,8 @@ mod bearer_header_tests {
       .is_none()
     );
     // Even the dummy's actual preimage
-    // cannot authenticate a missing user.
+    // cannot authenticate a missing
+    // user.
     assert!(
       verify_password(
         DUMMY_LOGIN_HASH,
@@ -266,9 +277,10 @@ mod bearer_header_tests {
     let actual =
       PasswordHash::new(&hash)
         .expect("actual PHC hash");
-    let dummy =
-      PasswordHash::new(DUMMY_LOGIN_HASH)
-        .expect("dummy PHC hash");
+    let dummy = PasswordHash::new(
+      DUMMY_LOGIN_HASH
+    )
+    .expect("dummy PHC hash");
     assert_eq!(
       actual.algorithm.as_str(),
       dummy.algorithm.as_str()
