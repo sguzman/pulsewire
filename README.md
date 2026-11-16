@@ -249,7 +249,8 @@ OpenAPI docs:
   [optional TLS ingress and network isolation](docs/pulsewire/INGRESS.md),
   [authenticated metrics](docs/pulsewire/METRICS-SECURITY.md),
   [read-only host exposure preflight](docs/pulsewire/HOST-PREFLIGHT.md),
-  and [PW-032 resource envelope methodology](docs/pulsewire/RESOURCE-ENVELOPE.md).
+  [PW-032 resource envelope methodology](docs/pulsewire/RESOURCE-ENVELOPE.md),
+  and [PW-071 read-only release preflight](docs/pulsewire/RELEASE-PREFLIGHT.md).
   PW-032 can also observe a live **disposable CI** process, but that does not
   qualify as sustained target-host capacity or deployment acceptance.
   [PW-070 documentation acceptance](docs/pulsewire/PW070-ACCEPTANCE.md)

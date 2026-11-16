@@ -52,11 +52,19 @@ For a future explicitly approved release:
    version/tag steps and only then the separately approved publication or
    deployment. Record the tag, image digest, backup ID and acceptance result.
 
-The root `justfile` recipes `patch`, `minor`, and `major` invoke
-`cargo release --execute`, `git push` and `git push --tags`.
-**Do not use them as a dry-run, a documentation test, or a first-time
-installation command.** A `cargo release` invocation is never needed
-to verify this runbook.
+**Historical hazard fixed:** the root `justfile` formerly let
+`major`, `minor`, and `patch` invoke `cargo release --execute`,
+`git push`, and `git push --tags` automatically. They now call a
+**fail-closed, read-only PW-071 gate** and, even if future approval
+conditions are met, **do not** execute a release or change any state.
+The safe `just release-status` or direct
+`node scripts/pw071-release-preflight.mjs --status` prints a
+non-authorizing checklist. See the
+[PW-071 release preflight](../pulsewire/RELEASE-PREFLIGHT.md).
+No `cargo release` invocation is required to check readiness.
+An actual future release requires the owner to approve and perform
+**separate manually reviewed** version, tag and publication operations
+against an exact accepted commit.
 
 Notes:
 

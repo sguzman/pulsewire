@@ -26,21 +26,24 @@ context-by-file:
 	files-to-prompt --ignore tmp --ignore target/ --ignore .git/ --markdown --line-numbers --extension sh --extension bash . > ~/Downloads/sh.txt
 	files-to-prompt --ignore tmp --ignore target/ --ignore .git/ --markdown --line-numbers --extension json . > ~/Downloads/json.txt
 
-# Release
+# PW-071 manual release safeguard.
+# These legacy recipe names MUST NEVER execute cargo-release, commit, tag
+# or push; inspect readiness only. The actual owner-approved release
+# remains a separately reviewed manual operation.
+release-status:
+	@node scripts/pw071-release-preflight.mjs --status
+
 major:
-	cargo release major --verbose --execute --no-publish --no-push --no-confirm
-	git push
-	git push --tags
+	@node scripts/pw071-release-preflight.mjs --enforce --type major
+	@printf '%s\n' 'PW-071: major readiness declared; NO version bump, tag, publication, push or deployment was performed.'
 
 minor:
-	cargo release minor --verbose --execute --no-publish --no-push --no-confirm
-	git push
-	git push --tags
+	@node scripts/pw071-release-preflight.mjs --enforce --type minor
+	@printf '%s\n' 'PW-071: minor readiness declared; NO version bump, tag, publication, push or deployment was performed.'
 
 patch:
-	cargo release patch --verbose --execute --no-publish --no-push --no-confirm
-	git push
-	git push --tags
+	@node scripts/pw071-release-preflight.mjs --enforce --type patch
+	@printf '%s\n' 'PW-071: patch readiness declared; NO version bump, tag, publication, push or deployment was performed.'
 
 # Copy over template files
 template dir:

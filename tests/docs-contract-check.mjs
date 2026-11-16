@@ -21,6 +21,7 @@ const files = [
   "docs/pulsewire/METRICS-SECURITY.md",
   "docs/pulsewire/HOST-PREFLIGHT.md",
   "docs/pulsewire/RESOURCE-ENVELOPE.md",
+  "docs/pulsewire/RELEASE-PREFLIGHT.md",
   "docs/pulsewire/BACKUP-RESTORE.md",
   "docs/pulsewire/RECOVERY.md",
   "docs/pulsewire/FETCH_SECURITY.md",
@@ -76,6 +77,22 @@ const releaseDocs = read("docs/reference/RELEASE.md");
 for (const requirement of ["PW-071", "git push --tags", "owner approves", "rollback"]) {
   assert.ok(releaseDocs.toLowerCase().includes(requirement.toLowerCase()), "release warning missing " + requirement);
 }
+const releasePreflight = read("scripts/pw071-release-preflight.mjs");
+const releaseSafety = read("docs/pulsewire/RELEASE-PREFLIGHT.md");
+for (const req of ["PW-071", "release_approved", "all_milestones_verified",
+                   "PULSEWIRE_RELEASE_APPROVAL_FILE", "owner_approved"]) {
+  assert.ok(releasePreflight.includes(req) || releaseSafety.includes(req),
+    "release preflight contract missing " + req);
+}
+for (const type of ["major", "minor", "patch"]) {
+  const match = justfile.match(new RegExp("^" + type + ":\\n((?:\\t[^\\n]*\\n)+)", "m"));
+  assert.ok(match && match[1].includes("--enforce --type " + type),
+    "Just release recipe must enforce the read-only PW-071 gate " + type);
+  assert.doesNotMatch(match[1], /cargo release|--execute|git push|git tag|docker|kubectl|helm/,
+    "Just release recipe must never mutate repository or deployment");
+}
+assert.ok(justfile.includes("release-status:"),
+  "safe read-only release-status recipe missing");
 const secretDocs = read("docs/pulsewire/SECRETS.md");
 const secretCode = read("crates/schemas/src/secrets.rs");
 const coreLoader = read("crates/core/src/infra/config/loader.rs");

@@ -74,6 +74,11 @@ jobs:
           node --check scripts/pw032-ci-normalize.mjs
           node --check tests/pw032-ci-normalize-check.mjs
           node tests/pw032-ci-normalize-check.mjs
+      - name: PW-071 read-only release preflight (no npm)
+        run: |
+          node --check scripts/pw071-release-preflight.mjs
+          node --check tests/pw071-release-preflight-check.mjs
+          node tests/pw071-release-preflight-check.mjs
 
   reader:
     runs-on: ubuntu-latest
