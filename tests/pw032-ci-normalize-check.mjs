@@ -32,6 +32,14 @@ function prom(count) {
   }
   return done.join("\n") + "\n";
 }
+function extraHistogram(domain, count) {
+  return bounds.map((bound) => {
+    const n = bound === "25" || bound === "50" ? 0
+      : bound === "100" ? Math.floor(count / 2) : count;
+    return 'pulsewire_http_latency_ms_bucket{' +
+      'action="get",domain="' + domain + '",le="' + bound + '"} ' + n;
+  }).join("\n") + "\n";
+}
 const fixture = {
   schema: 1,
   source: "synthetic_ci",
@@ -150,4 +158,35 @@ denied("inverted histogram", (d) => {
   );
 });
 denied("bad database count", (d) => { d.samples[1].database_bytes = -1; });
+denied("histogram domain rotated between samples", (d) => {
+  d.samples[1].metrics_text = d.samples[1].metrics_text.replaceAll(
+    'domain="ci-rss"', 'domain="unexpected-new-domain"'
+  );
+});
+denied("histogram domain disappears while aggregate totals stay stable", (d) => {
+  d.samples[0].metrics_text += extraHistogram("temporary-domain", 0);
+  d.samples[1].metrics_text += extraHistogram("temporary-domain", 0);
+});
+denied("action-series reset hidden by a different action's increase", (d) => {
+  for (const [i, sample] of d.samples.entries()) {
+    sample.metrics_text = sample.metrics_text.replace(
+      'action="head",outcome="ok"} 0',
+      'action="head",outcome="ok"} ' + [3, 2, 1][i]
+    ).replace(
+      'action="get",outcome="ok"} ' + i,
+      'action="get",outcome="ok"} ' + [0, 2, 4][i]
+    );
+  }
+});
+denied("histogram-series reset hidden by another domain's growth", (d) => {
+  const first = [3, 4, 3];
+  const second = [1, 2, 4];
+  for (const [i, sample] of d.samples.entries()) {
+    sample.metrics_text = prom(first[i]).replace(
+      'action="get",outcome="ok"} ' + first[i],
+      'action="get",outcome="ok"} ' + (first[i] + second[i])
+    ) + extraHistogram("compensating-domain", second[i]);
+  }
+});
+
 console.log("PW-032 disposable CI normalization passed: real-format Docker stats, PostgreSQL counts, private Prometheus histograms and no-leak guards");
