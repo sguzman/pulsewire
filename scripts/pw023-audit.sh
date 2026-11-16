@@ -43,8 +43,11 @@ report="$(jq -ce --argjson allow_db "$allow_json" '
   def network($key): .networks[$key];
   def role($key): .roles[$key];
   def names($key): .network_names[$key];
+  # Missing/null/malformed port metadata is NOT proof of no publication.
+  # Only an explicitly inspected empty array can establish that.
   def ports_empty($key):
-    ((role($key).ports // []) | length) == 0;
+    ((role($key).ports | type) == "array" and
+     (role($key).ports | length) == 0);
   def memberships($key; $keys):
     (.network_names) as $n |
       same((role($key).networks // []); [$keys[] | $n[.]]);
