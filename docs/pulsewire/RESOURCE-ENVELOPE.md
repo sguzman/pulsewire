@@ -119,11 +119,20 @@ identifiers and domain labels. It requires exactly one explicit
 unlabeled `pulsewire_up 1` running-state gauge; a misleading
 numeric prefix (`pulsewire_up 10`), a comment, a down gauge, a
 duplicate or a labeled impersonation cannot establish that the
-sampled exporter was running. The normalizer itself has no Docker,
-network, SQL or credential access, and its
+sampled exporter was running. The normalizer also compares each
+HEAD/GET action counter and each action/domain histogram bucket
+across successive samples before producing aggregate deltas:
+a single counter reset or a changed histogram series population
+invalidates the whole window, even if increases in other series
+hide the change in summed totals. The domain identities are kept
+**only in memory** for this check, never exported to the sanitized
+JSON report or failure diagnostics. This conservative rule may
+reject a window if a new domain appears midway; resample a stable
+window rather than inferring zero baseline counts. The normalizer
+itself has no Docker, network, SQL or credential access, and its
 [offline test](../../tests/pw032-ci-normalize-check.mjs) exercises
 actual Docker-stats and Prometheus wire formats with fake values,
-including negative running-gauge cases.
+including negative running-gauge, series-churn and masked-reset cases.
 
 Database bytes use `pg_total_relation_size` for ordinary and
 materialized tables in the `fetcher` schema only, including
