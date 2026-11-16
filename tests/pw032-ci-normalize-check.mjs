@@ -152,6 +152,26 @@ denied("duplicate action", (d) => {
   d.samples[1].metrics_text +=
     'pulsewire_feed_actions_total{action="get",outcome="ok"} 1\n';
 });
+denied("malformed duplicate action value", (d) => {
+  d.samples[1].metrics_text +=
+    'pulsewire_feed_actions_total{action="get",outcome="ok"} NaN\n';
+});
+denied("malformed duplicate fractional action", (d) => {
+  d.samples[1].metrics_text +=
+    'pulsewire_feed_actions_total{action="get",outcome="ok"} 1.5\n';
+});
+denied("malformed duplicate histogram value", (d) => {
+  d.samples[1].metrics_text +=
+    'pulsewire_http_latency_ms_bucket{action="get",domain="ci-rss",le="250"} NaN\n';
+});
+denied("malformed duplicate histogram trailing data", (d) => {
+  d.samples[1].metrics_text +=
+    'pulsewire_http_latency_ms_bucket{action="get",domain="ci-rss",le="250"} 1 extra\n';
+});
+denied("malformed indented action line", (d) => {
+  d.samples[1].metrics_text +=
+    '  pulsewire_feed_actions_total{action="get",outcome="ok"} 1\n';
+});
 denied("inverted histogram", (d) => {
   d.samples[1].metrics_text = d.samples[1].metrics_text.replace(
     /le="500"\} 1/, 'le="500"} 0'
