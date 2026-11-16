@@ -32,6 +32,7 @@
 - Verify real anonymous/wrong-token rejection, correct bearer scraping and process-loss alert signals in isolated CI; do not claim household firewall, TLS, credential rotation or retention acceptance.
 
 ### 🔐 Optional TLS ingress and isolated client network (PW-023 partial)
+- Mitigate missing-username login timing enumeration by verifying a fixed-cost dummy Argon2id hash before returning generic 401, while never accepting the dummy as a real account; pin work factor and test known/unknown failures on disposable PostgreSQL and SQLite (not a constant-time guarantee).
 - Add a non-deploying NGINX TLS ingress reference and opt-in Compose overlay that removes direct HTTP host publishing and separates edge, internal application and database network access.
 - Add a disposable real-server HTTPS regression checking forged forwarded-IP headers, per-real-peer login limits, restricted routes and inability to bypass TLS from an untrusted edge container.
 - All examples remain bound to host loopback, require operator-supplied certificate material and **do not** constitute production ingress, firewall, metrics or release acceptance.
