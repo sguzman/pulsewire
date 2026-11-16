@@ -71,6 +71,9 @@ jobs:
           node --check scripts/pw032-envelope.mjs
           node --check tests/pw032-envelope-check.mjs
           node tests/pw032-envelope-check.mjs
+          node --check scripts/pw032-ci-normalize.mjs
+          node --check tests/pw032-ci-normalize-check.mjs
+          node tests/pw032-ci-normalize-check.mjs
 
   reader:
     runs-on: ubuntu-latest

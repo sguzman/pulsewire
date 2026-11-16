@@ -1,6 +1,11 @@
 # Changelog
 ## [Unreleased]
 
+### 📊 PW-032 live disposable CI measurements (non-acceptance)
+- Add guarded read-only CPU/memory/PostgreSQL due+schema-size/Prometheus histogram sampling from the existing temporary CI fetcher.
+- Normalize real Docker stats and Prometheus wire-format observations without exporting container IDs, domain labels or tokens; verify negative normalization cases with no npm.
+- Keep the sampled miniature CI RSS workload explicitly separate from sustained target-host capacity acceptance; do not change any household infrastructure.
+
 ### 📉 PW-032 reproducible resource-envelope reporting (pre-acceptance)
 - Add a no-npm offline reporter for strict synthetic/operator-recorded CPU, memory, database growth, due backlog, completed-action rate and cumulative HTTP-latency histogram p95-upper-bound series.
 - Verify computation, counter monotonicity and malformed-data rejection in synthetic CI; every result explicitly disclaims target-host verification, sustainable capacity and release authorization.

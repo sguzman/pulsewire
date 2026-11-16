@@ -159,6 +159,29 @@ assert.match(ingressSmoke, /pw023-capture\.sh/, "live Docker source must exercis
 const pw032Doc = read("docs/pulsewire/RESOURCE-ENVELOPE.md");
 const pw032Source = read("scripts/pw032-envelope.mjs");
 const pw032Tests = read("tests/pw032-envelope-check.mjs");
+const pw032Normalizer = read("scripts/pw032-ci-normalize.mjs");
+const pw032CiCapture = read("tests/pw032-disposable-live.sh");
+const pw032NormalizeTests = read("tests/pw032-ci-normalize-check.mjs");
+for (const part of [pw032Normalizer, pw032CiCapture, pw032NormalizeTests]) {
+  assert.ok(part.includes("PW-032"), "PW-032 live CI capture source missing");
+}
+assert.match(pw032Normalizer, /pulsewire_http_latency_ms_bucket/,
+  "PW-032 must normalize actual Prometheus histogram bucket counters");
+assert.match(pw032Normalizer, /CPUPerc/, "PW-032 must measure Docker CPU");
+assert.match(pw032Normalizer, /MemUsage/, "PW-032 must measure Docker memory");
+assert.match(pw032CiCapture, /GITHUB_ACTIONS/, "PW-032 must be guarded to CI");
+assert.match(pw032CiCapture, /PULSEWIRE_PW032_DISPOSABLE/, "PW-032 CI requires explicit opt-in");
+assert.match(pw032CiCapture, /pg_total_relation_size/,
+  "PW-032 must measure only selected PostgreSQL application relations");
+assert.match(pw032CiCapture, /next_action_at <= CURRENT_TIMESTAMP/,
+  "PW-032 must distinguish actual due-state backlog from scheduler gauge");
+assert.doesNotMatch(pw032CiCapture, /pg_database_size/,
+  "shared PostgreSQL database-wide sizing is not application growth");
+assert.doesNotMatch(pw032CiCapture, /docker (run|create|stop|start|rm|network (create|connect|disconnect|rm))\b/,
+  "PW-032 collector must never mutate Docker");
+assert.match(pw032CiCapture, /pw032-envelope\.mjs/,
+  "PW-032 CI must use the same verified reporter");
+
 for (const name of ["cpu_percent", "memory_bytes", "database_bytes", "backlog_due", "http_latency_buckets"]) {
   assert.ok(pw032Source.includes(name), "PW-032 missing required resource field " + name);
 }

@@ -250,6 +250,8 @@ OpenAPI docs:
   [authenticated metrics](docs/pulsewire/METRICS-SECURITY.md),
   [read-only host exposure preflight](docs/pulsewire/HOST-PREFLIGHT.md),
   and [PW-032 resource envelope methodology](docs/pulsewire/RESOURCE-ENVELOPE.md).
+  PW-032 can also observe a live **disposable CI** process, but that does not
+  qualify as sustained target-host capacity or deployment acceptance.
   [PW-070 documentation acceptance](docs/pulsewire/PW070-ACCEPTANCE.md)
   is verified in isolated CI. All operator procedures are **preflight or
   isolated CI reference**, not a deployment or release authorization.
