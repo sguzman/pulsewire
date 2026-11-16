@@ -7,8 +7,12 @@ and PW-023 remains an open **0/3** weighted security gate.
 ## What the scripts do — and do not do
 
 - [pw023-capture.sh](../../scripts/pw023-capture.sh) reads **only**
-  selected container network attachments, actual host port bindings,
-  running state, and selected Docker network membership/internal flags.
+  selected container network attachments, **effective runtime**
+  host port bindings from `NetworkSettings.Ports`, running state, and
+  selected Docker network membership/internal flags. This includes
+  automatic `-P` / `--publish-all` port assignments that may be absent
+  from `HostConfig.PortBindings`. Exposed-but-unpublished ports have
+  null runtime mappings and do not count as host publications.
   It uses Docker inspect formatting; it does **not** inspect the
   application environment, mounted secret paths or values, image
   labels, container logs, files, databases or firewall rules.
@@ -52,6 +56,16 @@ with explicit, fictional container names and
 unauthorized DB membership, public 0.0.0.0 bindings, direct
 server HTTP publication, an unexpected private-app member,
 a stopped server, and incorrect Prometheus network/ports.
+
+
+
+A separate [effective-port collector regression](../../tests/pw023-effective-ports-smoke.sh)
+uses a fake Docker inspection command (not the Docker daemon) to test
+that an `EXPOSE`-only port is ignored and that an automatically published
+ephemeral `-P` host mapping is detected and classified `FAIL` even when
+`HostConfig.PortBindings` is empty. It never publishes a real port.
+The preflight still does **not** prove real reachability, firewall
+behavior, IPv6, NAT or host policy.
 
 The following **only reads that checked-in synthetic fixture**:
 
