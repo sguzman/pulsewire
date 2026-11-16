@@ -51,6 +51,20 @@ mutate monitor-untrusted '.networks.monitoring.members+=["ci-intruder"]'
 verify 1 FAIL "$temp/monitor-untrusted.json" "${allowed[@]}"
 mutate stopped-server '.roles.server.running=false'
 verify 1 FAIL "$temp/stopped-server.json" "${allowed[@]}"
+mutate stopped-fetcher '.roles.fetcher.running=false'
+verify 1 FAIL "$temp/stopped-fetcher.json" "${allowed[@]}"
+mutate stopped-prometheus '.roles.prometheus.running=false'
+verify 1 FAIL "$temp/stopped-prometheus.json" "${allowed[@]}"
+mutate duplicate-monitor-role '.roles.prometheus.name=.roles.server.name'
+verify 1 FAIL "$temp/duplicate-monitor-role.json" "${allowed[@]}"
+mutate empty-monitor-role '.roles.prometheus.name=""'
+verify 1 FAIL "$temp/empty-monitor-role.json" "${allowed[@]}"
+mutate monitor-network-name '.networks.monitoring.name="other-monitor-network"'
+verify 1 FAIL "$temp/monitor-network-name.json" "${allowed[@]}"
+mutate app-network-name '.networks.application.name="other-app-network"'
+verify 1 FAIL "$temp/app-network-name.json" "${allowed[@]}"
+mutate empty-server-name '.roles.server.name=""'
+verify 1 FAIL "$temp/empty-server-name.json" "${allowed[@]}"
 mutate incomplete 'del(.roles.server.name)'
 verify 1 FAIL "$temp/incomplete.json" "${allowed[@]}"
 printf 'not json\n' > "$temp/invalid.json"
