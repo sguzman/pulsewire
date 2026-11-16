@@ -71,11 +71,13 @@ fn token_from_file(
   // device) into a bearer token. Check
   // before open, then bound the read
   // in case the path changes.
-  let metadata = std::fs::metadata(path)
-    .map_err(|_| {
-      "metrics token file unavailable"
-        .to_string()
-    })?;
+  let metadata = std::fs::metadata(
+    path
+  )
+  .map_err(|_| {
+    "metrics token file unavailable"
+      .to_string()
+  })?;
   if !metadata.is_file()
     || metadata.len()
       > (MAX_TOKEN_BYTES + 2) as u64
@@ -92,7 +94,8 @@ fn token_from_file(
         .to_string()
     })?;
   let mut value = String::new();
-  file.take((MAX_TOKEN_BYTES + 3) as u64)
+  file
+    .take((MAX_TOKEN_BYTES + 3) as u64)
     .read_to_string(&mut value)
     .map_err(|_| {
       "metrics token file unavailable"
@@ -496,13 +499,11 @@ mod metrics_http_tests {
 
   #[test]
   fn metrics_token_file_reads_are_bounded()
-  {
-    let path = fixture_path(
-      "bounded-token"
-    );
-    let max_value = "q".repeat(
-      MAX_TOKEN_BYTES
-    );
+   {
+    let path =
+      fixture_path("bounded-token");
+    let max_value =
+      "q".repeat(MAX_TOKEN_BYTES);
     std::fs::write(
       &path,
       format!("{max_value}\r\n")
@@ -529,14 +530,21 @@ mod metrics_http_tests {
       address([0, 0, 0, 0]),
       path.to_str()
     )
-    .expect_err("oversized file denied");
+    .expect_err(
+      "oversized file denied"
+    );
     assert_eq!(
       err,
-      "metrics token file has invalid content"
+      "metrics token file has invalid \
+       content"
     );
-    assert!(!err.contains(
-      path.to_str().expect("UTF-8 path")
-    ));
+    assert!(
+      !err.contains(
+        path
+          .to_str()
+          .expect("UTF-8 path")
+      )
+    );
     std::fs::remove_file(&path)
       .expect("remove file fixture");
 
@@ -551,10 +559,12 @@ mod metrics_http_tests {
     );
     assert_eq!(
       err,
-      "metrics token file has invalid content"
+      "metrics token file has invalid \
+       content"
     );
-    std::fs::remove_dir(path)
-      .expect("remove directory fixture");
+    std::fs::remove_dir(path).expect(
+      "remove directory fixture"
+    );
   }
 
   #[tokio::test]
