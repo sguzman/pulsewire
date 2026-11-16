@@ -39,6 +39,31 @@ mutate reader-port '.roles.server.ports=[{container_port:"8091/tcp",host_ip:"127
 verify 1 FAIL "$temp/reader-port.json" "${allowed[@]}"
 mutate exposed-tls '.roles.edge.ports[0].host_ip="0.0.0.0"'
 verify 1 FAIL "$temp/exposed-tls.json" "${allowed[@]}"
+mutate edge-port-low '.roles.edge.ports[0].host_port="1"'
+verify 0 PASS_STATIC "$temp/edge-port-low.json" "${allowed[@]}"
+mutate edge-port-high '.roles.edge.ports[0].host_port="65535"'
+verify 0 PASS_STATIC "$temp/edge-port-high.json" "${allowed[@]}"
+# The collector emits decimal strings. A nonempty string, array or
+# object is NOT proof of a valid host TCP port; reject out-of-range
+# values and incorrect JSON types without accepting the snapshot.
+mutate edge-port-absent 'del(.roles.edge.ports[0].host_port)'
+verify 1 FAIL "$temp/edge-port-absent.json" "${allowed[@]}"
+mutate edge-port-null '.roles.edge.ports[0].host_port=null'
+verify 1 FAIL "$temp/edge-port-null.json" "${allowed[@]}"
+mutate edge-port-zero '.roles.edge.ports[0].host_port="0"'
+verify 1 FAIL "$temp/edge-port-zero.json" "${allowed[@]}"
+mutate edge-port-too-high '.roles.edge.ports[0].host_port="65536"'
+verify 1 FAIL "$temp/edge-port-too-high.json" "${allowed[@]}"
+mutate edge-port-not-decimal '.roles.edge.ports[0].host_port="abc"'
+verify 1 FAIL "$temp/edge-port-not-decimal.json" "${allowed[@]}"
+mutate edge-port-suffix '.roles.edge.ports[0].host_port="18443/tcp"'
+verify 1 FAIL "$temp/edge-port-suffix.json" "${allowed[@]}"
+mutate edge-port-number '.roles.edge.ports[0].host_port=18443'
+verify 1 FAIL "$temp/edge-port-number.json" "${allowed[@]}"
+mutate edge-port-array '.roles.edge.ports[0].host_port=[]'
+verify 1 FAIL "$temp/edge-port-array.json" "${allowed[@]}"
+mutate edge-port-object '.roles.edge.ports[0].host_port={}'
+verify 1 FAIL "$temp/edge-port-object.json" "${allowed[@]}"
 mutate db-proxy '.roles.edge.networks+=["ci-db"] | .networks.database.members+=["ci-proxy"]'
 verify 1 FAIL "$temp/db-proxy.json" "${allowed[@]}"
 mutate app-intruder '.networks.application.members+=["ci-unknown"]'

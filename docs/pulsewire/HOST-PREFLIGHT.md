@@ -28,9 +28,10 @@ and PW-023 remains an open **0/3** weighted security gate.
   No password, token or private config is required for the audit.
 - The audit checks that the running reader has **no published HTTP
   port**, the TLS proxy has exactly one **127.0.0.1-bound 8443/tcp**
-  binding, app↔proxy separation is as designed, the app bridge
-  is internal with exactly the expected two members, and the proxy
-  cannot directly join the DB network. When monitoring is
+  binding with a decimal host TCP port in 1–65535 (not a missing,
+  malformed or otherwise nonempty value), app↔proxy separation is
+  as designed, the app bridge is internal with exactly the expected
+  two members, and the proxy cannot directly join the DB network. When monitoring is
   included, it checks that fetcher/Prometheus share an **internal**
   monitoring bridge, have **no host-published ports**, and that
   Prometheus is not on the database network. Both monitoring peers
