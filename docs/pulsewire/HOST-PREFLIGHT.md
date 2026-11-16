@@ -30,7 +30,16 @@ and PW-023 remains an open **0/3** weighted security gate.
   sanitized JSON snapshot, using jq. It makes **no Docker calls**.
   Supply an **explicit, human-reviewed** list of containers allowed
   on the database network; this cannot be guessed or inferred from
-  whatever containers happened to be attached at scan time.
+  whatever containers happened to be attached at scan time. A
+  `PASS_STATIC` now requires that list to match the **observed database
+  members exactly**, not merely contain them. Extra allowlisted but
+  currently absent containers yield `NEEDS_REVIEW`, just like missing
+  authorized members: otherwise a stale trust list could silently
+  preauthorize a future attachment. The report counts unobserved
+  allowlist entries without disclosing their names. Newline-containing
+  `--allow-db` names are invalid rather than being split into
+  multiple implicit approvals. `reviewed_database_member_count` counts
+  *observed and allowlisted* members, not unobserved entries.
   No password, token or private config is required for the audit.
 - The audit checks that the running reader has **no published HTTP
   port**, the TLS proxy has exactly one **127.0.0.1-bound 8443/tcp**
