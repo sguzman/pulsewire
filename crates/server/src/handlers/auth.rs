@@ -21,7 +21,7 @@ use crate::app_state::AppState;
 use crate::auth::{
   bearer_token,
   hash_token,
-  verify_password
+  verified_login_hash
 };
 use crate::errors::ServerError;
 use crate::login_throttle;
@@ -76,7 +76,7 @@ pub async fn login(
   )
   .await?;
 
-  let (_user_id, password_hash) =
+  let user =
     if let Some(pool) = &state.postgres
     {
       sqlx::query_as::<_, (i64, String)>(
@@ -86,7 +86,6 @@ pub async fn login(
         .fetch_optional(pool)
         .await
         .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-        .ok_or_else(|| ServerError::new(StatusCode::UNAUTHORIZED, "invalid credentials"))?
     } else {
       let pool = state
             .sqlite
@@ -100,14 +99,17 @@ pub async fn login(
         .fetch_optional(pool)
         .await
         .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-        .ok_or_else(|| ServerError::new(StatusCode::UNAUTHORIZED, "invalid credentials"))?
     };
 
-  verify_password(
-    &password_hash,
+  // Missing accounts must still perform
+  // one Argon2 verification, just as
+  // known accounts with wrong passwords.
+  // Neither case issues a session.
+  let password_hash = verified_login_hash(
+    user.as_ref().map(|(_, hash)| hash.as_str()),
     password
   )
-  .map_err(|_| {
+  .ok_or_else(|| {
     ServerError::new(
       StatusCode::UNAUTHORIZED,
       "invalid credentials"
@@ -118,7 +120,7 @@ pub async fn login(
     crate::session_issue::issue_for_verified_login(
       &state,
       username,
-      &password_hash
+      password_hash
     )
     .await?;
 
