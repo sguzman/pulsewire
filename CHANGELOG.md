@@ -53,6 +53,7 @@
 - Verify desktop/mobile Chromium UI with mock and live PostgreSQL-backed HTTP APIs using isolated RSS fixtures, including folder/subscription/favorite mutations and session cleanup (PR #54).
 
 ### 🔐 Security
+- Reject multiple `Authorization` headers in the Rust server instead of accepting only the first value, with unit and disposable HTTP regressions on SQLite/PostgreSQL API paths (PW-023 partial; no target-host approval).
 - Test the real HTTP login route against forged `X-Forwarded-For`, `X-Real-IP` and `Forwarded` headers; a blocked TCP peer remains rate-limited despite header spoofing (PR #11).
 - Redact secret-bearing TOML/schema validation diagnostics and disable default published fetcher metrics; cover config error redaction and Compose loopback/metrics defaults in CI (PR #10).
 - Redact password-bearing API request models and bearer-token responses in Rust Debug output, with synthetic secret-marker tests; do not treat this as production network exposure approval.
