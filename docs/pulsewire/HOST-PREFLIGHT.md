@@ -36,7 +36,10 @@ and PW-023 remains an open **0/3** weighted security gate.
   Prometheus is not on the database network. Both monitoring peers
   must be running, role names must be nonempty and distinct, and
   returned Docker network names must match the requested inventory
-  identifiers. Inconsistent or partial metadata fails closed.
+  identifiers. Monitoring port metadata must be an **explicit empty
+  array** for each peer; missing, null or malformed values cannot
+  establish that a port is unpublished. Inconsistent or partial
+  metadata fails closed.
 - The scanner **never performs traffic probes or port scans**.
   It does not read nftables/iptables, IPv6 host rules, router/NAT
   policy, Docker daemon privileges, actual TLS certificate
