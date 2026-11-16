@@ -33,7 +33,10 @@ and PW-023 remains an open **0/3** weighted security gate.
   cannot directly join the DB network. When monitoring is
   included, it checks that fetcher/Prometheus share an **internal**
   monitoring bridge, have **no host-published ports**, and that
-  Prometheus is not on the database network.
+  Prometheus is not on the database network. Both monitoring peers
+  must be running, role names must be nonempty and distinct, and
+  returned Docker network names must match the requested inventory
+  identifiers. Inconsistent or partial metadata fails closed.
 - The scanner **never performs traffic probes or port scans**.
   It does not read nftables/iptables, IPv6 host rules, router/NAT
   policy, Docker daemon privileges, actual TLS certificate
@@ -55,7 +58,9 @@ with explicit, fictional container names and
 [offline negative tests](../../tests/pw023-audit-smoke.sh) for
 unauthorized DB membership, public 0.0.0.0 bindings, direct
 server HTTP publication, an unexpected private-app member,
-a stopped server, and incorrect Prometheus network/ports.
+a stopped server or monitoring peer, mismatched network
+identifiers, overlapping role names, and incorrect Prometheus
+network/ports.
 
 
 
