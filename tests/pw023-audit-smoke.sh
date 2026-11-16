@@ -45,6 +45,16 @@ mutate app-intruder '.networks.application.members+=["ci-unknown"]'
 verify 1 FAIL "$temp/app-intruder.json" "${allowed[@]}"
 mutate monitor-public '.roles.prometheus.ports=[{container_port:"9090/tcp",host_ip:"0.0.0.0",host_port:"9090"}]'
 verify 1 FAIL "$temp/monitor-public.json" "${allowed[@]}"
+mutate fetcher-ports-missing 'del(.roles.fetcher.ports)'
+verify 1 FAIL "$temp/fetcher-ports-missing.json" "${allowed[@]}"
+mutate fetcher-ports-null '.roles.fetcher.ports=null'
+verify 1 FAIL "$temp/fetcher-ports-null.json" "${allowed[@]}"
+mutate prometheus-ports-missing 'del(.roles.prometheus.ports)'
+verify 1 FAIL "$temp/prometheus-ports-missing.json" "${allowed[@]}"
+mutate prometheus-ports-object '.roles.prometheus.ports={}'
+verify 1 FAIL "$temp/prometheus-ports-object.json" "${allowed[@]}"
+mutate prometheus-ports-string '.roles.prometheus.ports=""'
+verify 1 FAIL "$temp/prometheus-ports-string.json" "${allowed[@]}"
 mutate monitor-missing '.networks.monitoring.internal=false'
 verify 1 FAIL "$temp/monitor-missing.json" "${allowed[@]}"
 mutate monitor-untrusted '.networks.monitoring.members+=["ci-intruder"]'
