@@ -71,6 +71,16 @@ own five-attempt/15-minute per-username and 60-attempt/15-minute
 per-peer quotas. The Rust per-peer quota sees the proxy as **one
 shared client**; the edge limit is the separately enforced
 per-real-client safeguard, not a substitute for Rust account limits.
+The database-backed username and TCP-source quotas use separate
+hashed key namespaces (`login-user:` and `login-source:`).
+An allowed account name such as `login-source:192.0.2.10` must
+never alias the same IP's source counter: successful login clears
+only that username's quota, not the source-IP quota. Regression
+tests exercise this exact collision. Switching username keys
+to a prefixed format resets any pre-existing per-username
+counters once on upgrade; the independently keyed source
+quota stays intact. This is an intentional 15-minute-window
+compatibility trade-off, not actual-host security acceptance.
 
 For nonempty login attempts, a missing username and an existing
 username with a wrong password now both perform an Argon2 verification
