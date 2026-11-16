@@ -132,7 +132,9 @@ function parseMetrics(raw) {
   }
   const done = [...actions.values()].reduce((sum, value) => sum + value, 0);
   count(done, "completed HEAD/GET total");
-  return { done, totals };
+  // Internal-only series identity is needed to validate deltas.
+  // Neither keys nor domain labels are included in sanitized output.
+  return { done, totals, actions, histograms };
 }
 function normalize(input) {
   keys(input, ["schema", "source", "commit", "catalog", "samples"], "root");
@@ -149,6 +151,7 @@ function normalize(input) {
   if (!Array.isArray(input.samples) || input.samples.length < 3 ||
       input.samples.length > 60) invalid("require 3 to 60 CI samples");
   const result = [];
+  let previousMetrics;
   for (const sample of input.samples) {
     keys(sample, ["timestamp_ms", "docker_stats", "database_bytes",
                   "backlog_due", "metrics_text"], "sample");
@@ -157,6 +160,31 @@ function normalize(input) {
     }
     const mem = stats(sample.docker_stats);
     const metrics = parseMetrics(sample.metrics_text);
+    if (previousMetrics) {
+      // Summed counters can hide one series resetting while another
+      // increases. All four action counters must remain monotone.
+      for (const [key, count] of metrics.actions) {
+        if (count < previousMetrics.actions.get(key)) {
+          invalid("HEAD/GET action series reset across samples");
+        }
+      }
+      // A changed action/domain population invalidates aggregate
+      // histogram deltas, even if the totals still increase.
+      if (metrics.histograms.size !== previousMetrics.histograms.size ||
+          [...metrics.histograms.keys()].some(
+            (key) => !previousMetrics.histograms.has(key))) {
+        invalid("HTTP histogram series changed across samples");
+      }
+      for (const [key, buckets] of metrics.histograms) {
+        const prior = previousMetrics.histograms.get(key);
+        for (const bound of BOUNDS) {
+          if (buckets.get(bound) < prior.get(bound)) {
+            invalid("HTTP histogram series reset across samples");
+          }
+        }
+      }
+    }
+    previousMetrics = metrics;
     result.push({
       timestamp_ms: sample.timestamp_ms,
       ...mem,
