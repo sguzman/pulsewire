@@ -103,6 +103,48 @@ See [PW032-REPORTER-ACCEPTANCE.md](PW032-REPORTER-ACCEPTANCE.md).
 Actual-host evidence remains open in
 [PW-032 issue #62](https://github.com/sguzman/pulsewire/issues/62).
 
+## Real disposable CI sampling, still not target-host acceptance
+
+The optional [CI-only observer](../../tests/pw032-disposable-live.sh)
+measures a **running test fetcher** against an ephemeral PostgreSQL
+database and nginx-served RSS fixture. It collects precisely three
+timestamped samples from a known `pulsewire-ci-metrics` container
+using Docker stats, a read-only `fetcher` schema SQL query, and the
+existing authenticated, non-published `/metrics` listener. Each
+raw sample stays in GitHub Actions temporary storage and is discarded.
+The [normalizer](../../scripts/pw032-ci-normalize.mjs) extracts
+CPU percentage, Docker-reported memory usage, aggregate HEAD/GET
+action counters and HTTP histogram buckets, dropping container
+identifiers and domain labels. The normalizer itself has no Docker,
+network, SQL or credential access, and its
+[offline test](../../tests/pw032-ci-normalize-check.mjs) exercises
+actual Docker-stats and Prometheus wire formats with fake values.
+
+Database bytes use `pg_total_relation_size` for ordinary and
+materialized tables in the `fetcher` schema only, including
+their indexes/TOAST; this is **not** WAL, all schema allocation,
+free-space accounting or shared database size. Due backlog uses
+`fetcher.feed_state_current.next_action_at <= CURRENT_TIMESTAMP`
+against a disposable DB. The test fixture contains a **single
+news feed**, not a representative live slim catalog. It may not
+generate enough HTTP actions within the brief sample window to
+produce a meaningful latency p95, and it cannot measure sustained
+capacity or rate under real network behavior.
+
+The shell script refuses to run outside GitHub Actions without the
+explicit `PULSEWIRE_PW032_DISPOSABLE=YES` guard, requires exactly
+the fixed named CI containers and isolated network, and checks no
+metrics port is host-published. It does **not** mutate containers,
+feed data, SQL tables, networks or services. It prints only a small
+derived aggregate without bearer tokens, SQL results, raw metrics,
+Docker identifiers or source URLs. In a future approved real-host
+experiment, a different collector design and explicit owner
+authorization would be needed; this CI-only script must not be
+repointed at household Docker or PostgreSQL.
+
+**Even when live CI passes, this remains PW-032 pre-acceptance only:
+0/2 weighted points, and the project stays 93/100.**
+
 ## How PW-032 can be accepted later
 
 A target-host owner-approved experiment needs its exact code commit,
