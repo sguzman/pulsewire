@@ -115,10 +115,15 @@ raw sample stays in GitHub Actions temporary storage and is discarded.
 The [normalizer](../../scripts/pw032-ci-normalize.mjs) extracts
 CPU percentage, Docker-reported memory usage, aggregate HEAD/GET
 action counters and HTTP histogram buckets, dropping container
-identifiers and domain labels. The normalizer itself has no Docker,
+identifiers and domain labels. It requires exactly one explicit
+unlabeled `pulsewire_up 1` running-state gauge; a misleading
+numeric prefix (`pulsewire_up 10`), a comment, a down gauge, a
+duplicate or a labeled impersonation cannot establish that the
+sampled exporter was running. The normalizer itself has no Docker,
 network, SQL or credential access, and its
 [offline test](../../tests/pw032-ci-normalize-check.mjs) exercises
-actual Docker-stats and Prometheus wire formats with fake values.
+actual Docker-stats and Prometheus wire formats with fake values,
+including negative running-gauge cases.
 
 Database bytes use `pg_total_relation_size` for ordinary and
 materialized tables in the `fetcher` schema only, including

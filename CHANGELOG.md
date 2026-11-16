@@ -8,6 +8,7 @@
 - Harden private release receipt parsing against malformed SHA-256/HTTPS evidence references, invalid UTC calendar timestamps and symlinked approval paths; verify with disposable offline regressions. This is format checking only, never proof of owner approval or host acceptance.
 
 ### 📊 PW-032 live disposable CI measurements (non-acceptance)
+- Require one exact, unlabeled `pulsewire_up 1` sample before normalizing private Prometheus metrics; reject misleading numeric prefixes, comments, down/duplicate/labeled gauges with offline negative regressions.
 - Add guarded read-only CPU/memory/PostgreSQL due+schema-size/Prometheus histogram sampling from the existing temporary CI fetcher.
 - Normalize real Docker stats and Prometheus wire-format observations without exporting container IDs, domain labels or tokens; verify negative normalization cases with no npm.
 - Keep the sampled miniature CI RSS workload explicitly separate from sustained target-host capacity acceptance; do not change any household infrastructure.

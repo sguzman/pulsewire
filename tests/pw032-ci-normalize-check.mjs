@@ -107,6 +107,29 @@ denied("memory beyond container limit", (d) => {
   d.samples[0].docker_stats.MemUsage = "750MiB / 512MiB";
 });
 denied("invalid metrics body", (d) => { d.samples[0].metrics_text = "secret"; });
+denied("fake up gauge in numeric prefix", (d) => {
+  d.samples[0].metrics_text = d.samples[0].metrics_text.replace(
+    "pulsewire_up 1\n", "pulsewire_up 10\n"
+  );
+});
+denied("comment-only up gauge", (d) => {
+  d.samples[0].metrics_text = d.samples[0].metrics_text.replace(
+    "pulsewire_up 1\n", "# pulsewire_up 1\n"
+  );
+});
+denied("down gauge disguised by a comment", (d) => {
+  d.samples[0].metrics_text = d.samples[0].metrics_text.replace(
+    "pulsewire_up 1\n", "pulsewire_up 0\n# pulsewire_up 1\n"
+  );
+});
+denied("duplicate up gauge", (d) => {
+  d.samples[0].metrics_text += "pulsewire_up 1\n";
+});
+denied("labeled bogus up gauge", (d) => {
+  d.samples[0].metrics_text = d.samples[0].metrics_text.replace(
+    "pulsewire_up 1\n", 'pulsewire_up{instance="fake"} 1\n'
+  );
+});
 denied("missing action", (d) => {
   d.samples[0].metrics_text = d.samples[0].metrics_text.replace(
     /pulsewire_feed_actions_total\{action="get",outcome="ok"\} 0\n/, ""
