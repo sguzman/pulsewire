@@ -1,10 +1,12 @@
 // PW-071: no-npm, offline release/readiness safety acceptance.
 // Never runs a release, tag, push, deployment or network request.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { analyzeRoadmap, validateReceipt } from
+import { analyzeRoadmap, approvalOutsideRepository, validateReceipt } from
   "../scripts/pw071-release-preflight.mjs";
 
 const roadmap = readFileSync(
@@ -107,6 +109,54 @@ assert.equal(parsed.deployed, false);
 function clone(value) {
   return structuredClone(value);
 }
+// Evidence references are untrusted declarations, but their format must
+// never let malformed hashes, broken URLs or embedded credentials pass.
+const hashedReceipt = clone(receipt);
+hashedReceipt.evidence_references.exact_commit_ci = "sha256:" + "b".repeat(64);
+assert.equal(validateReceipt(hashedReceipt, expectedSha, "patch").declaration_format_valid, true);
+for (const bad of [
+  "sha256:not-a-real-digest",
+  "sha256:" + "x".repeat(64),
+  "https://",
+  "https://username:password@example.invalid/review",
+  "https://example.invalid/review#fragment",
+  "http://example.invalid/review"
+]) {
+  denied("invalid evidence reference: " + bad, () => {
+    const x = clone(receipt);
+    x.evidence_references.exact_commit_ci = bad;
+    validateReceipt(x, expectedSha, "patch");
+  });
+}
+for (const bad of ["2026-02-29T00:00:00Z", "2026-13-01T00:00:00Z",
+                   "2026-11-16T24:00:00Z", "not-a-timestamp"]) {
+  denied("invalid UTC approval timestamp: " + bad, () => {
+    const x = clone(receipt);
+    x.approval_recorded_at = bad;
+    validateReceipt(x, expectedSha, "patch");
+  });
+}
+
+// This fixture is a private synthetic temp file, not an operator receipt.
+const temporary = mkdtempSync(join(tmpdir(), "pw071-approval-"));
+try {
+  const privateReceipt = join(temporary, "private.json");
+  writeFileSync(privateReceipt, "synthetic-only-".repeat(8), { mode: 0o600 });
+  assert.equal(approvalOutsideRepository(privateReceipt), privateReceipt);
+  const fileAlias = join(temporary, "file-alias.json");
+  symlinkSync(privateReceipt, fileAlias);
+  denied("direct symlink to private receipt",
+    () => approvalOutsideRepository(fileAlias));
+  const parentAlias = join(temporary, "folder-alias");
+  symlinkSync(temporary, parentAlias, "dir");
+  denied("symlinked parent directory",
+    () => approvalOutsideRepository(join(parentAlias, "private.json")));
+  denied("receipt inside repository",
+    () => approvalOutsideRepository(fileURLToPath(new URL("../README.md", import.meta.url))));
+} finally {
+  rmSync(temporary, { recursive: true, force: true });
+}
+
 denied("owner approval absent", () => {
   const x = clone(receipt); x.owner_approved = false;
   validateReceipt(x, expectedSha, "patch");
@@ -140,4 +190,4 @@ for (const type of ["major", "minor", "patch"]) {
   assert.doesNotMatch(recipe[1],
     /cargo\s+release|--execute|git\s+push|git\s+tag|docker|kubectl|helm/);
 }
-console.log("PW-071 release preflight passed: canonical 93/100 blockers, fail-closed legacy recipes, synthetic approval validation, no tag/push");
+console.log("PW-071 release preflight passed: canonical 93/100 blockers, fail-closed Just recipes, strict synthetic receipts/path validation, no tag/push");
