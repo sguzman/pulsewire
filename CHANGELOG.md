@@ -21,6 +21,7 @@
 - Document the future real slim-catalog test protocol without polling external feeds, modifying household infrastructure or awarding PW-032 weighted progress.
 
 ### 🔍 PW-023 read-only network/ingress inventory preflight
+- Reject malformed Docker container-network attachment records, incomplete network member inventories and nonboolean network `Internal` flags before emitting a sanitized snapshot; add offline fake-Docker denials for both sides of the inspection.
 - Detect optional monitoring profiles by key presence rather than non-null values; reject explicitly null/partial monitoring metadata instead of silently downgrading the security audit to an unmonitored baseline, with synthetic denial and omitted-profile controls.
 - Require the explicit database-network trust allowlist to agree exactly with observed members before reporting `PASS_STATIC`; show a count for stale unobserved allowlisted names, reject newline-split CLI entries, and count only actually reviewed observed members.
 - Fail closed when Docker's runtime port inventory is null, an array, malformed or missing binding fields rather than converting uninspected metadata into a safe empty publication list; cover using a fake-Docker offline regression harness.

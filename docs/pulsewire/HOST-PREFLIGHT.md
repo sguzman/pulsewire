@@ -19,6 +19,14 @@ and PW-023 remains an open **0/3** weighted security gate.
   publication without string `HostIp` and `HostPort` is rejected,
   not silently rewritten into an empty publication list. Null
   entries for individual unpublished `EXPOSE` ports remain valid.
+  Container network attachments must be objects with nonempty network
+  names and object-valued records. For each inspected Docker network,
+  the membership map must be an object with nonempty string `Name`
+  values for every entry, and `Internal` must be a JSON boolean.
+  Missing, null, array and malformed records fail collection instead
+  of producing a partial, apparently safe inventory. This also applies
+  to front-network metadata, whose extra members are not otherwise
+  exhaustively reviewed by the static audit.
   It uses Docker inspect formatting; it does **not** inspect the
   application environment, mounted secret paths or values, image
   labels, container logs, files, databases or firewall rules.
@@ -93,6 +101,10 @@ uses a fake Docker inspection command (not the Docker daemon) to test
 that an `EXPOSE`-only port is ignored and that an automatically published
 ephemeral `-P` host mapping is detected and classified `FAIL` even when
 `HostConfig.PortBindings` is empty. It never publishes a real port.
+The same fake-Docker suite also denies incomplete container network
+attachment maps and invalid Docker network membership/internal metadata;
+a malformed front-network member cannot be ignored while preserving a
+static PASS.
 The preflight still does **not** prove real reachability, firewall
 behavior, IPv6, NAT or host policy.
 

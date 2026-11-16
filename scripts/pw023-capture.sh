@@ -70,7 +70,12 @@ container_record() {
         type == "object" and all(to_entries[];
           (.key | type) == "string" and
           (.value | valid_binding));
-      if (($networks | type) != "object" or
+      # Attachment map keys alone do not prove an inspected attachment:
+      # reject null/structured entries rather than counting their names.
+      def valid_networks:
+        type == "object" and all(to_entries[];
+          (.key | length) > 0 and (.value | type) == "object");
+      if (($networks | valid_networks | not) or
           ($running | type) != "boolean" or
           ($binds | valid_ports | not)) then
         error("invalid sanitized Docker inspect metadata")
@@ -94,8 +99,20 @@ network_record() {
   internal="$(docker network inspect --format '{{json .Internal}}' "$name")"
   jq -nc --arg name "$name" --argjson members "$members" \
     --argjson internal "$internal" '
-      {name:$name,internal:$internal,
-       members:[(($members // {}) | .[]) | .Name]} | .members |= sort'
+      # Missing/invalid Containers metadata must not be rewritten as
+      # a clean-looking inventory. Extra malformed members on the
+      # front bridge otherwise evade the static membership checks.
+      def valid_members:
+        type == "object" and all(.[]; 
+          type == "object" and (.Name | type) == "string" and
+          (.Name | length) > 0);
+      if (($members | valid_members | not) or
+          (($internal | type) != "boolean")) then
+        error("invalid sanitized Docker network metadata")
+      else
+        {name:$name, internal:$internal,
+         members:([$members[] | .Name] | sort)}
+      end'
 }
 
 server_json="$(container_record "$server")"

@@ -19,6 +19,14 @@ if [[ "$1" == inspect && "$2" == --type && "$3" == container &&
       networks='{"ci-db":{},"ci-app":{}}'
       # An image-exposed port is not a host publication until bound.
       ports='{"8091/tcp":null}'
+      case "${PW023_MOCK_NETWORKS_MODE:-valid}" in
+        valid) ;;
+        null-map) networks='null' ;;
+        array-map) networks='[]' ;;
+        null-entry) networks='{"ci-db":null,"ci-app":{}}' ;;
+        array-entry) networks='{"ci-db":[],"ci-app":{}}' ;;
+        *) echo "unexpected mock attachment variant" >&2; exit 1 ;;
+      esac
       if [[ "${PW023_MOCK_AUTO_PUBLISH:-0}" == 1 ]]; then
         ports='{"8091/tcp":[{"HostIp":"0.0.0.0","HostPort":"32768"}],"1234/tcp":null}'
       fi
@@ -62,7 +70,21 @@ elif [[ "$1" == network && "$2" == inspect && "$3" == --format ]]; then
       members='{"one":{"Name":"ci-server"},"two":{"Name":"ci-proxy"}}' ;;
     ci-edge)
       internal=false
-      members='{"one":{"Name":"ci-proxy"},"two":{"Name":"ci-edge-client"}}' ;;
+      members='{"one":{"Name":"ci-proxy"},"two":{"Name":"ci-edge-client"}}'
+      # The front bridge only requires the proxy to be a member; an
+      # additional malformed member used to survive the static audit.
+      case "${PW023_MOCK_NETWORK_META_MODE:-valid}" in
+        valid) ;;
+        null-map) members='null' ;;
+        array-map) members='[]' ;;
+        missing-name) members='{"one":{"Name":"ci-proxy"},"two":{}}' ;;
+        null-name) members='{"one":{"Name":"ci-proxy"},"two":{"Name":null}}' ;;
+        numeric-name) members='{"one":{"Name":"ci-proxy"},"two":{"Name":4}}' ;;
+        null-entry) members='{"one":{"Name":"ci-proxy"},"two":null}' ;;
+        null-internal) internal='null' ;;
+        string-internal) internal='"false"' ;;
+        *) echo "unexpected mock network variant" >&2; exit 1 ;;
+      esac ;;
     *) echo "unexpected mock network" >&2; exit 1 ;;
   esac
   case "$format" in
@@ -79,6 +101,8 @@ chmod +x "$temp/bin/docker"
 capture() {
   PATH="$temp/bin:$PATH" PW023_MOCK_AUTO_PUBLISH="$1" \
     PW023_MOCK_PORTS_MODE="${2:-valid}" \
+    PW023_MOCK_NETWORKS_MODE="${3:-valid}" \
+    PW023_MOCK_NETWORK_META_MODE="${4:-valid}" \
     bash "$root/scripts/pw023-capture.sh" \
       --server ci-server --edge ci-proxy \
       --db-network ci-db --app-network ci-app \
@@ -122,4 +146,29 @@ for mode in null array missing-binding-shape string-binding-shape \
     exit 1
   }
 done
-echo "PW-023 effective runtime ports passed: unpublished EXPOSE ignored, synthetic -P publication denied, malformed port metadata rejected"
+# Attachment maps and network records are independent Docker inspect
+# observations. Both must be validated before emitting a sanitized report.
+for mode in null-map array-map null-entry array-entry; do
+  if capture 0 valid "$mode" > "$temp/invalid-networks.json" \
+      2> "$temp/invalid-networks.err"; then
+    echo "malformed Docker container networks were accepted: $mode" >&2
+    exit 1
+  fi
+  test ! -s "$temp/invalid-networks.json" || {
+    echo "malformed Docker container networks produced a snapshot: $mode" >&2
+    exit 1
+  }
+done
+for mode in null-map array-map missing-name null-name numeric-name \
+            null-entry null-internal string-internal; do
+  if capture 0 valid valid "$mode" > "$temp/invalid-network-record.json" \
+      2> "$temp/invalid-network-record.err"; then
+    echo "malformed Docker network records were accepted: $mode" >&2
+    exit 1
+  fi
+  test ! -s "$temp/invalid-network-record.json" || {
+    echo "malformed Docker network records produced a snapshot: $mode" >&2
+    exit 1
+  }
+done
+echo "PW-023 effective runtime ports/networks passed: unpublished EXPOSE ignored, synthetic -P publication denied, malformed inspect metadata rejected"
