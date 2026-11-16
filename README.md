@@ -230,6 +230,22 @@ OpenAPI docs:
 - Postgres uses separate schemas: `fetcher` for fetcher tables, `server` for
   server state.
 
+## Nix development and packaging (Linux)
+
+Pulsewire provides a Nix flake with a locked Rust development environment,
+a separate QA shell, build outputs for the fetcher/server/CLI/TUI, and Nix
+packaging CI. The Nix outputs complement, but do not replace, the Docker
+deployment and security acceptance checks.
+
+```sh
+nix develop
+nix build .#default
+nix develop .#qa
+```
+
+See [the Nix guide](docs/pulsewire/NIX.md) before starting any local service.
+Nix commands above do not start services or modify the existing Docker setup.
+
 ## Development
 
 - Tooling guidance: [`docs/reference/ai/tools/ADDING.md`](docs/reference/ai/tools/ADDING.md)

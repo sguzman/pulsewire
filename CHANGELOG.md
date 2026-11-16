@@ -1,6 +1,10 @@
 # Changelog
 ## [Unreleased]
 
+### 📦 Reproducible Nix development and native packaging
+- Add pinned Nixpkgs/rust-overlay flake development and QA shells, build-once Rust workspace packages with executable-relative config/schema assets, and per-binary outputs.
+- Add native Nix package CI; preserve the existing disposable Docker/Rust integration checks and no-deployment boundary.
+
 ### 🏁 PW-071 fail-closed release safeguards (pre-acceptance)
 - Replace formerly auto-executing Just major/minor/patch release recipes with read-only, non-mutating readiness checks that refuse unfinished roadmap or missing exact-commit owner receipt.
 - Add a no-npm roadmap/approval schema verifier and negative regression tests, while explicitly declining to attest actual host deployment, backup/restore, live CI, or cryptographic owner approval.
