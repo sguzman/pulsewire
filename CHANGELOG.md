@@ -1,6 +1,11 @@
 # Changelog
 ## [Unreleased]
 
+### 🏁 PW-071 fail-closed release safeguards (pre-acceptance)
+- Replace formerly auto-executing Just major/minor/patch release recipes with read-only, non-mutating readiness checks that refuse unfinished roadmap or missing exact-commit owner receipt.
+- Add a no-npm roadmap/approval schema verifier and negative regression tests, while explicitly declining to attest actual host deployment, backup/restore, live CI, or cryptographic owner approval.
+- Keep all tags, version bumps, registry/publication actions and household infrastructure untouched pending separate owner-approved release.
+
 ### 📊 PW-032 live disposable CI measurements (non-acceptance)
 - Add guarded read-only CPU/memory/PostgreSQL due+schema-size/Prometheus histogram sampling from the existing temporary CI fetcher.
 - Normalize real Docker stats and Prometheus wire-format observations without exporting container IDs, domain labels or tokens; verify negative normalization cases with no npm.
