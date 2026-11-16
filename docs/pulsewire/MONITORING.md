@@ -36,6 +36,15 @@ or storage-permissions policy.
 
 Metrics indicate activity, **not** comprehensive data freshness. A scrape failure or a missing target should be treated as a fetcher outage; `pulsewire_up 1` is only emitted while the endpoint responds. Configure Prometheus target `up` alerts and separately monitor reader `/ready` failures, fetcher process exits, feed backlog and scrape staleness.
 
+## Resource-envelope measurement limits
+
+The [PW-032 resource-envelope methodology](RESOURCE-ENVELOPE.md)
+separates the last-observed scheduler due-feed metric from the actual
+database due backlog and distinguishes a histogram-derived HTTP p95
+upper bucket from observed wall-clock latency. Its no-npm reporter
+operates only on a sanitized offline time series; synthetic CI is
+**not** target-host CPU, memory, PostgreSQL-growth or capacity acceptance.
+
 ## Ingress distinction
 
 The optional [TLS ingress profile](INGRESS.md) deliberately rejects

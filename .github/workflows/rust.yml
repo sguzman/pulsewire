@@ -66,6 +66,11 @@ jobs:
         run: node --check tests/docs-contract-check.mjs
       - name: Check operator links, defaults and runbook safety (no npm)
         run: node tests/docs-contract-check.mjs
+      - name: PW-032 offline resource envelope contract (no npm)
+        run: |
+          node --check scripts/pw032-envelope.mjs
+          node --check tests/pw032-envelope-check.mjs
+          node tests/pw032-envelope-check.mjs
 
   reader:
     runs-on: ubuntu-latest
