@@ -97,6 +97,21 @@ invoke `just patch` or the matching type. That still **does not
 release anything**. No receipt exists or is needed for the current
 blocked state.
 
+## Exact-head code-only verification (2026-11-15)
+
+[PR #64](https://github.com/sguzman/pulsewire/pull/64) was
+squash merged as [`d8b88b7`](https://github.com/sguzman/pulsewire/commit/d8b88b7e6968ea016db806943dbe746769e0d4e4).
+The exact tested PR head `fa896efc1d2ff261e64f61ff1c0c1ab5210d1f4b`
+passed [Rust/docs/browser workflow 43795288832](https://github.com/sguzman/pulsewire/actions/runs/43795288832)
+and [disposable container workflow 43795288869](https://github.com/sguzman/pulsewire/actions/runs/43795288869).
+The docs log states `PW-071 release preflight passed: canonical 93/100
+blockers, fail-closed legacy recipes, synthetic approval validation,
+no tag/push`. Existing PostgreSQL/SQLite, metrics, Docker inventory,
+TLS ingress and reader smoke also passed in disposable CI.
+[PW071-RELEASE-GATE-ACCEPTANCE.md](PW071-RELEASE-GATE-ACCEPTANCE.md)
+records the narrow evidence and limitations; actual release acceptance
+remains open in [issue #65](https://github.com/sguzman/pulsewire/issues/65).
+
 ## Actual outstanding work
 
 1. **PW-023, 3 points:** review the real host's Docker trust
