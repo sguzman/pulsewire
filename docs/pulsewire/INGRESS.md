@@ -142,6 +142,12 @@ network restrictions remain unverified. A metrics process started on
 the wrong Docker network could still leak information regardless of
 this edge configuration.
 
+An [optional read-only inventory preflight](HOST-PREFLIGHT.md) now
+checks actual Docker network attachments and published ports against
+the source design, without reading secrets or changing the host.
+It flags unreviewed DB-network members; it does not probe firewalls
+or certify production TLS.
+
 Before PW-023 closes, real-host evidence must independently verify
 the firewall and every database/private network member, trusted TLS
 certificate and key lifecycle, inbound proxy/client-IP trust,

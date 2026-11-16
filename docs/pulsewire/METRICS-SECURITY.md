@@ -144,6 +144,13 @@ for the test matrix, caveats and existing code-only trust boundary.
 This validates **disposable CI only** and does not change PW-023's
 **0/3 weighted credit** or the canonical **93/100 (Δ +0)** score.
 
+A [read-only network exposure preflight](HOST-PREFLIGHT.md) also
+checks that an explicitly selected Prometheus container has no
+host-published ports and is attached only to its internal monitoring
+bridge, while the fetcher has no host port. It never reads secrets
+or proves TSDB ownership, authentication outside this topology, or
+production routing.
+
 ## Still required before PW-023 closure
 
 Confirm all host Docker-network memberships, firewall/ingress

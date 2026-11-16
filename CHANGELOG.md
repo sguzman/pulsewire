@@ -1,6 +1,11 @@
 # Changelog
 ## [Unreleased]
 
+### 🔍 PW-023 read-only network/ingress inventory preflight
+- Add a sanitized Docker network/port metadata collector that does not read environment secrets, mounts or logs, and does not change any Docker resource or firewall.
+- Add an offline jq classifier that requires an explicit database-network member allowlist, detects exposed backend/metrics ports and bridge isolation drift, and always labels firewall/TLS/deployment acceptance as unverified.
+- Exercise synthetic allowed/blocked/review fixtures plus the existing disposable ingress topology; no household host audited or modified.
+
 ### 🔐 Authenticated Prometheus metrics (PW-023 partial)
 - Require a private `PULSEWIRE_METRICS_TOKEN_FILE` whenever metrics listen off loopback; reject missing, invalid and duplicated bearer authentication, with bounded HTTP request handling and safe generic errors.
 - Add an opt-in private monitoring Compose overlay and token-file Prometheus scraper, with no host-published ports and example 24-hour / 128 MB retention; preserve local loopback-only metrics compatibility.

@@ -19,6 +19,7 @@ const files = [
   "docs/pulsewire/SECRETS.md",
   "docs/pulsewire/INGRESS.md",
   "docs/pulsewire/METRICS-SECURITY.md",
+  "docs/pulsewire/HOST-PREFLIGHT.md",
   "docs/pulsewire/BACKUP-RESTORE.md",
   "docs/pulsewire/RECOVERY.md",
   "docs/pulsewire/FETCH_SECURITY.md",
@@ -137,6 +138,23 @@ assert.match(metricsOverlay, /24h/, "documented metrics retention window missing
 assert.match(metricsOverlay, /128MB/, "documented TSDB size limit missing");
 assert.match(promConfig, /bearer_token_file:/, "Prometheus must scrape using file-backed bearer credentials");
 assert.match(promConfig, /fetcher:9898/, "Prometheus must scrape private fetcher DNS target");
+const hostPreflight = read("docs/pulsewire/HOST-PREFLIGHT.md");
+const auditSource = read("scripts/pw023-audit.sh");
+const captureSource = read("scripts/pw023-capture.sh");
+const auditSmoke = read("tests/pw023-audit-smoke.sh");
+for (const value of [hostPreflight, auditSource, captureSource, auditSmoke]) {
+  assert.ok(value.includes("PW-023"), "missing read-only host audit contract");
+}
+assert.match(auditSource, /NEEDS_REVIEW/, "unapproved database members require review");
+assert.match(auditSource, /deployment_approved:\s*false/, "host snapshot is never deployment approval");
+assert.ok(auditSource.includes('"127.0.0.1"'), "only host-loopback TLS is statically permitted");
+assert.match(captureSource, /docker inspect --type container/, "collection must inspect only selected container metadata");
+assert.match(captureSource, /docker network inspect --format/, "collection must inspect only selected networks");
+assert.doesNotMatch(captureSource, /docker (run|create|start|stop|rm|exec|network (create|connect|disconnect|rm))\b/, "capture must never modify Docker");
+assert.doesNotMatch(captureSource, /\.Config\.Env|\.Mounts|\.Config\.Labels/, "capture must never query secret-bearing Docker fields");
+assert.match(auditSmoke, /PASS_STATIC/, "positive static audit fixture missing");
+assert.match(auditSmoke, /NEEDS_REVIEW/, "missing allowlist must need review");
+assert.match(ingressSmoke, /pw023-capture\.sh/, "live Docker source must exercise read-only collector");
 const compatibility = read("docs/pulsewire/COMPATIBILITY.md");
 const deployment = read("docs/pulsewire/DEPLOYMENT.md");
 const troubleshoot = read("docs/pulsewire/TROUBLESHOOTING.md");
