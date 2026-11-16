@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # PW-023 sanitized Docker metadata collector: READ ONLY, no socket probes.
-# docker inspect --format accesses ONLY network names, port bindings,
-# running flag and network-member names; never environment or secret mounts.
+# docker inspect --format accesses ONLY network names, effective runtime
+# published ports, running flag and network-member names; never secrets.
+# NetworkSettings.Ports (not HostConfig.PortBindings) includes -P mappings.
 set -euo pipefail
 
 usage() {
@@ -46,8 +47,12 @@ container_record() {
   local id="$1" networks binds running
   networks="$(docker inspect --type container \
     --format '{{json .NetworkSettings.Networks}}' "$id")"
+  # HostConfig.PortBindings is configuration intent and can omit
+  # automatically allocated -P/--publish-all ports. The runtime
+  # NetworkSettings.Ports includes effective host publications;
+  # exposed-but-unpublished ports have null entries and are ignored.
   binds="$(docker inspect --type container \
-    --format '{{json .HostConfig.PortBindings}}' "$id")"
+    --format '{{json .NetworkSettings.Ports}}' "$id")"
   running="$(docker inspect --type container \
     --format '{{json .State.Running}}' "$id")"
   jq -nc --arg name "$id" --argjson networks "$networks" \
