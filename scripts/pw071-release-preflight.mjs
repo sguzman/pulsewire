@@ -45,7 +45,7 @@ export function analyzeRoadmap(source) {
   const outstanding = [];
   for (const line of rows) {
     const columns = line.split("|").map((x) => x.trim());
-    if (columns.length !== 10) reject("malformed milestone table");
+    if (columns.length !== 9) reject("malformed milestone table");
     const [id, name, rawWeight, priority, status] = columns.slice(1, 6);
     if (!/^PW-\d{3}$/.test(id) || seen.has(id)) reject("duplicate or malformed milestone id");
     seen.add(id);
