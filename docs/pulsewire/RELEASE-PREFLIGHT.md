@@ -81,13 +81,17 @@ has the following shape (placeholders are **not approved evidence**):
 ```
 
 The gate requires `owner_approved:true`, all six boolean gates
-explicitly accepted, and reviewed HTTPS or SHA-256 evidence references
-for each gate. It also requires the exact source SHA/type, a UTC
-timestamp, a clean checked-out `main`, an absolute receipt path
-outside the repository, and owner-only file permissions (0600).
+explicitly accepted, and syntactically valid HTTPS (without embedded
+credentials or fragments) or `sha256:` plus 64 hex digits evidence
+references for each gate. It also requires the exact source SHA/type,
+a real UTC calendar timestamp, a clean checked-out `main`, an absolute
+non-symlinked receipt path outside the repository, and owner-only file
+permissions (0600).
 The receipt **cannot** grant itself trusted status: an offline
-parser verifies its shape and consistency, **not** its human
-authenticity or claimed remote/host evidence. Never commit a real
+parser verifies its shape, path and consistency, **not** its human
+authenticity, the content of an evidence link, or claimed remote/host
+evidence. The receipt cannot reside behind a symlink, even one
+pointing to an otherwise private file. Never commit a real
 approval receipt or real host metadata.
 
 To validate such a **future** private declaration without creating

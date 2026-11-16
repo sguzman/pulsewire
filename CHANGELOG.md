@@ -5,6 +5,7 @@
 - Replace formerly auto-executing Just major/minor/patch release recipes with read-only, non-mutating readiness checks that refuse unfinished roadmap or missing exact-commit owner receipt.
 - Add a no-npm roadmap/approval schema verifier and negative regression tests, while explicitly declining to attest actual host deployment, backup/restore, live CI, or cryptographic owner approval.
 - Keep all tags, version bumps, registry/publication actions and household infrastructure untouched pending separate owner-approved release.
+- Harden private release receipt parsing against malformed SHA-256/HTTPS evidence references, invalid UTC calendar timestamps and symlinked approval paths; verify with disposable offline regressions. This is format checking only, never proof of owner approval or host acceptance.
 
 ### 📊 PW-032 live disposable CI measurements (non-acceptance)
 - Add guarded read-only CPU/memory/PostgreSQL due+schema-size/Prometheus histogram sampling from the existing temporary CI fetcher.

@@ -2,7 +2,7 @@
 // Read-only: this module never runs cargo-release, tags, pushes,
 // deploys, changes versions, or contacts a remote service.
 // An owner-controlled receipt is an assertion, NOT cryptographic proof.
-import { readFileSync, statSync } from "node:fs";
+import { lstatSync, readFileSync, realpathSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -77,6 +77,22 @@ export function analyzeRoadmap(source) {
     source: "canonical_repository_roadmap"
   };
 }
+// Validate reference syntax only; this does not authenticate the evidence.
+function validEvidenceReference(value) {
+  if (typeof value !== "string" || value.length < 12 || value.length > 512) {
+    return false;
+  }
+  if (/^sha256:[a-f0-9]{64}$/i.test(value)) return true;
+  if (!value.startsWith("https://")) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname !== "" &&
+      url.username === "" && url.password === "" && url.hash === "";
+  } catch {
+    return false;
+  }
+}
+
 export function validateReceipt(receipt, expectedSha, releaseType) {
   if (!/^[a-f0-9]{40}$/i.test(expectedSha) || !VALID_TYPE.has(releaseType)) {
     reject("invalid exact commit or release type");
@@ -90,18 +106,20 @@ export function validateReceipt(receipt, expectedSha, releaseType) {
       receipt.release_type !== releaseType || receipt.owner_approved !== true) {
     reject("owner receipt does not approve this exact repository, commit and release type");
   }
-  if (typeof receipt.approval_recorded_at !== "string" ||
-      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(receipt.approval_recorded_at)) {
-    reject("owner receipt has no UTC approval timestamp");
+  const timestamp = receipt.approval_recorded_at;
+  if (typeof timestamp !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(timestamp) ||
+      !Number.isFinite(Date.parse(timestamp)) ||
+      new Date(timestamp).toISOString() !== timestamp.replace("Z", ".000Z")) {
+    reject("owner receipt has no valid UTC approval timestamp");
   }
   exactKeys(receipt.accepted_gates, REQUIRED_RECEIPT_GATES, "accepted gates");
   exactKeys(receipt.evidence_references, REQUIRED_RECEIPT_GATES, "evidence references");
   for (const gate of REQUIRED_RECEIPT_GATES) {
     if (receipt.accepted_gates[gate] !== true) reject("gate not accepted: " + gate);
     const evidence = receipt.evidence_references[gate];
-    if (typeof evidence !== "string" || evidence.length < 12 || evidence.length > 512 ||
-        !/^https:\/\/|^sha256:/.test(evidence)) {
-      reject("missing reviewed evidence reference: " + gate);
+    if (!validEvidenceReference(evidence)) {
+      reject("missing or malformed evidence reference: " + gate);
     }
   }
   // An offline tool cannot verify the purported human signature,
@@ -119,20 +137,24 @@ function git(...args) {
     timeout: 5000, stdio: ["ignore", "pipe", "ignore"]
   }).trim();
 }
-function approvalOutsideRepository(filePath) {
+export function approvalOutsideRepository(filePath) {
   if (typeof filePath !== "string" || !isAbsolute(filePath)) {
     reject("PULSEWIRE_RELEASE_APPROVAL_FILE must be an absolute private path");
   }
   const path = resolve(filePath);
-  const rel = relative(ROOT, path);
-  if (rel === "" || (rel !== ".." && !rel.startsWith(".." + sep) &&
-                     !isAbsolute(rel))) {
-    reject("approval receipt must be stored outside the repository");
-  }
-  const stat = statSync(path);
+  // lstat refuses direct symlinks; realpath also catches symlinked parents.
+  const stat = lstatSync(path);
   if (!stat.isFile() || (stat.mode & 0o077) !== 0 || stat.size > 8192 ||
       stat.size < 40) {
     reject("owner receipt must be a private, bounded regular file");
+  }
+  const canonical = realpathSync(path);
+  if (canonical !== path) reject("approval receipt path must not use symlinks");
+  const root = realpathSync(ROOT);
+  const rel = relative(root, canonical);
+  if (rel === "" || (rel !== ".." && !rel.startsWith(".." + sep) &&
+                     !isAbsolute(rel))) {
+    reject("approval receipt must be stored outside the repository");
   }
   return path;
 }
