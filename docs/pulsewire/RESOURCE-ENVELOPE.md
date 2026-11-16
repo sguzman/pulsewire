@@ -128,7 +128,12 @@ hide the change in summed totals. The domain identities are kept
 **only in memory** for this check, never exported to the sanitized
 JSON report or failure diagnostics. This conservative rule may
 reject a window if a new domain appears midway; resample a stable
-window rather than inferring zero baseline counts. The normalizer
+window rather than inferring zero baseline counts. It additionally
+rejects malformed lines from either known HEAD/GET action-counter
+or HTTP histogram-bucket family (even if a correctly formatted
+sample for that series also appears elsewhere), rather than quietly
+ignoring the corrupted duplicate. It still ignores unrelated metrics
+families emitted by the exporter. The normalizer
 itself has no Docker, network, SQL or credential access, and its
 [offline test](../../tests/pw032-ci-normalize-check.mjs) exercises
 actual Docker-stats and Prometheus wire formats with fake values,
