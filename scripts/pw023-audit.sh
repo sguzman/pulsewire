@@ -48,6 +48,13 @@ report="$(jq -ce --argjson allow_db "$allow_json" '
   def ports_empty($key):
     ((role($key).ports | type) == "array" and
      (role($key).ports | length) == 0);
+  # Docker reports published host ports as decimal strings. Reject
+  # missing, non-string, non-decimal, zero and out-of-range values.
+  # Merely checking `length > 0` accepts strings like "bad" or arrays.
+  def valid_host_port:
+    if type != "string" then false
+    elif (test("^[0-9]{1,5}$") | not) then false
+    else (tonumber >= 1 and tonumber <= 65535) end;
   def memberships($key; $keys):
     (.network_names) as $n |
       same((role($key).networks // []); [$keys[] | $n[.]]);
@@ -97,7 +104,7 @@ report="$(jq -ce --argjson allow_db "$allow_json" '
         ((.roles.edge.ports | length) == 1 and
          .roles.edge.ports[0].container_port == "8443/tcp" and
          .roles.edge.ports[0].host_ip == "127.0.0.1" and
-         (.roles.edge.ports[0].host_port | length > 0)),
+         (.roles.edge.ports[0].host_port | valid_host_port)),
       app_members_only_expected:
         same(members("application"); [.roles.server.name, .roles.edge.name]),
       db_includes_reader: has_member("database"; .roles.server.name),
