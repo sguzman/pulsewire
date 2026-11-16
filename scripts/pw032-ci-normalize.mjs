@@ -61,12 +61,20 @@ function label(labels, field) {
   return found.length === 1 ? found[0][2] : null;
 }
 function parseMetrics(raw) {
-  if (typeof raw !== "string" || raw.length > 300000 || !raw.includes("pulsewire_up 1")) {
-    invalid("missing or oversized running Prometheus metrics");
+  if (typeof raw !== "string" || raw.length > 300000) {
+    invalid("missing or oversized Prometheus metrics");
+  }
+  const lines = raw.split("\n");
+  // A substring search accepts misleading values such as
+  // "pulsewire_up 10", comments, or an invalid second sample.
+  // Require exactly one real, unlabeled running-state gauge.
+  const up = lines.filter((line) => /^pulsewire_up(?:\s|\{|$)/.test(line));
+  if (up.length !== 1 || up[0] !== "pulsewire_up 1") {
+    invalid("missing or invalid running Prometheus gauge");
   }
   const actions = new Map();
   const histograms = new Map();
-  for (const line of raw.split("\n")) {
+  for (const line of lines) {
     const action = line.match(/^pulsewire_feed_actions_total\{(.+)\} ([0-9]+)$/);
     if (action) {
       const which = label(action[1], "action");
