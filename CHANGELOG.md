@@ -18,6 +18,7 @@
 - Document the future real slim-catalog test protocol without polling external feeds, modifying household infrastructure or awarding PW-032 weighted progress.
 
 ### 🔍 PW-023 read-only network/ingress inventory preflight
+- Read effective runtime `NetworkSettings.Ports` rather than configured-only `HostConfig.PortBindings`, catching automatically published Docker `-P` ephemeral ports while ignoring unpublished `EXPOSE` metadata; add fake-Docker fail-closed offline tests.
 - Add a sanitized Docker network/port metadata collector that does not read environment secrets, mounts or logs, and does not change any Docker resource or firewall.
 - Add an offline jq classifier that requires an explicit database-network member allowlist, detects exposed backend/metrics ports and bridge isolation drift, and always labels firewall/TLS/deployment acceptance as unverified.
 - Exercise synthetic allowed/blocked/review fixtures plus the existing disposable ingress topology; no household host audited or modified.
