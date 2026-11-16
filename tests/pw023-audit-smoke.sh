@@ -100,6 +100,22 @@ mutate prometheus-ports-string '.roles.prometheus.ports=""'
 verify 1 FAIL "$temp/prometheus-ports-string.json" "${allowed[@]}"
 mutate monitor-missing '.networks.monitoring.internal=false'
 verify 1 FAIL "$temp/monitor-missing.json" "${allowed[@]}"
+# Omitted optional monitoring records are distinguishable from
+# explicitly present but null/incomplete records. Only the former
+# may skip monitoring-specific checks, while retaining DB allowlist review.
+mutate no-monitor-profile 'del(.roles.fetcher, .roles.prometheus, .networks.monitoring, .network_names.monitoring)'
+verify 0 PASS_STATIC "$temp/no-monitor-profile.json" "${allowed[@]}"
+no_monitor_report="$(bash "$audit" --snapshot "$temp/no-monitor-profile.json" "${allowed[@]}")"
+jq -e '.result == "PASS_STATIC" and .monitoring_inspected == false and
+       .deployment_approved == false' <<< "$no_monitor_report" >/dev/null
+mutate null-monitor-profile '.roles.fetcher=null | .roles.prometheus=null | .networks.monitoring=null | .network_names.monitoring=null'
+verify 1 FAIL "$temp/null-monitor-profile.json" "${allowed[@]}"
+mutate null-monitor-role 'del(.roles.prometheus, .networks.monitoring, .network_names.monitoring) | .roles.fetcher=null'
+verify 1 FAIL "$temp/null-monitor-role.json" "${allowed[@]}"
+mutate null-monitor-name 'del(.roles.fetcher, .roles.prometheus, .networks.monitoring) | .network_names.monitoring=null'
+verify 1 FAIL "$temp/null-monitor-name.json" "${allowed[@]}"
+mutate null-monitor-network 'del(.roles.fetcher, .roles.prometheus, .network_names.monitoring) | .networks.monitoring=null'
+verify 1 FAIL "$temp/null-monitor-network.json" "${allowed[@]}"
 mutate monitor-untrusted '.networks.monitoring.members+=["ci-intruder"]'
 verify 1 FAIL "$temp/monitor-untrusted.json" "${allowed[@]}"
 mutate stopped-server '.roles.server.running=false'

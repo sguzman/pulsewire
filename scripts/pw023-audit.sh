@@ -92,8 +92,12 @@ report="$(jq -ce --argjson allow_db "$allow_json" '
      deployment_approved:false}
   else
     (
-      ((.roles.fetcher != null) or (.roles.prometheus != null)
-        or (.networks.monitoring != null) or (.network_names.monitoring != null))
+      # Missing optional monitoring keys indicate an intentionally
+      # uninspected profile. Explicit nulls are incomplete evidence,
+      # not permission to skip the monitoring consistency checks.
+      ((.roles | has("fetcher")) or (.roles | has("prometheus"))
+        or (.networks | has("monitoring"))
+        or (.network_names | has("monitoring")))
     ) as $monitoring
     | {
       server_running: (.roles.server.running == true),
