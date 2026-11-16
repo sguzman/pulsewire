@@ -2,9 +2,10 @@
 //! throttle. Counters are shared
 //! between processes and survive
 //! service restarts. Keys are hashes of
-//! domain-separated normalized usernames
-//! or TCP sources; never store raw
-//! attempted names or passwords here.
+//! domain-separated normalized
+//! usernames or TCP sources; never
+//! store raw attempted names or
+//! passwords here.
 //!
 //! The first five attempts in each
 //! 15-minute fixed window may be
@@ -48,7 +49,9 @@ fn username_key(
   // a successful login clears it.
   hash_token(&format!(
     "login-user:{}",
-    username.trim().to_ascii_lowercase()
+    username
+      .trim()
+      .to_ascii_lowercase()
   ))
 }
 
