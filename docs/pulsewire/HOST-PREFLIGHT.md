@@ -118,6 +118,20 @@ operator-supplied database allowlist** the result must be
 prove `PASS_STATIC` with an explicit allowlist, plus fail/review
 cases for each boundary.
 
+**Verified source and disposable CI (2026-11-15):**
+[PR #60](https://github.com/sguzman/pulsewire/pull/60) squash-merged as
+[`45d7d67`](https://github.com/sguzman/pulsewire/commit/45d7d6793ec04ab9750887c6c13c5dae80a3bacc).
+The exact tested head `0afc0a20d316542201a0c93c6c2239d3c94848fe`
+passed [Rust/docs/reader run 43777061823](https://github.com/sguzman/pulsewire/actions/runs/43777061823)
+and [container run 43777061828](https://github.com/sguzman/pulsewire/actions/runs/43777061828).
+The latter reports both synthetic trust-case acceptance and a **real
+metadata-only Docker capture** inside the disposable ingress fixture,
+correctly classified `NEEDS_REVIEW` without an operator DB-member
+allowlist. See
+[PW023-HOST-PREFLIGHT-ACCEPTANCE.md](PW023-HOST-PREFLIGHT-ACCEPTANCE.md).
+No real household host was inspected. This grants **no weighted PW-023
+acceptance credit** and no deployment permission.
+
 For any future real-host evidence, preserve the exact code commit,
 snapshot collection date and selected container/network identifiers;
 explicitly review every database-network member, firewall routing,
