@@ -20,6 +20,7 @@ const files = [
   "docs/pulsewire/INGRESS.md",
   "docs/pulsewire/METRICS-SECURITY.md",
   "docs/pulsewire/HOST-PREFLIGHT.md",
+  "docs/pulsewire/RESOURCE-ENVELOPE.md",
   "docs/pulsewire/BACKUP-RESTORE.md",
   "docs/pulsewire/RECOVERY.md",
   "docs/pulsewire/FETCH_SECURITY.md",
@@ -155,6 +156,21 @@ assert.doesNotMatch(captureSource, /\.Config\.Env|\.Mounts|\.Config\.Labels/, "c
 assert.match(auditSmoke, /PASS_STATIC/, "positive static audit fixture missing");
 assert.match(auditSmoke, /NEEDS_REVIEW/, "missing allowlist must need review");
 assert.match(ingressSmoke, /pw023-capture\.sh/, "live Docker source must exercise read-only collector");
+const pw032Doc = read("docs/pulsewire/RESOURCE-ENVELOPE.md");
+const pw032Source = read("scripts/pw032-envelope.mjs");
+const pw032Tests = read("tests/pw032-envelope-check.mjs");
+for (const name of ["cpu_percent", "memory_bytes", "database_bytes", "backlog_due", "http_latency_buckets"]) {
+  assert.ok(pw032Source.includes(name), "PW-032 missing required resource field " + name);
+}
+for (const token of ["target_host_verified: false", "sustainable_capacity_proven: false",
+                     "deployment_approved: false", "pw032_weighted_points: 0"]) {
+  assert.ok(pw032Source.includes(token), "PW-032 acceptance guard missing " + token);
+}
+assert.match(pw032Source, /synthetic_ci/, "synthetic provenance required");
+assert.match(pw032Source, /operator_recorded/, "operator-provided input must remain unverified");
+assert.ok(pw032Tests.includes("PW-032"), "PW-032 offline regression missing");
+assert.ok(pw032Doc.includes("shared"), "database accounting warning missing");
+assert.ok(pw032Doc.includes("not accepted"), "target-host verification disclaimer missing");
 const compatibility = read("docs/pulsewire/COMPATIBILITY.md");
 const deployment = read("docs/pulsewire/DEPLOYMENT.md");
 const troubleshoot = read("docs/pulsewire/TROUBLESHOOTING.md");

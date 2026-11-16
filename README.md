@@ -248,7 +248,8 @@ OpenAPI docs:
   [file-backed database secrets](docs/pulsewire/SECRETS.md),
   [optional TLS ingress and network isolation](docs/pulsewire/INGRESS.md),
   [authenticated metrics](docs/pulsewire/METRICS-SECURITY.md),
-  and [read-only host exposure preflight](docs/pulsewire/HOST-PREFLIGHT.md).
+  [read-only host exposure preflight](docs/pulsewire/HOST-PREFLIGHT.md),
+  and [PW-032 resource envelope methodology](docs/pulsewire/RESOURCE-ENVELOPE.md).
   [PW-070 documentation acceptance](docs/pulsewire/PW070-ACCEPTANCE.md)
   is verified in isolated CI. All operator procedures are **preflight or
   isolated CI reference**, not a deployment or release authorization.

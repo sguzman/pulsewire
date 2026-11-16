@@ -68,6 +68,6 @@ The first command requires `PULSEWIRE_TEST_POSTGRES_PASSWORD` in the private env
 
 ## Out of scope / remaining gates
 
-- **PW-032** must independently measure CPU, memory, database growth, true poll latency and backlog on the actual slim catalog under representative target-server hardware and network conditions. The synthetic test does **not** satisfy that item.
+- **PW-032** must independently measure CPU, memory, database growth, true poll latency and backlog on the actual slim catalog under representative target-server hardware and network conditions. The existing synthetic test does **not** satisfy that item. The separate [offline PW-032 envelope reporter](RESOURCE-ENVELOPE.md) can validate future samples, but cannot substitute for approved host measurements.
 - **PW-023 / PW-040 / PW-041 / PW-043 / PW-051** still govern secrets, ingress/network isolation, packaging, runtime paths, backups and full reader end-to-end correctness.
 - No production database migration, home Docker network modification, CoreDNS change, external RSS polling, actual-host deployment, or release was performed for PW-031.
