@@ -36,6 +36,30 @@ for order in first-valid first-invalid; do
     exit 1
   }
 done
+# The disposable Postgres/SQLite fixtures both bootstrap the account
+# "owner". Known-account bad passwords and missing-account logins
+# must return the same public status/body, with no session issued.
+# Timing is intentionally NOT asserted: CI timings are nondeterministic.
+bad_login() {
+  local username="$1" password="$2"
+  curl --max-time 15 -sS -w '\nSTATUS:%{http_code}' \
+    -H 'Content-Type: application/json' \
+    --data "$(jq -nc --arg username "$username" \
+      --arg password "$password" \
+      '{username:$username,password:$password}')" \
+    "$base/v1/auth/login"
+}
+known_bad="$(bad_login owner 'pw023-definitely-invalid-password')"
+missing_bad="$(bad_login pw023-missing-account 'pw023-definitely-invalid-password')"
+dummy_bad="$(bad_login pw023-missing-account 'pulsewire-decoy-only-not-a-real-login')"
+[[ "$known_bad" == *'STATUS:401' ]] || {
+  echo "known-account bad password not rejected" >&2
+  exit 1
+}
+[[ "$known_bad" == "$missing_bad" && "$known_bad" == "$dummy_bad" ]] || {
+  echo "login failures leaked different public responses" >&2
+  exit 1
+}
 invalid="$(curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $PULSEWIRE_API_E2E_TOKEN" "$base/v1/entries?read=invalid")"
 test "$invalid" = 400
 

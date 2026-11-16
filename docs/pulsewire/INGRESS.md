@@ -72,6 +72,20 @@ per-peer quotas. The Rust per-peer quota sees the proxy as **one
 shared client**; the edge limit is the separately enforced
 per-real-client safeguard, not a substitute for Rust account limits.
 
+For nonempty login attempts, a missing username and an existing
+username with a wrong password now both perform an Argon2 verification
+before returning the same HTTP 401 invalid-credentials response.
+The absent-user branch verifies a fixed dummy Argon2id hash with the
+current default work parameters, but **never issues a token** even if
+that dummy's preimage is submitted. Unit tests pin the dummy and
+current password-hash cost parameters; disposable PostgreSQL/SQLite
+API tests assert identical public responses for both failure cases.
+This mitigates an obvious timing-enumeration signal; it is **not**
+a claim of constant-time end-to-end login behavior (database lookups,
+hash parameter variations and network delays can still differ).
+All failed login attempts remain subject to existing throttling;
+the heavier unknown-user path makes source/edge limits important.
+
 The CI smoke makes requests from two distinct Docker client IPs:
 spoofing a new forwarding IP on every login attempt must **not**
 avoid the first client's edge HTTP 429; the independent second

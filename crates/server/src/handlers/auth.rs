@@ -21,7 +21,7 @@ use crate::app_state::AppState;
 use crate::auth::{
   bearer_token,
   hash_token,
-  verify_password
+  verified_login_hash
 };
 use crate::errors::ServerError;
 use crate::login_throttle;
@@ -76,49 +76,55 @@ pub async fn login(
   )
   .await?;
 
-  let (_user_id, password_hash) =
-    if let Some(pool) = &state.postgres
-    {
-      sqlx::query_as::<_, (i64, String)>(
+  let user = if let Some(pool) =
+    &state.postgres
+  {
+    sqlx::query_as::<_, (i64, String)>(
             "SELECT id, password_hash FROM users WHERE username = $1",
         )
         .bind(username)
         .fetch_optional(pool)
         .await
         .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-        .ok_or_else(|| ServerError::new(StatusCode::UNAUTHORIZED, "invalid credentials"))?
-    } else {
-      let pool = state
+  } else {
+    let pool = state
             .sqlite
             .as_ref()
             .ok_or_else(|| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, "database pool missing"))?;
 
-      sqlx::query_as::<_, (i64, String)>(
+    sqlx::query_as::<_, (i64, String)>(
             "SELECT id, password_hash FROM users WHERE username = ?1",
         )
         .bind(username)
         .fetch_optional(pool)
         .await
         .map_err(|e| ServerError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-        .ok_or_else(|| ServerError::new(StatusCode::UNAUTHORIZED, "invalid credentials"))?
-    };
+  };
 
-  verify_password(
-    &password_hash,
-    password
-  )
-  .map_err(|_| {
-    ServerError::new(
-      StatusCode::UNAUTHORIZED,
-      "invalid credentials"
+  // Missing accounts must still perform
+  // one Argon2 verification, just as
+  // known accounts with wrong
+  // passwords. Neither case issues a
+  // session.
+  let password_hash =
+    verified_login_hash(
+      user
+        .as_ref()
+        .map(|(_, hash)| hash.as_str()),
+      password
     )
-  })?;
+    .ok_or_else(|| {
+      ServerError::new(
+        StatusCode::UNAUTHORIZED,
+        "invalid credentials"
+      )
+    })?;
 
   let token =
     crate::session_issue::issue_for_verified_login(
       &state,
       username,
-      &password_hash
+      password_hash
     )
     .await?;
 
