@@ -8,6 +8,7 @@
 - Harden private release receipt parsing against malformed SHA-256/HTTPS evidence references, invalid UTC calendar timestamps and symlinked approval paths; verify with disposable offline regressions. This is format checking only, never proof of owner approval or host acceptance.
 
 ### 📊 PW-032 live disposable CI measurements (non-acceptance)
+- Reject malformed raw Prometheus action-counter and HTTP histogram-bucket lines even if other valid lines for the series exist, with negative tests for bad numeric values, trailing data and indentation; leave unrelated exporter metrics ignored and all raw labels private.
 - Reject action-counter resets, histogram bucket resets, and action/domain-series churn across sampled windows even if aggregate totals remain monotone; compare domain identity only transiently in memory and never disclose it in reports or diagnostics.
 - Require one exact, unlabeled `pulsewire_up 1` sample before normalizing private Prometheus metrics; reject misleading numeric prefixes, comments, down/duplicate/labeled gauges with offline negative regressions.
 - Add guarded read-only CPU/memory/PostgreSQL due+schema-size/Prometheus histogram sampling from the existing temporary CI fetcher.
