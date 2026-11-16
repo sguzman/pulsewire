@@ -145,6 +145,25 @@ repointed at household Docker or PostgreSQL.
 **Even when live CI passes, this remains PW-032 pre-acceptance only:
 0/2 weighted points, and the project stays 93/100.**
 
+## Exact-head live CI evidence (2026-11-15)
+
+[PR #63](https://github.com/sguzman/pulsewire/pull/63)
+was squash-merged as [`a6d7a4c`](https://github.com/sguzman/pulsewire/commit/a6d7a4c852e649e1d155777ce5f7d6d4bc4d329e).
+Both [Rust/docs/browser CI 43792770359](https://github.com/sguzman/pulsewire/actions/runs/43792770359)
+and [container CI 43792770308](https://github.com/sguzman/pulsewire/actions/runs/43792770308)
+passed on exact tested head `57c904fe940b96135c3385ed5a4d3cf9ae07c918`.
+The container log confirms **three measured snapshots** of the single
+disposable RSS fixture, a **0.18% sampled maximum Docker CPU** and
+**3,702,522 bytes sampled maximum Docker-reported memory**. These numbers
+are only incidental runner observations; do not use them to forecast
+sustained server capacity or mean/p95 real workload costs.
+
+The same CI run passed the existing PostgreSQL, SQLite,
+authenticated Prometheus, and private TLS ingress smoke.
+See [PW032-DISPOSABLE-ACCEPTANCE.md](PW032-DISPOSABLE-ACCEPTANCE.md)
+for the exact test scope and unresolved target-host criteria.
+**PW-032 remains 0/2; project remains 93/100 (Δ +0).**
+
 ## How PW-032 can be accepted later
 
 A target-host owner-approved experiment needs its exact code commit,
