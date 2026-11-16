@@ -420,8 +420,18 @@ mod tests {
     // The crafted account name would
     // collide with the TCP-source key
     // without a distinct user prefix.
-    // Login success must NEVER erase
-    // the shared source-IP quota.
+    // Its own attempt is permitted
+    // even after the source quota is
+    // exhausted; a successful login
+    // must not erase that source quota.
+    reserve_attempt(
+      &state,
+      "login-source:192.0.2.10"
+    )
+    .await
+    .expect(
+      "separate username counter"
+    );
     clear_attempts(
       &state,
       "login-source:192.0.2.10"
