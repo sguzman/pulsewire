@@ -19,12 +19,17 @@ When an operator enables metrics, the listener now enforces these rules:
   `PULSEWIRE_METRICS_TOKEN_FILE`. Without a valid token file, the
   fetcher fails startup instead of serving unauthenticated metrics.
 - `PULSEWIRE_METRICS_TOKEN_FILE` is a **path**, not secret bytes
-  in the environment. The file must be readable as UTF-8, contain
-  32–512 printable ASCII characters with no spaces/control characters,
-  and may have one trailing LF or CRLF. Missing, empty, short,
-  multiline or unreadable files fail closed with **generic** errors
+  in the environment. The target must be a regular file, readable
+  as UTF-8, and contain 32–512 printable ASCII characters with no
+  spaces/control characters; one trailing LF or CRLF is allowed.
+  The loader checks file size before opening and caps the read to
+  515 bytes, avoiding unbounded allocation on an oversized token
+  source. Missing, empty, oversized, non-regular, short, multiline,
+  malformed or unreadable files fail closed with **generic** errors
   that do not echo the path or token. A token file also enables
   authentication on a deliberately loopback-bound listener.
+  This size/type check does **not** prove safe file ownership,
+  Unix permission mode or real-host secret-mount isolation.
 - If metrics are enabled **only on loopback** and no token file
   is configured, local loopback scraping remains unauthenticated
   for backwards compatibility. This does not mean host users,

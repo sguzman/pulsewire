@@ -26,6 +26,7 @@
 - Exercise synthetic allowed/blocked/review fixtures plus the existing disposable ingress topology; no household host audited or modified.
 
 ### 🔐 Authenticated Prometheus metrics (PW-023 partial)
+- Bound metrics bearer-token file reads to 515 bytes and reject oversized/non-regular inputs before opening, preserving generic secret-safe failures and no new permission assumptions; add regressions for maximum valid CRLF token and invalid filesystem inputs.
 - Require a private `PULSEWIRE_METRICS_TOKEN_FILE` whenever metrics listen off loopback; reject missing, invalid and duplicated bearer authentication, with bounded HTTP request handling and safe generic errors.
 - Add an opt-in private monitoring Compose overlay and token-file Prometheus scraper, with no host-published ports and example 24-hour / 128 MB retention; preserve local loopback-only metrics compatibility.
 - Verify real anonymous/wrong-token rejection, correct bearer scraping and process-loss alert signals in isolated CI; do not claim household firewall, TLS, credential rotation or retention acceptance.

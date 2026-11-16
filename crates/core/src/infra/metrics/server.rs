@@ -6,6 +6,7 @@
 //! or token bytes are logged.
 
 use std::env;
+use std::io::Read;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -66,12 +67,40 @@ fn token_from_file(
     return Ok(None);
   };
 
-  let mut value =
-    std::fs::read_to_string(path)
-      .map_err(|_| {
-        "metrics token file unavailable"
-          .to_string()
-      })?;
+  // Never read an unbounded file (or a
+  // device) into a bearer token. Check
+  // before open, then bound the read
+  // in case the path changes.
+  let metadata = std::fs::metadata(
+    path
+  )
+  .map_err(|_| {
+    "metrics token file unavailable"
+      .to_string()
+  })?;
+  if !metadata.is_file()
+    || metadata.len()
+      > (MAX_TOKEN_BYTES + 2) as u64
+  {
+    return Err(
+      "metrics token file has invalid \
+       content"
+        .into()
+    );
+  }
+  let file = std::fs::File::open(path)
+    .map_err(|_| {
+      "metrics token file unavailable"
+        .to_string()
+    })?;
+  let mut value = String::new();
+  file
+    .take((MAX_TOKEN_BYTES + 3) as u64)
+    .read_to_string(&mut value)
+    .map_err(|_| {
+      "metrics token file unavailable"
+        .to_string()
+    })?;
 
   if value.ends_with('\n') {
     value.pop();
@@ -466,6 +495,76 @@ mod metrics_http_tests {
     )
     .unwrap_err();
     assert!(!error.contains("private"));
+  }
+
+  #[test]
+  fn metrics_token_file_reads_are_bounded()
+   {
+    let path =
+      fixture_path("bounded-token");
+    let max_value =
+      "q".repeat(MAX_TOKEN_BYTES);
+    std::fs::write(
+      &path,
+      format!("{max_value}\r\n")
+    )
+    .expect("max-size token fixture");
+    assert_eq!(
+      token_from_file(
+        address([0, 0, 0, 0]),
+        path.to_str()
+      )
+      .expect("max-size token accepted")
+      .as_deref(),
+      Some(max_value.as_str())
+    );
+
+    // No path or file content may be
+    // reflected in validation failures.
+    std::fs::write(
+      &path,
+      "x".repeat(1024 * 1024)
+    )
+    .expect("oversized fixture");
+    let err = token_from_file(
+      address([0, 0, 0, 0]),
+      path.to_str()
+    )
+    .expect_err(
+      "oversized file denied"
+    );
+    assert_eq!(
+      err,
+      "metrics token file has invalid \
+       content"
+    );
+    assert!(
+      !err.contains(
+        path
+          .to_str()
+          .expect("UTF-8 path")
+      )
+    );
+    std::fs::remove_file(&path)
+      .expect("remove file fixture");
+
+    std::fs::create_dir(&path)
+      .expect("directory fixture");
+    let err = token_from_file(
+      address([0, 0, 0, 0]),
+      path.to_str()
+    )
+    .expect_err(
+      "non-regular file denied"
+    );
+    assert_eq!(
+      err,
+      "metrics token file has invalid \
+       content"
+    );
+    std::fs::remove_dir(path).expect(
+      "remove directory fixture"
+    );
   }
 
   #[tokio::test]
