@@ -56,6 +56,8 @@ report="$(jq -ce --argjson allow_db "$allow_json" '
     .schema == 1
     and (.roles.server.name | type) == "string"
     and (.roles.edge.name | type) == "string"
+    and (.roles.server.name | length) > 0
+    and (.roles.edge.name | length) > 0
     and (.roles.server.networks | type) == "array"
     and (.roles.edge.networks | type) == "array"
     and (.roles.server.ports | type) == "array"
@@ -64,7 +66,12 @@ report="$(jq -ce --argjson allow_db "$allow_json" '
     and (.networks.application.members | type) == "array"
     and (.networks.front.members | type) == "array"
     and ([.network_names.database, .network_names.application,
-          .network_names.front] | all(. != null and (type == "string")))
+          .network_names.front] | all(type == "string" and length > 0))
+    and ([.network_names.database, .network_names.application,
+          .network_names.front] | unique | length) == 3
+    and (.networks.database.name == .network_names.database)
+    and (.networks.application.name == .network_names.application)
+    and (.networks.front.name == .network_names.front)
     and (role("server").name != role("edge").name);
   if (required | not) then
     {result:"FAIL", reason:"invalid or incomplete sanitized snapshot",
@@ -98,7 +105,20 @@ report="$(jq -ce --argjson allow_db "$allow_json" '
       monitoring_profile_consistent:
         (if $monitoring then
           (.roles.fetcher != null and .roles.prometheus != null and
+           (.roles.fetcher.name | type) == "string" and
+           (.roles.prometheus.name | type) == "string" and
+           (.roles.fetcher.name | length) > 0 and
+           (.roles.prometheus.name | length) > 0 and
+           ([.roles.server.name, .roles.edge.name, .roles.fetcher.name,
+             .roles.prometheus.name] | unique | length) == 4 and
+           .roles.fetcher.running == true and
+           .roles.prometheus.running == true and
            (.network_names.monitoring | type) == "string" and
+           (.network_names.monitoring | length) > 0 and
+           (.network_names.monitoring != .network_names.database) and
+           (.network_names.monitoring != .network_names.application) and
+           (.network_names.monitoring != .network_names.front) and
+           (.networks.monitoring.name == .network_names.monitoring) and
            (.networks.monitoring.internal == true) and
            memberships("fetcher"; ["database", "monitoring"]) and
            memberships("prometheus"; ["monitoring"]) and
