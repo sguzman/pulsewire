@@ -2,9 +2,9 @@
 //! throttle. Counters are shared
 //! between processes and survive
 //! service restarts. Keys are hashes of
-//! normalized usernames; never store
-//! user-supplied passwords or raw
-//! attempted names here.
+//! domain-separated normalized usernames
+//! or TCP sources; never store raw
+//! attempted names or passwords here.
 //!
 //! The first five attempts in each
 //! 15-minute fixed window may be
@@ -40,11 +40,16 @@ const RETENTION_SECONDS: i64 =
 fn username_key(
   username: &str
 ) -> String {
-  hash_token(
-    &username
-      .trim()
-      .to_ascii_lowercase()
-  )
+  // Keep username and source counters
+  // in disjoint namespaces. Otherwise
+  // a username like
+  // "login-source:192.0.2.10" aliases
+  // the quota for that source IP, and
+  // a successful login clears it.
+  hash_token(&format!(
+    "login-user:{}",
+    username.trim().to_ascii_lowercase()
+  ))
 }
 
 fn failed(
@@ -359,6 +364,31 @@ mod tests {
     assert_eq!(left, 0);
   }
 
+  #[test]
+  fn username_quota_keys_do_not_overlap_source_quota_keys()
+   {
+    assert_eq!(
+      username_key(" Example "),
+      username_key("example")
+    );
+    assert_ne!(
+      username_key(
+        "login-source:192.0.2.10"
+      ),
+      hash_token(
+        "login-source:192.0.2.10"
+      )
+    );
+    assert_ne!(
+      username_key(
+        "login-source:unknown-peer"
+      ),
+      hash_token(
+        "login-source:unknown-peer"
+      )
+    );
+  }
+
   #[tokio::test]
   async fn source_limit_blocks_username_sprays_not_other_peers()
    {
@@ -387,11 +417,14 @@ mod tests {
       denied.into_response().status(),
       StatusCode::TOO_MANY_REQUESTS
     );
-    // Username success cannot reset the
-    // source quota.
+    // The crafted account name would
+    // collide with the TCP-source key
+    // without a distinct user prefix.
+    // Login success must NEVER erase
+    // the shared source-IP quota.
     clear_attempts(
       &state,
-      "different-account"
+      "login-source:192.0.2.10"
     )
     .await
     .expect("clear username only");
