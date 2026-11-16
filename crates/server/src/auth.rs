@@ -62,10 +62,12 @@ pub fn bearer_token(
   );
   let mut values = authorization.iter();
   let value = match (
-    values.next(), values.next()
+    values.next(),
+    values.next()
   ) {
-    | (Some(one), None) =>
-      one.to_str().unwrap_or_default(),
+    | (Some(one), None) => {
+      one.to_str().unwrap_or_default()
+    }
     | _ => ""
   };
 
@@ -182,10 +184,10 @@ pub async fn require_admin(
 
 #[cfg(test)]
 mod bearer_header_tests {
+  use axum::http::header::AUTHORIZATION;
   use axum::http::{
     HeaderValue,
-    StatusCode,
-    header::AUTHORIZATION
+    StatusCode
   };
   use axum::response::IntoResponse;
 
@@ -203,11 +205,13 @@ mod bearer_header_tests {
     assert_eq!(
       bearer_token(&headers)
         .expect_err("missing header")
-        .into_response().status(),
+        .into_response()
+        .status(),
       StatusCode::UNAUTHORIZED
     );
     headers.append(
-      AUTHORIZATION, good.clone()
+      AUTHORIZATION,
+      good.clone()
     );
     assert_eq!(
       bearer_token(&headers)
@@ -223,7 +227,8 @@ mod bearer_header_tests {
     assert_eq!(
       bearer_token(&headers)
         .expect_err("duplicate headers")
-        .into_response().status(),
+        .into_response()
+        .status(),
       StatusCode::UNAUTHORIZED
     );
     headers.clear();
@@ -234,25 +239,31 @@ mod bearer_header_tests {
       )
     );
     headers.append(
-      AUTHORIZATION, good.clone()
+      AUTHORIZATION,
+      good.clone()
     );
     assert_eq!(
       bearer_token(&headers)
-        .expect_err("reversed duplicates")
-        .into_response().status(),
+        .expect_err(
+          "reversed duplicates"
+        )
+        .into_response()
+        .status(),
       StatusCode::UNAUTHORIZED
     );
     headers.clear();
     headers.append(
-      AUTHORIZATION, good.clone()
+      AUTHORIZATION,
+      good.clone()
     );
-    headers.append(
-      AUTHORIZATION, good
-    );
+    headers.append(AUTHORIZATION, good);
     assert_eq!(
       bearer_token(&headers)
-        .expect_err("identical duplicates")
-        .into_response().status(),
+        .expect_err(
+          "identical duplicates"
+        )
+        .into_response()
+        .status(),
       StatusCode::UNAUTHORIZED
     );
   }
