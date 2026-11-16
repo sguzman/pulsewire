@@ -76,6 +76,11 @@ function parseMetrics(raw) {
   const histograms = new Map();
   for (const line of lines) {
     const action = line.match(/^pulsewire_feed_actions_total\{(.+)\} ([0-9]+)$/);
+    // Reject malformed or duplicate known counters instead of silently
+    // ignoring the bad line when another valid line is also present.
+    if (!action && line.trimStart().startsWith("pulsewire_feed_actions_total")) {
+      invalid("malformed HEAD/GET action counter");
+    }
     if (action) {
       const which = label(action[1], "action");
       const outcome = label(action[1], "outcome");
@@ -90,6 +95,9 @@ function parseMetrics(raw) {
       continue;
     }
     const bucket = line.match(/^pulsewire_http_latency_ms_bucket\{(.+)\} ([0-9]+)$/);
+    if (!bucket && line.trimStart().startsWith("pulsewire_http_latency_ms_bucket")) {
+      invalid("malformed HTTP histogram bucket");
+    }
     if (!bucket) continue;
     const which = label(bucket[1], "action");
     const domain = label(bucket[1], "domain");
