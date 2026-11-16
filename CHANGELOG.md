@@ -21,6 +21,7 @@
 - Document the future real slim-catalog test protocol without polling external feeds, modifying household infrastructure or awarding PW-032 weighted progress.
 
 ### 🔍 PW-023 read-only network/ingress inventory preflight
+- Require the explicit database-network trust allowlist to agree exactly with observed members before reporting `PASS_STATIC`; show a count for stale unobserved allowlisted names, reject newline-split CLI entries, and count only actually reviewed observed members.
 - Fail closed when Docker's runtime port inventory is null, an array, malformed or missing binding fields rather than converting uninspected metadata into a safe empty publication list; cover using a fake-Docker offline regression harness.
 - Validate the edge's loopback-published TLS host port as a decimal string from 1–65535, rejecting missing, invalid, out-of-range, numeric and structured JSON values rather than trusting nonzero length; add synthetic deny cases and boundary positives.
 - Reject absent, null or malformed monitoring-port data rather than treating it as zero publications; regression-test both fetcher and Prometheus with synthetic incomplete snapshots.

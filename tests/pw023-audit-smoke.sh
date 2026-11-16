@@ -35,6 +35,24 @@ verify 0 PASS_STATIC "$fixture" "${allowed[@]}"
 verify 2 NEEDS_REVIEW "$fixture"
 verify 2 NEEDS_REVIEW "$fixture" \
   --allow-db ci-server --allow-db ci-fetcher
+# An overbroad or stale allowlist is not the current network's
+# reviewed inventory, even when every observed member is allowed.
+verify 2 NEEDS_REVIEW "$fixture" "${allowed[@]}" --allow-db ci-stale
+verify 2 NEEDS_REVIEW "$fixture" \
+  --allow-db ci-server --allow-db ci-fetcher --allow-db ci-stale
+# The observed-member count must not include unobserved allowlist names.
+stale_status=0
+stale_report="$(bash "$audit" --snapshot "$fixture" \
+  "${allowed[@]}" --allow-db ci-stale)" || stale_status=$?
+test "$stale_status" -eq 2
+jq -e '.reviewed_database_member_count == 3 and
+       .unobserved_allowlisted_member_count == 1 and
+       .database_members_to_review == [] and
+       .deployment_approved == false' <<< "$stale_report" >/dev/null
+# One CLI argument containing line breaks must not silently create
+# multiple independent trusted Docker member names.
+verify 64 NONE "$fixture" --allow-db $'ci-server\nci-fetcher\nci-db-server'
+verify 64 NONE "$fixture" --allow-db $'ci-server\rci-fetcher'
 mutate reader-port '.roles.server.ports=[{container_port:"8091/tcp",host_ip:"127.0.0.1",host_port:"18091"}]'
 verify 1 FAIL "$temp/reader-port.json" "${allowed[@]}"
 mutate exposed-tls '.roles.edge.ports[0].host_ip="0.0.0.0"'
