@@ -39,35 +39,33 @@ Nix package outputs on supported `x86_64-linux` and `aarch64-linux`:
 | `.#server` | `pulsewire-server` |
 | `.#cli` | `pulsewire-cli` |
 | `.#tui` | `pulsewire-tui` |
-| `.#cargo-deps` | Compiled Cargo dependency artifacts (cache output, not an executable) |
 
-## Cargo dependency artifacts and binary caches
+## Per-crate compiled dependencies and binary caches
 
-Pulsewire builds with [Crane](https://crane.dev/) and its pinned Rust toolchain.
-`nix build .#default` first builds `.#cargo-deps` as a separate Nix derivation,
-then compiles the workspace using those cached Cargo artifacts. Changing ordinary
-Rust source files does not invalidate the dependency derivation; changing
-`Cargo.toml`, `Cargo.lock`, toolchain, build flags or native dependencies can.
-The split output is also shared by `.#fetcher`, `.#server`, `.#cli` and `.#tui`.
+Pulsewire uses [crate2nix](https://nix-community.github.io/crate2nix/)
+to create a **distinct Nix derivation for every Rust crate**, rather than
+bundling all compiled dependencies into a single Cargo target cache.
+The Cargo dependency graph comes from the locked workspace. Each crate's
+Nix store output can be reused when its complete build inputs match, even
+if other crates or unrelated application sources change. Different feature
+sets, toolchain versions, target platforms, native libraries or flags may
+produce distinct derivations for the same named crate.
 
-```sh
-# Build the dependency artifacts once without changing the result symlink.
-nix build .#cargo-deps --no-link
-# Confirm that the artifacts have a Nix store path.
-nix path-info .#cargo-deps
-# Build the application, reusing the dependency store output.
-nix build .#default
-```
+`nix build .#default` still assembles the fetcher, server, CLI and TUI,
+with their runtime assets; it depends on the individual derivations of
+all workspace members and third-party crates. The generated Cargo.nix is
+currently calculated via **import from derivation (IFD)**, which may reduce
+build evaluation parallelism. That trade-off should be revisited if the
+workspace grows or Nix evaluation becomes slow: a generated, committed
+Cargo.nix avoids IFD but must be regenerated on dependency updates.
 
-A Nix store output is *not* automatically a remote binary cache. To keep
-artifacts beyond local garbage collection or reuse them across machines,
-copy the store closure to a configured Nix binary cache (for example,
-`nix copy --to file:///path/to/nix-cache .#cargo-deps`). Other machines must
-be configured to trust or fetch that cache before they can substitute its
-outputs. A standalone `cargo build` or `cargo install` still uses Cargo's
-own target cache: Nix cannot safely ingest arbitrary mutable `target/`
-folders as reproducible substitutes. This flake makes **Nix-driven** Cargo
-build artifacts shareable; it does not redirect every Cargo invocation.
+A local `/nix/store` entry is not automatically a remote binary cache.
+To retain crates independently of local garbage collection or share them
+with another machine, configure a Nix binary cache and copy the build's
+store closure (e.g. `nix copy --to file:///path/to/nix-cache .#default`).
+Other machines still need compatible build inputs and a cache configured
+as a substituter. This controls **Nix-driven builds**; standalone `cargo
+build` continues using Cargo's own project `target/` directory.
 
 For example:
 
