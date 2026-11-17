@@ -68,3 +68,35 @@ jobs:
           test -f result-tui/share/pulsewire/schemas/tui/tui.schema.json
           test ! -e result-fetcher/share/pulsewire/config/fetcher/feeds/podcasts
           test ! -e result-fetcher/share/pulsewire/config/fetcher/feeds/youtube.com
+      - name: Installed CLI validates config without schema override
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$GITHUB_WORKSPACE/result-cli/share/pulsewire/config/fetcher"
+          binary="$GITHUB_WORKSPACE/result-cli/bin/pulsewire-cli"
+          # Validation only: dummy credentials are never used for a DB connection.
+          (
+            cd "$RUNNER_TEMP"
+            env -u SCHEMAS_DIR -u CONFIG_PATH \
+              PULSEWIRE_POSTGRES_PASSWORD=ci-only-not-a-real-password \
+              "$binary" validate "$root/config.toml"
+          )
+          # The SQLite-only regression requires no PostgreSQL section
+          # and must also find installed schemas without any override.
+          fixture="$RUNNER_TEMP/pulsewire-cli-sqlite-only"
+          mkdir -p "$fixture"
+          cp "$root/domains.toml" "$root/categories.toml" "$fixture/"
+          ln -s "$root/feeds" "$fixture/feeds"
+          awk '
+            /^\[postgres\]/ { skip = 1; next }
+            /^\[/ { skip = 0 }
+            !skip {
+              gsub(/dialect = "postgres"/, "dialect = \"sqlite\"")
+              print
+            }
+          ' "$root/config.toml" > "$fixture/config.toml"
+          (
+            cd "$RUNNER_TEMP"
+            env -u SCHEMAS_DIR -u CONFIG_PATH -u PULSEWIRE_POSTGRES_PASSWORD \
+              "$binary" validate "$fixture/config.toml"
+          )
