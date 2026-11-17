@@ -86,17 +86,19 @@ pub(crate) struct RawPostgres {
   pub schema:   String
 }
 
-// Keep an omitted [postgres] section consistent with the field-level
-// Serde defaults; deriving Default would instead leave schema empty.
+// Keep an omitted [postgres] section
+// consistent with the field-level Serde
+// defaults; deriving Default would
+// instead leave schema empty.
 impl Default for RawPostgres {
   fn default() -> Self {
     Self {
-      user: default_pg_user(),
+      user:     default_pg_user(),
       password: default_pg_password(),
-      host: default_pg_host(),
-      port: default_pg_port(),
-      db: default_pg_database(),
-      schema: default_pg_schema(),
+      host:     default_pg_host(),
+      port:     default_pg_port(),
+      db:       default_pg_database(),
+      schema:   default_pg_schema()
     }
   }
 }
