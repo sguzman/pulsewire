@@ -24,7 +24,7 @@ use super::feeds::load_all_feeds;
 use super::parse::{
   parse_dialect,
   parse_mode,
-  parse_postgres,
+  parse_postgres_for_dialect,
   url_host
 };
 use super::paths::{
@@ -258,28 +258,36 @@ impl ConfigLoader {
     )?;
 
     let mut postgres: PostgresConfig =
-      parse_postgres(raw_cfg.postgres)?;
-    if let Ok(value) = env::var(
-      "PULSEWIRE_POSTGRES_HOST"
-    ) && !value.trim().is_empty()
-    {
-      postgres.host = value;
-    }
-    postgres.password =
-      pulsewire_schemas::postgres_password(
-        postgres.password
-      )
-      .map_err(|message| {
-        ConfigError::Invalid(
-          message.into()
+      parse_postgres_for_dialect(
+        db_dialect,
+        raw_cfg.postgres
+      )?;
+    // SQLite must not depend on PostgreSQL-only environment overrides,
+    // secret files, or schema validation.
+    if matches!(
+      db_dialect,
+      crate::domain::model::SqlDialect::Postgres
+    ) {
+      if let Ok(value) = env::var(
+        "PULSEWIRE_POSTGRES_HOST"
+      ) && !value.trim().is_empty()
+      {
+        postgres.host = value;
+      }
+      postgres.password =
+        pulsewire_schemas::postgres_password(
+          postgres.password
         )
-      })?;
-    if matches!(db_dialect, crate::domain::model::SqlDialect::Postgres)
-      && postgres.password.trim().is_empty()
-    {
-      return Err(ConfigError::Invalid(
-        "postgres password required: supply PULSEWIRE_POSTGRES_PASSWORD_FILE, PULSEWIRE_POSTGRES_PASSWORD, or a private config password".into()
-      ));
+        .map_err(|message| {
+          ConfigError::Invalid(
+            message.into()
+          )
+        })?;
+      if postgres.password.trim().is_empty() {
+        return Err(ConfigError::Invalid(
+          "postgres password required: supply PULSEWIRE_POSTGRES_PASSWORD_FILE, PULSEWIRE_POSTGRES_PASSWORD, or a private config password".into()
+        ));
+      }
     }
 
     let mut domains = HashMap::new();
