@@ -34,20 +34,20 @@ jobs:
             echo 'ERROR: commit the generated flake.lock before merging' >&2
             exit 1
           fi
-      - name: Generate crate2nix graph for initial pinning
-        shell: bash
-        run: |
-          set -euo pipefail
-          nix run github:NixOS/nixpkgs/b349185bb79c7cf7ad8ea8c097931730bf473c71#crate2nix -- generate -f Cargo.toml -o Cargo.nix
-          test -s Cargo.nix
-          echo '=== BEGIN CARGO-NIX-BASE64 ==='
-          base64 -w0 Cargo.nix
-          echo
-          echo '=== END CARGO-NIX-BASE64 ==='
       - name: Evaluate flake outputs
         run: nix flake check --no-build --no-update-lock-file
       - name: Verify pinned developer toolchain
         run: nix develop .#default --command bash -c 'cargo --version && rustc --version && node --version'
+      - name: Verify committed per-crate Cargo graph is current
+        shell: bash
+        run: |
+          set -euo pipefail
+          nix develop .#default --command crate2nix generate -f Cargo.toml -o Cargo.nix
+          if test -n "$(git status --porcelain -- Cargo.nix)"; then
+            echo 'ERROR: Cargo.nix is out of date; regenerate and commit it with Cargo.lock' >&2
+            git diff --stat -- Cargo.nix
+            exit 1
+          fi
       # crate2nix builds each third-party crate as a separate derivation.
       # The workspace build below exercises the complete per-crate graph.
       - name: Build all four Rust executables and versioned runtime assets
