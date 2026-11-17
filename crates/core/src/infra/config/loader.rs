@@ -104,12 +104,15 @@ impl ConfigLoader {
       | _ => base_dir.join("feeds")
     };
 
-    let schema_dir =
-      env::var("SCHEMAS_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-          base_dir.join("schemas")
-        });
+    let schema_dir = select_schema_dir(
+      base_dir,
+      env::var("SCHEMAS_DIR").ok().as_deref(),
+      || {
+        PathBuf::from(
+          pulsewire_schemas::schema_dir("fetcher")
+        )
+      }
+    );
 
     let config_schema = load_schema(
       &schema_dir,
@@ -1054,5 +1057,74 @@ fn parse_item_identity(
         )
       ))
     }
+  }
+}
+
+    
+/// Explicit schema overrides are authoritative; otherwise use a
+/// configuration-adjacent schema tree when supplied. Installed CLI
+/// packages keep configuration and schema trees as siblings under
+/// share/pulsewire, so use the shared fetcher schema resolver when
+/// the adjacent tree is absent.
+fn select_schema_dir(
+  config_base: &Path,
+  explicit: Option<&str>,
+  installed_fallback: impl FnOnce() -> PathBuf
+) -> PathBuf {
+  if let Some(path) = explicit {
+    return PathBuf::from(path);
+  }
+
+  let adjacent = config_base.join("schemas");
+  if adjacent.is_dir() {
+    adjacent
+  } else {
+    installed_fallback()
+  }
+}
+
+#[cfg(test)]
+mod schema_location_tests {
+  use super::*;
+
+  #[test]
+  fn no_adjacent_schema_uses_installed_location() {
+    let base = std::env::temp_dir()
+      .join(format!("pulsewire-cli-schema-missing-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(&base).expect("fixture");
+    let installed = PathBuf::from("/test/share/pulsewire/schemas/fetcher");
+    assert_eq!(
+      select_schema_dir(&base, None, || installed.clone()),
+      installed
+    );
+    std::fs::remove_dir_all(base).expect("cleanup");
+  }
+
+  #[test]
+  fn adjacent_schemas_win_without_explicit_override() {
+    let base = std::env::temp_dir()
+      .join(format!("pulsewire-cli-schema-adjacent-{}", std::process::id()));
+    let adjacent = base.join("schemas");
+    let _ = std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(&adjacent).expect("fixture");
+    assert_eq!(
+      select_schema_dir(&base, None, || panic!("fallback not required")),
+      adjacent
+    );
+    std::fs::remove_dir_all(base).expect("cleanup");
+  }
+
+  #[test]
+  fn explicit_schema_override_wins_even_when_missing() {
+    let base = Path::new("/test/config");
+    assert_eq!(
+      select_schema_dir(
+        base,
+        Some("/missing/explicit-schema"),
+        || panic!("fallback must not replace explicit override")
+      ),
+      PathBuf::from("/missing/explicit-schema")
+    );
   }
 }
