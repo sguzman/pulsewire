@@ -27,7 +27,10 @@
           # Rust crate, not a single workspace-wide dependency blob.
           generatedCargoNix = crate2nix.tools.${system}.generatedCargoNix {
             name = "pulsewire";
-            src = ./.;
+            # Force a concrete store source: crate2nix calls pathExists on
+            # Cargo.lock / crate-hashes.json during flake evaluation.
+            src = builtins.path { path = ./.; name = "pulsewire-src"; };
+            additionalCrateHashes = { };
             cargo = rustToolchain;
           };
           cargoNix = import generatedCargoNix {
