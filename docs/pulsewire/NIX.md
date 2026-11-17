@@ -39,6 +39,35 @@ Nix package outputs on supported `x86_64-linux` and `aarch64-linux`:
 | `.#server` | `pulsewire-server` |
 | `.#cli` | `pulsewire-cli` |
 | `.#tui` | `pulsewire-tui` |
+| `.#cargo-deps` | Compiled Cargo dependency artifacts (cache output, not an executable) |
+
+## Cargo dependency artifacts and binary caches
+
+Pulsewire builds with [Crane](https://crane.dev/) and its pinned Rust toolchain.
+`nix build .#default` first builds `.#cargo-deps` as a separate Nix derivation,
+then compiles the workspace using those cached Cargo artifacts. Changing ordinary
+Rust source files does not invalidate the dependency derivation; changing
+`Cargo.toml`, `Cargo.lock`, toolchain, build flags or native dependencies can.
+The split output is also shared by `.#fetcher`, `.#server`, `.#cli` and `.#tui`.
+
+```sh
+# Build the dependency artifacts once without changing the result symlink.
+nix build .#cargo-deps --no-link
+# Confirm that the artifacts have a Nix store path.
+nix path-info .#cargo-deps
+# Build the application, reusing the dependency store output.
+nix build .#default
+```
+
+A Nix store output is *not* automatically a remote binary cache. To keep
+artifacts beyond local garbage collection or reuse them across machines,
+copy the store closure to a configured Nix binary cache (for example,
+`nix copy --to file:///path/to/nix-cache .#cargo-deps`). Other machines must
+be configured to trust or fetch that cache before they can substitute its
+outputs. A standalone `cargo build` or `cargo install` still uses Cargo's
+own target cache: Nix cannot safely ingest arbitrary mutable `target/`
+folders as reproducible substitutes. This flake makes **Nix-driven** Cargo
+build artifacts shareable; it does not redirect every Cargo invocation.
 
 For example:
 
