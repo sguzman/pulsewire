@@ -38,6 +38,8 @@ jobs:
         run: nix flake check --no-build --no-update-lock-file
       - name: Verify pinned developer toolchain
         run: nix develop .#default --command bash -c 'cargo --version && rustc --version && node --version'
+      - name: Build reusable Cargo dependency artifact cache
+        run: nix build .#cargo-deps --no-link --no-update-lock-file
       - name: Build all four Rust executables and versioned runtime assets
         run: nix build .#default --no-link --no-update-lock-file
       - name: Check split package outputs and installed resources
