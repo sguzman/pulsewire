@@ -21,12 +21,19 @@
           # rust-overlay is pinned by flake.lock. The repository's existing
           # rust-toolchain.toml selects the components/channel, including nightly.
           rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-          rustPlatform = pkgs.makeRustPlatform {
-            cargo = rustToolchain;
-            rustc = rustToolchain;
+          # Cargo.nix is committed and generates one derivation per crate.
+          # Avoid evaluation-time derivation imports; regenerate only when
+          # Cargo.lock or dependency settings change.
+          buildRustCrateForPkgs = cratePkgs:
+            cratePkgs.buildRustCrate.override {
+              rustc = rustToolchain;
+              cargo = rustToolchain;
+            };
+          cargoNix = import ./Cargo.nix {
+            inherit pkgs buildRustCrateForPkgs;
           };
           packages = import ./nix/packages.nix {
-            inherit pkgs rustPlatform;
+            inherit pkgs cargoNix;
           };
           commonTools = with pkgs; [
             rustToolchain
@@ -39,6 +46,7 @@
             just
             nodejs
             nixfmt
+            crate2nix
           ];
           mkShell = extra: pkgs.mkShell {
             packages = commonTools ++ extra;

@@ -40,6 +40,38 @@ Nix package outputs on supported `x86_64-linux` and `aarch64-linux`:
 | `.#cli` | `pulsewire-cli` |
 | `.#tui` | `pulsewire-tui` |
 
+## Per-crate compiled dependencies and binary caches
+
+Pulsewire uses [crate2nix](https://nix-community.github.io/crate2nix/)
+to create a **distinct Nix derivation for every Rust crate**, rather than
+bundling all compiled dependencies into a single Cargo target cache.
+The Cargo dependency graph comes from the locked workspace. Each crate's
+Nix store output can be reused when its complete build inputs match, even
+if other crates or unrelated application sources change. Different feature
+sets, toolchain versions, target platforms, native libraries or flags may
+produce distinct derivations for the same named crate.
+
+`nix build .#default` still assembles the fetcher, server, CLI and TUI,
+with their runtime assets; it depends on the individual derivations of
+all workspace members and third-party crates. The per-crate graph is generated into **committed `Cargo.nix`**, avoiding
+import-from-derivation (IFD) during normal Nix evaluation. Regenerate the
+manifest whenever dependency versions, features, or the Cargo lockfile change:
+
+```sh
+nix develop .#default --command crate2nix generate -f Cargo.toml -o Cargo.nix
+```
+
+Review and commit the changed `Cargo.nix` alongside `Cargo.lock`. CI verifies
+that the generated graph is current; it must never silently update the lockfile.
+
+A local `/nix/store` entry is not automatically a remote binary cache.
+To retain crates independently of local garbage collection or share them
+with another machine, configure a Nix binary cache and copy the build's
+store closure (e.g. `nix copy --to file:///path/to/nix-cache .#default`).
+Other machines still need compatible build inputs and a cache configured
+as a substituter. This controls **Nix-driven builds**; standalone `cargo
+build` continues using Cargo's own project `target/` directory.
+
 For example:
 
 ```sh

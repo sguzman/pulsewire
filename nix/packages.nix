@@ -1,23 +1,31 @@
-{ pkgs, rustPlatform }:
+{ pkgs, cargoNix }:
 let
   lib = pkgs.lib;
   version = (builtins.fromTOML (builtins.readFile ../Cargo.toml)).workspace.package.version;
 
-  # One Cargo workspace compilation supplies all four executables. The thin
-  # per-component packages below only select installed binaries and assets.
-  all = rustPlatform.buildRustPackage {
-    pname = "pulsewire";
-    inherit version;
-    src = ../.;
+  # Each workspace member and each upstream dependency is a separate
+  # crate2nix Nix derivation. Unchanged third-party crates are reusable.
+  builds = {
+    fetcher = cargoNix.workspaceMembers."pulsewire-fetcher".build;
+    server = cargoNix.workspaceMembers."pulsewire-server".build;
+    cli = cargoNix.workspaceMembers."pulsewire-cli".build;
+    tui = cargoNix.workspaceMembers."pulsewire-tui".build;
+  };
 
-    cargoLock.lockFile = ../Cargo.lock;
-    cargoBuildFlags = [ "--workspace" "--bins" ];
-    doCheck = false; # Existing Rust/container CI runs the integration suite.
+  # Assemble the four binaries and their runtime assets without rebuilding
+  # any Rust dependency inside this derivation.
+  all = pkgs.runCommand "pulsewire-${version}" {
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+  } ''
+    # Copy only the final binaries. Linux current_exe() resolves symlinks,
+    # so pointing directly to workspace-member store paths would break
+    # executable-relative config and schema discovery in the assembled output.
+    install -Dm755 "${builds.fetcher}/bin/pulsewire" "$out/bin/pulsewire"
+    install -Dm755 "${builds.server}/bin/pulsewire-server" "$out/bin/pulsewire-server"
+    install -Dm755 "${builds.cli}/bin/pulsewire-cli" "$out/bin/pulsewire-cli"
+    install -Dm755 "${builds.tui}/bin/pulsewire-tui" "$out/bin/pulsewire-tui"
+    cd ${../.}
 
-    nativeBuildInputs = with pkgs; [ pkg-config cmake perl makeWrapper ];
-    buildInputs = with pkgs; [ openssl sqlite ];
-
-    postInstall = ''
       # Match executable-relative config/schema lookup in config_paths.rs.
       mkdir -p "$out/share/pulsewire/config/fetcher/feeds" \
         "$out/share/pulsewire/config/server" \
@@ -42,7 +50,9 @@ let
       done
 
       cp -R crates/schemas/fetcher "$out/share/pulsewire/schemas/fetcher"
-      cp -R crates/schemas/server "$out/share/pulsewire/schemas/server"
+      # The source directory is read-only in /nix/store. Keep the copied
+      # schema tree writable until server SQL migrations are installed.
+      cp -R --no-preserve=mode crates/schemas/server "$out/share/pulsewire/schemas/server"
       cp -R crates/schemas/tui "$out/share/pulsewire/schemas/tui"
       cp -R crates/server/res/sql "$out/share/pulsewire/schemas/server/sql"
 
@@ -50,16 +60,7 @@ let
       wrapProgram "$out/bin/pulsewire-tui" \
         --set-default PULSEWIRE_TUI_CONFIG \
         "$out/share/pulsewire/config/tui/config.toml"
-    '';
-
-    meta = {
-      description = "Time-aware feed ingestion, authenticated reader, CLI and TUI";
-      homepage = "https://github.com/sguzman/pulsewire";
-      license = lib.licenses.mit;
-      platforms = lib.platforms.linux;
-      mainProgram = "pulsewire";
-    };
-  };
+  '';
 
   component = name: binary: pkgs.runCommand "pulsewire-${name}-${version}" { } ''
     mkdir -p "$out/bin" "$out/share"
