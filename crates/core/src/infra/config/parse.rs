@@ -50,13 +50,20 @@ pub(crate) fn parse_postgres(
   })
 }
 
-/// Only validate PostgreSQL-specific settings when PostgreSQL is selected.
-/// SQLite can omit [postgres], including its schema and credentials.
+/// Only validate PostgreSQL-specific
+/// settings when PostgreSQL is
+/// selected. SQLite can omit
+/// [postgres], including its schema and
+/// credentials.
 pub(crate) fn parse_postgres_for_dialect(
   dialect: SqlDialect,
   raw: Option<RawPostgres>
-) -> Result<PostgresConfig, ConfigError> {
-  if matches!(dialect, SqlDialect::Sqlite) {
+) -> Result<PostgresConfig, ConfigError>
+{
+  if matches!(
+    dialect,
+    SqlDialect::Sqlite
+  ) {
     return parse_postgres(None);
   }
 
@@ -133,35 +140,53 @@ mod postgres_dialect_tests {
   use super::*;
 
   #[test]
-  fn sqlite_works_without_postgres_section() {
+  fn sqlite_works_without_postgres_section()
+   {
     let postgres =
-      parse_postgres_for_dialect(SqlDialect::Sqlite, None)
-        .expect("SQLite does not require [postgres]");
-    assert_eq!(postgres.schema, "fetcher");
+      parse_postgres_for_dialect(
+        SqlDialect::Sqlite,
+        None
+      )
+      .expect(
+        "SQLite does not require \
+         [postgres]"
+      );
+    assert_eq!(
+      postgres.schema,
+      "fetcher"
+    );
     assert_eq!(postgres.port, 5432);
   }
 
   #[test]
-  fn sqlite_ignores_unused_postgres_schema() {
+  fn sqlite_ignores_unused_postgres_schema()
+   {
     let raw = RawPostgres {
       schema: "not-valid!".into(),
       ..RawPostgres::default()
     };
-    assert!(parse_postgres_for_dialect(
-      SqlDialect::Sqlite,
-      Some(raw)
-    ).is_ok());
+    assert!(
+      parse_postgres_for_dialect(
+        SqlDialect::Sqlite,
+        Some(raw)
+      )
+      .is_ok()
+    );
   }
 
   #[test]
-  fn postgres_still_rejects_invalid_schema() {
+  fn postgres_still_rejects_invalid_schema()
+   {
     let raw = RawPostgres {
       schema: "not-valid!".into(),
       ..RawPostgres::default()
     };
-    assert!(parse_postgres_for_dialect(
-      SqlDialect::Postgres,
-      Some(raw)
-    ).is_err());
+    assert!(
+      parse_postgres_for_dialect(
+        SqlDialect::Postgres,
+        Some(raw)
+      )
+      .is_err()
+    );
   }
 }
