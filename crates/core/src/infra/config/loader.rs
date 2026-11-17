@@ -262,8 +262,10 @@ impl ConfigLoader {
         db_dialect,
         raw_cfg.postgres
       )?;
-    // SQLite must not depend on PostgreSQL-only environment overrides,
-    // secret files, or schema validation.
+    // SQLite must not depend on
+    // PostgreSQL-only environment
+    // overrides, secret files, or
+    // schema validation.
     if matches!(
       db_dialect,
       crate::domain::model::SqlDialect::Postgres
