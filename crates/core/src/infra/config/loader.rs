@@ -106,10 +106,14 @@ impl ConfigLoader {
 
     let schema_dir = select_schema_dir(
       base_dir,
-      env::var("SCHEMAS_DIR").ok().as_deref(),
+      env::var("SCHEMAS_DIR")
+        .ok()
+        .as_deref(),
       || {
         PathBuf::from(
-          pulsewire_schemas::schema_dir("fetcher")
+          pulsewire_schemas::schema_dir(
+            "fetcher"
+          )
         )
       }
     );
@@ -1060,22 +1064,27 @@ fn parse_item_identity(
   }
 }
 
-    
-/// Explicit schema overrides are authoritative; otherwise use a
-/// configuration-adjacent schema tree when supplied. Installed CLI
-/// packages keep configuration and schema trees as siblings under
-/// share/pulsewire, so use the shared fetcher schema resolver when
+/// Explicit schema overrides are
+/// authoritative; otherwise use a
+/// configuration-adjacent schema tree
+/// when supplied. Installed CLI
+/// packages keep configuration and
+/// schema trees as siblings under
+/// share/pulsewire, so use the shared
+/// fetcher schema resolver when
 /// the adjacent tree is absent.
 fn select_schema_dir(
   config_base: &Path,
   explicit: Option<&str>,
-  installed_fallback: impl FnOnce() -> PathBuf
+  installed_fallback: impl FnOnce()
+    -> PathBuf
 ) -> PathBuf {
   if let Some(path) = explicit {
     return PathBuf::from(path);
   }
 
-  let adjacent = config_base.join("schemas");
+  let adjacent =
+    config_base.join("schemas");
   if adjacent.is_dir() {
     adjacent
   } else {
@@ -1088,43 +1097,80 @@ mod schema_location_tests {
   use super::*;
 
   #[test]
-  fn no_adjacent_schema_uses_installed_location() {
+  fn no_adjacent_schema_uses_installed_location()
+   {
     let base = std::env::temp_dir()
-      .join(format!("pulsewire-cli-schema-missing-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&base);
-    std::fs::create_dir_all(&base).expect("fixture");
-    let installed = PathBuf::from("/test/share/pulsewire/schemas/fetcher");
+      .join(format!(
+      "pulsewire-cli-schema-missing-{}",
+      std::process::id()
+    ));
+    let _ =
+      std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(&base)
+      .expect("fixture");
+    let installed = PathBuf::from(
+      "/test/share/pulsewire/schemas/\
+       fetcher"
+    );
     assert_eq!(
-      select_schema_dir(&base, None, || installed.clone()),
+      select_schema_dir(
+        &base,
+        None,
+        || installed.clone()
+      ),
       installed
     );
-    std::fs::remove_dir_all(base).expect("cleanup");
+    std::fs::remove_dir_all(base)
+      .expect("cleanup");
   }
 
   #[test]
-  fn adjacent_schemas_win_without_explicit_override() {
+  fn adjacent_schemas_win_without_explicit_override()
+   {
     let base = std::env::temp_dir()
       .join(format!("pulsewire-cli-schema-adjacent-{}", std::process::id()));
     let adjacent = base.join("schemas");
-    let _ = std::fs::remove_dir_all(&base);
-    std::fs::create_dir_all(&adjacent).expect("fixture");
+    let _ =
+      std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(&adjacent)
+      .expect("fixture");
     assert_eq!(
-      select_schema_dir(&base, None, || panic!("fallback not required")),
+      select_schema_dir(
+        &base,
+        None,
+        || {
+          panic!(
+            "fallback not required"
+          )
+        }
+      ),
       adjacent
     );
-    std::fs::remove_dir_all(base).expect("cleanup");
+    std::fs::remove_dir_all(base)
+      .expect("cleanup");
   }
 
   #[test]
-  fn explicit_schema_override_wins_even_when_missing() {
-    let base = Path::new("/test/config");
+  fn explicit_schema_override_wins_even_when_missing()
+   {
+    let base =
+      Path::new("/test/config");
     assert_eq!(
       select_schema_dir(
         base,
-        Some("/missing/explicit-schema"),
-        || panic!("fallback must not replace explicit override")
+        Some(
+          "/missing/explicit-schema"
+        ),
+        || {
+          panic!(
+            "fallback must not \
+             replace explicit override"
+          )
+        }
       ),
-      PathBuf::from("/missing/explicit-schema")
+      PathBuf::from(
+        "/missing/explicit-schema"
+      )
     );
   }
 }
