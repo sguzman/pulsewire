@@ -40,10 +40,10 @@ jobs:
           set -euo pipefail
           nix run github:nix-community/crate2nix/1cb60331b14f15dad145dbd4e207c1ec110e5675 -- generate -f Cargo.toml -o Cargo.nix
           test -s Cargo.nix
-          echo '=== BEGIN CARGO-NIX-GZIP-BASE64 ==='
-          gzip -9 -c Cargo.nix | base64 -w0
+          echo '=== BEGIN CARGO-NIX-BASE64 ==='
+          base64 -w0 Cargo.nix
           echo
-          echo '=== END CARGO-NIX-GZIP-BASE64 ==='
+          echo '=== END CARGO-NIX-BASE64 ==='
       - name: Evaluate flake outputs
         run: nix flake check --no-build --no-update-lock-file
       - name: Verify pinned developer toolchain
