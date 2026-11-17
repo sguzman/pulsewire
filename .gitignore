@@ -11,3 +11,9 @@ cookies/*
 # local sensitive headers
 headers/*
 !headers/.gitkeep
+
+# Nix-generated local build links and development state
+/result
+/result-*
+/.direnv/
+/.devenv/
