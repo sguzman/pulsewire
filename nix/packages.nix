@@ -17,10 +17,13 @@ let
   all = pkgs.runCommand "pulsewire-${version}" {
     nativeBuildInputs = [ pkgs.makeWrapper ];
   } ''
-    mkdir -p "$out/bin"
-    ln -s "${builds.fetcher}/bin/pulsewire" "$out/bin/pulsewire"
-    ln -s "${builds.server}/bin/pulsewire-server" "$out/bin/pulsewire-server"
-    ln -s "${builds.cli}/bin/pulsewire-cli" "$out/bin/pulsewire-cli"
+    # Copy only the final binaries. Linux current_exe() resolves symlinks,
+    # so pointing directly to workspace-member store paths would break
+    # executable-relative config and schema discovery in the assembled output.
+    install -Dm755 "${builds.fetcher}/bin/pulsewire" "$out/bin/pulsewire"
+    install -Dm755 "${builds.server}/bin/pulsewire-server" "$out/bin/pulsewire-server"
+    install -Dm755 "${builds.cli}/bin/pulsewire-cli" "$out/bin/pulsewire-cli"
+    install -Dm755 "${builds.tui}/bin/pulsewire-tui" "$out/bin/pulsewire-tui"
     cd ${../.}
 
       # Match executable-relative config/schema lookup in config_paths.rs.
@@ -54,7 +57,7 @@ let
       cp -R crates/server/res/sql "$out/share/pulsewire/schemas/server/sql"
 
       cp -R crates/tui/res "$out/share/pulsewire/config/tui"
-      makeWrapper "${builds.tui}/bin/pulsewire-tui" "$out/bin/pulsewire-tui" \
+      wrapProgram "$out/bin/pulsewire-tui" \
         --set-default PULSEWIRE_TUI_CONFIG \
         "$out/share/pulsewire/config/tui/config.toml"
   '';
