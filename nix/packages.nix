@@ -47,7 +47,9 @@ let
       done
 
       cp -R crates/schemas/fetcher "$out/share/pulsewire/schemas/fetcher"
-      cp -R crates/schemas/server "$out/share/pulsewire/schemas/server"
+      # The source directory is read-only in /nix/store. Keep the copied
+      # schema tree writable until server SQL migrations are installed.
+      cp -R --no-preserve=mode crates/schemas/server "$out/share/pulsewire/schemas/server"
       cp -R crates/schemas/tui "$out/share/pulsewire/schemas/tui"
       cp -R crates/server/res/sql "$out/share/pulsewire/schemas/server/sql"
 
