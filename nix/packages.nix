@@ -1,21 +1,26 @@
-{ pkgs, rustPlatform }:
+{ pkgs, craneLib }:
 let
   lib = pkgs.lib;
   version = (builtins.fromTOML (builtins.readFile ../Cargo.toml)).workspace.package.version;
 
-  # One Cargo workspace compilation supplies all four executables. The thin
-  # per-component packages below only select installed binaries and assets.
-  all = rustPlatform.buildRustPackage {
+  # Keep compiled Cargo dependencies in a separate cacheable Nix derivation.
+  # Crane's dummy dependency source prevents ordinary .rs edits from
+  # invalidating this output. Both phases use the same pinned Rust toolchain.
+  sharedArgs = {
     pname = "pulsewire";
     inherit version;
     src = ../.;
-
-    cargoLock.lockFile = ../Cargo.lock;
-    cargoBuildFlags = [ "--workspace" "--bins" ];
-    doCheck = false; # Existing Rust/container CI runs the integration suite.
-
+    cargoExtraArgs = "--workspace --bins --locked";
+    doCheck = false; # Rust/container CI runs the integration suite.
     nativeBuildInputs = with pkgs; [ pkg-config cmake perl makeWrapper ];
     buildInputs = with pkgs; [ openssl sqlite ];
+  };
+  cargoArtifacts = craneLib.buildDepsOnly sharedArgs;
+
+  # One Cargo workspace compilation still supplies all four executables.
+  # Each source change reuses cargoArtifacts when dependencies are unchanged.
+  all = craneLib.buildPackage (sharedArgs // {
+    inherit cargoArtifacts;
 
     postInstall = ''
       # Match executable-relative config/schema lookup in config_paths.rs.
@@ -59,7 +64,7 @@ let
       platforms = lib.platforms.linux;
       mainProgram = "pulsewire";
     };
-  };
+  });
 
   component = name: binary: pkgs.runCommand "pulsewire-${name}-${version}" { } ''
     mkdir -p "$out/bin" "$out/share"
@@ -67,6 +72,7 @@ let
     ln -s "${all}/share/pulsewire" "$out/share/pulsewire"
   '';
 in {
+  cargo-deps = cargoArtifacts;
   default = all;
   pulsewire = all;
   fetcher = component "fetcher" "pulsewire";
