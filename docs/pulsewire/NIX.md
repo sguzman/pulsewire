@@ -98,7 +98,12 @@ versioned resource trees under `share/pulsewire/`:
 The fetcher and server use their existing executable-relative resource lookup
 or a private operator-supplied `CONFIG_PATH`/`SERVER_CONFIG_PATH` and
 `SCHEMAS_DIR`. The TUI package supplies its bundled non-authenticating
-config by default; `PULSEWIRE_TUI_CONFIG` still overrides it. No passwords,
+config by default; `PULSEWIRE_TUI_CONFIG` still overrides it. The CLI
+`validate` and guarded `clean` commands first honor `SCHEMAS_DIR` and
+configuration-adjacent `schemas/`, then locate the installed fetcher
+schema tree automatically. `validate` never connects to a database;
+when validating the packaged PostgreSQL example, its intentionally
+empty password still requires a private runtime-only value. No passwords,
 tokens, keys or private data belong in a Nix expression, `flake.lock`, or
 the world-readable Nix store.
 
