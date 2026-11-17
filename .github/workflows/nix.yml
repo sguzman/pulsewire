@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          nix run github:nix-community/crate2nix/1cb60331b14f15dad145dbd4e207c1ec110e5675 -- generate -f Cargo.toml -o Cargo.nix
+          nix run github:NixOS/nixpkgs/b349185bb79c7cf7ad8ea8c097931730bf473c71#crate2nix -- generate -f Cargo.toml -o Cargo.nix
           test -s Cargo.nix
           echo '=== BEGIN CARGO-NIX-BASE64 ==='
           base64 -w0 Cargo.nix
