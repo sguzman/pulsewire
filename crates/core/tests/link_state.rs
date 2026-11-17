@@ -1,7 +1,6 @@
 use pulsewire_core::domain::link_state::{compute_delay_seconds, LinkPhase, LinkState, NextAction};
 
 #[test]
-
 fn delay_is_clamped_and_jittered() {
   let d = compute_delay_seconds(
     10, 3, 60, 0.1, 0.5
@@ -10,7 +9,6 @@ fn delay_is_clamped_and_jittered() {
 }
 
 #[test]
-
 fn decide_action_respects_next_action_at()
  {
   let mut s = LinkState::initial(

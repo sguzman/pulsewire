@@ -64,7 +64,7 @@ pub(crate) struct RawSqlite {
   pub path: String
 }
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub(crate) struct RawPostgres {
   #[serde(default = "default_pg_user")]
   pub user:     String,
@@ -84,6 +84,23 @@ pub(crate) struct RawPostgres {
     default = "default_pg_schema"
   )]
   pub schema:   String
+}
+
+// Keep an omitted [postgres] section
+// consistent with the field-level Serde
+// defaults; deriving Default would
+// instead leave schema empty.
+impl Default for RawPostgres {
+  fn default() -> Self {
+    Self {
+      user:     default_pg_user(),
+      password: default_pg_password(),
+      host:     default_pg_host(),
+      port:     default_pg_port(),
+      db:       default_pg_database(),
+      schema:   default_pg_schema()
+    }
+  }
 }
 
 impl std::fmt::Debug for RawPostgres {
