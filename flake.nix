@@ -3,11 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    # Crane splits dependency compilation into a reusable Nix store output.
+    crane.url = "github:ipetkov/crane";
     rust-overlay.url = "github:oxalica/rust-overlay";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, rust-overlay }:
+  outputs = { self, nixpkgs, rust-overlay, crane }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
       forEachSystem = nixpkgs.lib.genAttrs systems;
@@ -21,12 +23,11 @@
           # rust-overlay is pinned by flake.lock. The repository's existing
           # rust-toolchain.toml selects the components/channel, including nightly.
           rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-          rustPlatform = pkgs.makeRustPlatform {
-            cargo = rustToolchain;
-            rustc = rustToolchain;
-          };
+          # Use the same pinned Rust toolchain for dependency artifacts
+          # and application outputs, so their hashes stay compatible.
+          craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
           packages = import ./nix/packages.nix {
-            inherit pkgs rustPlatform;
+            inherit pkgs craneLib;
           };
           commonTools = with pkgs; [
             rustToolchain
