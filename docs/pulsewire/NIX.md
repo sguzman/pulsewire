@@ -53,11 +53,16 @@ produce distinct derivations for the same named crate.
 
 `nix build .#default` still assembles the fetcher, server, CLI and TUI,
 with their runtime assets; it depends on the individual derivations of
-all workspace members and third-party crates. The generated Cargo.nix is
-currently calculated via **import from derivation (IFD)**, which may reduce
-build evaluation parallelism. That trade-off should be revisited if the
-workspace grows or Nix evaluation becomes slow: a generated, committed
-Cargo.nix avoids IFD but must be regenerated on dependency updates.
+all workspace members and third-party crates. The per-crate graph is generated into **committed `Cargo.nix`**, avoiding
+import-from-derivation (IFD) during normal Nix evaluation. Regenerate the
+manifest whenever dependency versions, features, or the Cargo lockfile change:
+
+```sh
+nix develop .#default --command crate2nix generate -f Cargo.toml -o Cargo.nix
+```
+
+Review and commit the changed `Cargo.nix` alongside `Cargo.lock`. CI verifies
+that the generated graph is current; it must never silently update the lockfile.
 
 A local `/nix/store` entry is not automatically a remote binary cache.
 To retain crates independently of local garbage collection or share them
