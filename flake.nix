@@ -3,13 +3,11 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-    # Generate an independent Nix derivation for each Rust crate.
-    crate2nix.url = "github:nix-community/crate2nix";
     rust-overlay.url = "github:oxalica/rust-overlay";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, crate2nix }:
+  outputs = { self, nixpkgs, rust-overlay }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
       forEachSystem = nixpkgs.lib.genAttrs systems;
@@ -23,23 +21,16 @@
           # rust-overlay is pinned by flake.lock. The repository's existing
           # rust-toolchain.toml selects the components/channel, including nightly.
           rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-          # Generate a Nix build graph from Cargo.lock: one derivation per
-          # Rust crate, not a single workspace-wide dependency blob.
-          generatedCargoNix = crate2nix.tools.${system}.generatedCargoNix {
-            name = "pulsewire";
-            # Force a concrete store source: crate2nix calls pathExists on
-            # Cargo.lock / crate-hashes.json during flake evaluation.
-            src = builtins.path { path = ./.; name = "pulsewire-src"; };
-            additionalCrateHashes = { };
-            cargo = rustToolchain;
-          };
-          cargoNix = import generatedCargoNix {
-            inherit pkgs;
-            buildRustCrateForPkgs = crate:
-              pkgs.buildRustCrate.override {
-                rustc = rustToolchain;
-                cargo = rustToolchain;
-              };
+          # Cargo.nix is committed and generates one derivation per crate.
+          # Avoid evaluation-time derivation imports; regenerate only when
+          # Cargo.lock or dependency settings change.
+          buildRustCrateForPkgs = cratePkgs:
+            cratePkgs.buildRustCrate.override {
+              rustc = rustToolchain;
+              cargo = rustToolchain;
+            };
+          cargoNix = import ./Cargo.nix {
+            inherit pkgs buildRustCrateForPkgs;
           };
           packages = import ./nix/packages.nix {
             inherit pkgs cargoNix;
@@ -55,6 +46,7 @@
             just
             nodejs
             nixfmt
+            crate2nix
           ];
           mkShell = extra: pkgs.mkShell {
             packages = commonTools ++ extra;
